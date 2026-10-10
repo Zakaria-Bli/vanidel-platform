@@ -290,7 +290,7 @@ Consent records are historical. For each Contact and consent type, the effective
 
 Marketing exports must include only Contacts whose effective state for the required consent type is granted. Exported contact details should come from the latest Participation snapshot for that Contact.
 
-## 16. Analytics
+## 15. Analytics
 
 Use a hybrid approach.
 

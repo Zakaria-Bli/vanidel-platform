@@ -43,7 +43,7 @@ The codebase should be designed so those phases can be added later, but **future
 - Ticket review, mainly to verify drawn winners.
 - Duplicate prevention at submission.
 
-There is no moderation step: no approval or rejection. Every accepted submission enters the draw pool. See section 7.
+There is no moderation step: no approval or rejection. Every accepted submission enters the draw pool. See [SPECIFICATION §9](SPECIFICATION.md#9-participation-review-no-moderation).
 
 ### Draws
 

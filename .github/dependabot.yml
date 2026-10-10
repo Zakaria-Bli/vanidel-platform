@@ -1,0 +1,56 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: friday
+    open-pull-requests-limit: 10
+    labels:
+      - dependencies
+    ignore:
+      - dependency-name: '@types/node'
+        versions:
+          - '>=25'
+    groups:
+      payload:
+        patterns:
+          - payload
+          - '@payloadcms/*'
+      next:
+        patterns:
+          - next
+          - '@next/*'
+          - eslint-config-next
+      react:
+        patterns:
+          - react
+          - react-dom
+          - '@types/react'
+          - '@types/react-dom'
+      testing:
+        patterns:
+          - vitest
+          - '@vitest/*'
+      lint-format:
+        patterns:
+          - eslint
+          - eslint-*
+          - '@eslint/*'
+          - prettier
+          - prettier-*
+      types:
+        patterns:
+          - '@types/*'
+
+  - package-ecosystem: github-actions
+    # Include the composite setup action, which `/` alone does not cover.
+    directories:
+      - /
+      - /.github/actions/*
+    schedule:
+      interval: weekly
+      day: friday
+    labels:
+      - dependencies
+      - ci

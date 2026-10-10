@@ -12,6 +12,10 @@
 - [`architecture/DOMAIN_MODEL.md`](architecture/DOMAIN_MODEL.md) — domain boundaries and core entities.
 - [`architecture/adr/0001-use-payload-nextjs-postgresql.md`](architecture/adr/0001-use-payload-nextjs-postgresql.md) — architecture decision record.
 
+## Operations
+
+- [`operations/DEPENDENCIES.md`](operations/DEPENDENCIES.md) — dependency exceptions, overrides, ownership, and review policy.
+
 ## Later
 
 Before production, add:

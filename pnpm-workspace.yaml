@@ -1,0 +1,23 @@
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+
+# Deprecations we can't act on yet; keeps `pnpm install` output clean.
+allowedDeprecatedVersions:
+  # ESLint 10 is out, but eslint-config-next's react, jsx-a11y and import plugins only support ESLint 9.
+  eslint: 9.39.5
+  # Pulled in by drizzle-kit, which @payloadcms/db-postgres pins.
+  '@esbuild-kit/core-utils': 3.3.2
+  '@esbuild-kit/esm-loader': 2.6.5
+
+auditConfig:
+  # Accepted braces exception; owner, exposure, and review date: docs/operations/DEPENDENCIES.md.
+  ignoreGhsas:
+    - GHSA-vfj7-8cjw-p6xm
+
+overrides:
+  # Security floors for transitive dependencies; rationale and removal criteria in the same document.
+  dompurify: ^3.4.16
+  esbuild: ^0.25.0
+  undici: ^7.29.1

@@ -1,0 +1,100 @@
+# Vanidel
+
+Vanidel is a Next.js and Payload CMS application backed by PostgreSQL. Architecture and product decisions live in [`docs/README.md`](docs/README.md).
+
+## Requirements
+
+- Node.js `24.15.0` (see `.node-version`)
+- pnpm `11.15.0` (via Corepack)
+- Docker for a throwaway PostgreSQL 17 container
+
+```sh
+corepack enable
+pnpm install --frozen-lockfile
+cp .env.example .env
+```
+
+Set a unique `PAYLOAD_SECRET` (at least 32 characters) in `.env`; generate one with `openssl rand -base64 32`. Start PostgreSQL with the credentials from `.env.example`:
+
+```sh
+docker run -d --rm --name vanidel-postgres -p 127.0.0.1:5432:5432 \
+  -e POSTGRES_USER=payload -e POSTGRES_PASSWORD=payload-local -e POSTGRES_DB=vanidel \
+  postgres:17-alpine
+docker exec vanidel-postgres pg_isready -U payload -d vanidel
+# Wait for readiness before creating the separate test database.
+docker exec vanidel-postgres createdb -U payload vanidel_test
+```
+
+The container's data is disposable. Stop and remove it with `docker stop vanidel-postgres`; this deletes its databases. Run the setup commands again to start fresh. Do not run these commands against shared or production infrastructure.
+
+## Development
+
+```sh
+pnpm dev
+```
+
+The app is available at <http://localhost:3000>; Payload admin is at <http://localhost:3000/admin>. In development, Payload pushes schema changes to the database directly.
+
+Uploads currently use Payload's local storage in `media/`. The SeaweedFS (S3 API) storage described in `docs/architecture/ARCHITECTURE.md` is not wired yet.
+
+Run supporting services in throwaway Docker containers instead of installing them or adding Docker files to this repository. Storage works the same way once the S3 adapter is wired: run SeaweedFS (`chrislusf/seaweedfs`) in a container with its S3 port bound to `127.0.0.1`.
+
+## Payload schema changes
+
+After changing collections or fields, regenerate the generated files and create a migration:
+
+```sh
+pnpm generate:types
+pnpm generate:importmap
+pnpm migrate:create <name>
+```
+
+Commit the files in `src/migrations/`. CI fails when the schema changes without a migration or when generated files are stale. Generated files should not be edited by hand.
+
+With `NODE_ENV=production`, pending migrations run automatically when Payload initializes. `pnpm migrate` and `pnpm migrate:status` run or inspect them manually.
+
+## Checks and tests
+
+```sh
+pnpm lint            # fails on any warning
+pnpm format:check
+pnpm type-check      # regenerates Next.js route types, then runs TypeScript
+pnpm audit:dependencies
+```
+
+Type checking clears only `.next/types` and `.next/dev/types` before running `next typegen`; the build and caches are preserved. This repairs stale route references after a branch switch without running the application. Avoid running it alongside `pnpm dev` or `pnpm build`, which also write route types. Use `pnpm devsafe` when the full Next.js cache needs resetting.
+
+pnpm 11 can install dependencies automatically before running scripts when it detects an outdated installation. Install from the lockfile first. For checks against an already installed dependency tree without automatic installation (for example an offline or read-only audit), use `pnpm --config.verify-deps-before-run=ignore <script>`. This option does not verify that the installed dependencies match the lockfile.
+
+Tests require an isolated PostgreSQL database initialized through committed migrations. Never point `DATABASE_URL` in `.env.test` at development, shared, or production data.
+
+```sh
+cp .env.test.example .env.test
+pnpm test           # applies committed migrations with schema push disabled, then tests Payload
+pnpm test:coverage  # integration-test coverage
+```
+
+The test setup loads `.env.test` explicitly, requires a local database whose name ends in `_test`, and fails if the file is missing. `DOTENV_CONFIG_PATH` can select another test-only environment file. Tests apply pending migrations, check that a second migration run is a no-op, exercise user persistence, and close the Payload instance. CI starts with an empty database.
+
+If an old test database was initialized by schema push, tests refuse it without deleting data. Recreate only your disposable `vanidel_test` database:
+
+```sh
+docker exec vanidel-postgres dropdb -U payload vanidel_test
+docker exec vanidel-postgres createdb -U payload vanidel_test
+```
+
+Dependency exceptions, override rationale, ownership, and review dates are documented in [`docs/operations/DEPENDENCIES.md`](docs/operations/DEPENDENCIES.md).
+
+## Build
+
+```sh
+pnpm build
+pnpm start
+```
+
+`/api/health` is a liveness check only; it does not probe PostgreSQL or media storage. Deployment (reverse proxy, process management, storage, backups) is not set up yet; see `docs/README.md` for the documents planned before production.
+
+## Project documentation
+
+- [`docs/product/`](docs/product/) — scope, specification, and user flows
+- [`docs/architecture/`](docs/architecture/) — system architecture, domain model, and ADRs

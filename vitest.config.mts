@@ -1,0 +1,37 @@
+import './src/tests/loadTestEnv'
+
+import path from 'node:path'
+import { defineConfig } from 'vitest/config'
+
+export default defineConfig({
+  // Mirrors the `paths` in tsconfig.json.
+  resolve: {
+    alias: {
+      '@payload-config': path.resolve(import.meta.dirname, 'src/payload.config.ts'),
+      '@': path.resolve(import.meta.dirname, 'src'),
+    },
+  },
+  test: {
+    environment: 'node',
+    setupFiles: ['./vitest.setup.ts'],
+    include: ['src/tests/int/**/*.int.spec.ts'],
+    clearMocks: true,
+    reporters: process.env.CI ? ['default', 'github-actions'] : ['default'],
+    coverage: {
+      provider: 'v8',
+      reporter: process.env.CI
+        ? ['text', 'text-summary', 'json-summary']
+        : ['text', 'text-summary'],
+      reportOnFailure: true,
+      reportsDirectory: './coverage',
+      include: ['src/lib/**/*.{js,jsx,ts,tsx}', 'src/modules/**/*.{js,jsx,ts,tsx}'],
+      exclude: [
+        'src/**/*.d.ts',
+        'src/**/*.{test,spec}.{js,jsx,ts,tsx}',
+        'src/**/__tests__/**',
+        'src/payload-types.ts',
+        'src/app/(payload)/**',
+      ],
+    },
+  },
+})

@@ -1,0 +1,10 @@
+node_modules/
+.next/
+coverage/
+out/
+build/
+pnpm-lock.yaml
+src/payload-types.ts
+src/payload-generated-schema.ts
+src/app/(payload)/admin/importMap.js
+src/migrations/

@@ -1,0 +1,76 @@
+{
+  "name": "vanidel",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vanidel contest platform built with Payload CMS",
+  "type": "module",
+  "packageManager": "pnpm@11.15.0",
+  "engines": {
+    "node": ">=24.15.0",
+    "pnpm": "11.15.0"
+  },
+  "scripts": {
+    "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev",
+    "devsafe": "pnpm clean && cross-env NODE_OPTIONS=--no-deprecation next dev",
+    "build": "cross-env NODE_OPTIONS=\"--no-deprecation --max-old-space-size=4096\" next build",
+    "start": "cross-env NODE_OPTIONS=--no-deprecation next start",
+    "lint": "cross-env NODE_OPTIONS=--no-deprecation eslint . --max-warnings 0",
+    "lint:fix": "cross-env NODE_OPTIONS=--no-deprecation eslint . --fix",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "type-check": "node src/lib/scripts/type-check.mjs",
+    "test": "pnpm run test:int",
+    "test:int": "cross-env NODE_ENV=test NODE_OPTIONS=--no-deprecation vitest run --config ./vitest.config.mts",
+    "test:watch": "cross-env NODE_ENV=test NODE_OPTIONS=--no-deprecation vitest --config ./vitest.config.mts",
+    "test:coverage": "cross-env NODE_ENV=test NODE_OPTIONS=--no-deprecation vitest run --coverage --config ./vitest.config.mts",
+    "payload": "cross-env NODE_OPTIONS=--no-deprecation payload",
+    "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
+    "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
+    "migrate": "cross-env NODE_OPTIONS=--no-deprecation payload migrate",
+    "migrate:create": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:create",
+    "migrate:status": "cross-env NODE_OPTIONS=--no-deprecation payload migrate:status",
+    "audit:dependencies": "pnpm audit --audit-level moderate",
+    "clean": "node src/lib/scripts/clean.mjs",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}": [
+      "eslint --fix"
+    ],
+    "*.{js,jsx,mjs,cjs,ts,tsx,mts,cts,json,jsonc,md,css,scss,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "dependencies": {
+    "@payloadcms/db-postgres": "3.90.2",
+    "@payloadcms/next": "3.90.2",
+    "@payloadcms/richtext-lexical": "3.90.2",
+    "@payloadcms/ui": "3.90.2",
+    "cross-env": "^7.0.3",
+    "dotenv": "16.4.7",
+    "graphql": "^16.8.1",
+    "next": "16.3.8",
+    "payload": "3.90.2",
+    "react": "19.2.6",
+    "react-dom": "19.2.6",
+    "sharp": "0.35.5",
+    "zod": "4.6.5"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^21.2.3",
+    "@commitlint/config-conventional": "^21.2.3",
+    "@eslint/compat": "2.1.1",
+    "@eslint/js": "9.39.5",
+    "@types/node": "24.19.1",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "@vitest/coverage-v8": "4.1.11",
+    "eslint": "^9.16.0",
+    "eslint-config-next": "16.3.8",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.4.2",
+    "typescript": "5.7.3",
+    "vitest": "4.1.11"
+  }
+}
