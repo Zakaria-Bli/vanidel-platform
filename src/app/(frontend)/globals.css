@@ -1,0 +1,251 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+
+/*
+ * Light theme only: the public site has no dark mode, so the shadcn `.dark` block
+ * and `dark` custom variant are intentionally omitted.
+ */
+
+@theme inline {
+  /* Font families come from next/font variables set on <html> (see src/lib/fonts). */
+  --font-sans: var(--font-body);
+  --font-heading: var(--font-display);
+
+  /* Brand Colors */
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-range-creme: var(--range-creme);
+  --color-range-flan: var(--range-flan);
+  --color-range-poudres: var(--range-poudres);
+  --color-range-decoration: var(--range-decoration);
+
+  /* Background */
+  --color-background: var(--background);
+  --color-popover: var(--popover);
+  --color-card: var(--card);
+
+  /* Foreground */
+  --color-foreground: var(--foreground);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover-foreground: var(--popover-foreground);
+
+  /* Default Colors */
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+
+  /* Status */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+
+  /* Radius */
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Breakpoints */
+  --breakpoint-xs: 22rem;
+
+  /* Sidebar */
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  /* Chart */
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+}
+
+:root {
+  /* Fonts — Latin: Montserrat body, Poppins headings. */
+  --font-body: var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-poppins), var(--font-montserrat), ui-sans-serif, system-ui, sans-serif;
+
+  /* Brand Colors */
+  /*
+   * Brand red is #ED1C24; #E91C23 is the nearest shade with 4.5:1 for white text (AA), and
+   * is visually indistinguishable.
+   */
+  --primary: oklch(0.596 0.231 27.08); /* #E91C23 */
+  --primary-foreground: oklch(1 0 0); /* #FFFFFF */
+  /* Preferred for red links and small red text (6.85:1); primary only just passes AA. */
+  --primary-hover: oklch(0.493 0.192 26.44); /* #B5121B */
+
+  --secondary: oklch(0.969 0.02 84.59); /* #FBF4E6 */
+  --secondary-foreground: oklch(0.244 0.006 0.59); /* #231F20 */
+
+  /* Range colours are for backgrounds and accents; most are too light for text on white. */
+  --range-creme: oklch(0.888 0.07 87.37); /* #EED8A5 */
+  --range-flan: oklch(0.612 0.103 241.36); /* #448BBC */
+  --range-poudres: oklch(0.769 0.164 67.01); /* #F89C1B */
+  --range-decoration: oklch(0.639 0.213 33.01); /* #F14624 */
+
+  /* Background */
+  --background: oklch(1 0 0); /* #FFFFFF */
+  --popover: oklch(1 0 0); /* #FFFFFF */
+  --card: oklch(1 0 0); /* #FFFFFF */
+
+  /* Foreground */
+  --foreground: oklch(0.244 0.006 0.59); /* #231F20 */
+  --card-foreground: oklch(0.244 0.006 0.59); /* #231F20 */
+  --popover-foreground: oklch(0.244 0.006 0.59); /* #231F20 */
+
+  /* Default Colors */
+  --accent: oklch(0.948 0.023 14.26); /* #FDE8E9 */
+  --accent-foreground: oklch(0.493 0.192 26.44); /* #B5121B */
+  --muted: oklch(0.965 0.005 78.3); /* #F5F3F0 */
+  --muted-foreground: oklch(0.513 0.008 5.84); /* #6B6566 */
+  /* Neutral so a focused field is not mistaken for an error; applied at 50% opacity. */
+  --ring: oklch(0.244 0.006 0.59); /* #231F20 */
+  --input: oklch(0.916 0.008 61.45); /* #E7E2DE */
+  --border: oklch(0.916 0.008 61.45); /* #E7E2DE */
+  /* Close to primary-hover: always pair error colour with an icon and text. */
+  --destructive: oklch(0.505 0.19 27.52); /* #B91C1C */
+
+  /* Status */
+  --success: oklch(0.527 0.137 150.07); /* #15803D */
+  --success-foreground: oklch(1 0 0); /* #FFFFFF */
+
+  /* Radius */
+  --radius: 0.625rem;
+
+  /* Sidebar */
+  --sidebar: var(--background);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
+
+  /* Chart */
+  --chart-1: var(--primary);
+  --chart-2: var(--range-flan);
+  --chart-3: var(--range-poudres);
+  --chart-4: var(--range-decoration);
+  --chart-5: var(--range-creme);
+}
+
+/*
+ * Arabic: Montserrat Arabic body (self-hosted, see src/lib/fonts), Alexandria headings.
+ */
+:lang(ar),
+[dir='rtl'] {
+  --font-body:
+    var(--font-montserrat-arabic), var(--font-alexandria), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-alexandria), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-heading;
+  }
+  button {
+    @apply cursor-pointer;
+  }
+
+  /* Typography Scale — mobile first; h1/h2 step up from md. */
+  h1 {
+    @apply text-[2rem] font-bold leading-tight md:text-[2.75rem];
+    letter-spacing: -0.01em;
+  }
+
+  h2 {
+    @apply text-[1.625rem] font-semibold leading-tight md:text-[2rem];
+    letter-spacing: -0.01em;
+  }
+
+  h3 {
+    @apply text-[1.375rem] font-semibold leading-snug;
+  }
+
+  h4 {
+    @apply text-xl font-semibold leading-snug;
+  }
+
+  h5 {
+    @apply text-lg font-semibold leading-snug;
+  }
+
+  h6 {
+    @apply text-base font-semibold leading-snug;
+  }
+
+  /* muted-foreground keeps 5.7:1 contrast on white (AA). */
+  small {
+    @apply text-sm font-normal leading-normal text-muted-foreground;
+    letter-spacing: 0.01em;
+  }
+
+  /*
+   * Arabic: letter-spacing breaks the joins between Arabic letters, and Alexandria's tall
+   * letters and diacritics need more line height.
+   */
+  :is(h1, h2, h3, h4, h5, h6):is(:lang(ar), [dir='rtl'] *) {
+    @apply leading-[1.45];
+    letter-spacing: 0;
+  }
+
+  small:is(:lang(ar), [dir='rtl'] *) {
+    letter-spacing: 0;
+  }
+}
+
+@utility flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+@utility flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+@utility flex-start {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+@utility flex-end {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
