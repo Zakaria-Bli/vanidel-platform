@@ -1,6 +1,7 @@
 import type { GlobalConfig } from 'payload'
 
 import { anyone, isAdmin, isStaffField } from '../access'
+import { integer } from '../fields/integer'
 import { groups, label } from '../fields/label'
 
 export const Settings: GlobalConfig = {
@@ -65,6 +66,7 @@ export const Settings: GlobalConfig = {
       label: label('Durée de conservation (jours)', 'Retention period (days)'),
       type: 'number',
       min: 1,
+      validate: integer,
       admin: {
         step: 1,
         description: label(

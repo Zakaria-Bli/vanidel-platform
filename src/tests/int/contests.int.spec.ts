@@ -102,6 +102,35 @@ describe('publishing', () => {
   })
 })
 
+describe('whole numbers', () => {
+  it.each([
+    ['period length', { draw: { periodDays: 1.5, winnersPerDraw: 1 } }],
+    ['winners per draw', { draw: { periodDays: 7, winnersPerDraw: 1.5 } }],
+    ['entry limit', { entryLimitPerPhone: 1.5 }],
+    ['prize quantity', { prizes: [{ title: 'Panier', quantity: 1.5 }] }],
+  ])('refuses a fractional %s', async (_, data) => {
+    const contest = await track(createDraftContest(payload))
+
+    await expect(
+      payload.update({ collection: 'contests', id: contest.id, locale: 'fr', data }),
+    ).rejects.toThrow()
+  })
+
+  it('still accepts whole numbers', async () => {
+    const contest = await track(createDraftContest(payload))
+
+    const updated = await payload.update({
+      collection: 'contests',
+      id: contest.id,
+      data: { draw: { periodDays: 14, winnersPerDraw: 3 }, entryLimitPerPhone: 2 },
+    })
+    expect(updated).toMatchObject({
+      draw: { periodDays: 14, winnersPerDraw: 3 },
+      entryLimitPerPhone: 2,
+    })
+  })
+})
+
 describe('contest rules', () => {
   it('lets a commercial user create and edit but not delete', async () => {
     const contest = await track(createDraftContest(payload))

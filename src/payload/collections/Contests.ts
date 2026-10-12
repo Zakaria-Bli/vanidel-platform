@@ -6,6 +6,7 @@ import { contestStatuses } from '@/modules/contests/domain/phase'
 import { missingTranslations, valueAt } from '@/modules/contests/domain/translations'
 
 import { hasRole, isAdmin, isStaff } from '../access'
+import { integer } from '../fields/integer'
 import { groups, label } from '../fields/label'
 
 export const reservedSlugs = ['archives']
@@ -172,6 +173,7 @@ export const Contests: CollectionConfig = {
                   type: 'number',
                   min: 1,
                   admin: { step: 1 },
+                  validate: integer,
                 },
               ],
             },
@@ -222,6 +224,7 @@ export const Contests: CollectionConfig = {
               defaultValue: 1,
               min: 1,
               admin: { step: 1 },
+              validate: integer,
             },
             {
               name: 'consents',
@@ -283,6 +286,7 @@ export const Contests: CollectionConfig = {
                   defaultValue: 7,
                   min: 1,
                   admin: { step: 1 },
+                  validate: integer,
                 },
                 {
                   name: 'periodStartDay',
@@ -304,6 +308,7 @@ export const Contests: CollectionConfig = {
                   defaultValue: 1,
                   min: 1,
                   admin: { step: 1 },
+                  validate: integer,
                 },
               ],
             },

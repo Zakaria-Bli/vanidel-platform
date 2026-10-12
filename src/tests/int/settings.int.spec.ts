@@ -50,6 +50,12 @@ describe('settings', () => {
     ).rejects.toThrow()
   })
 
+  it('requires a whole number of retention days', async () => {
+    await expect(
+      payload.updateGlobal({ slug: 'settings', data: { retentionDays: 30.5 } }),
+    ).rejects.toThrow()
+  })
+
   it('validates the tracking IDs', async () => {
     await expect(
       payload.updateGlobal({ slug: 'settings', data: { ga4Id: 'UA-123' } }),
