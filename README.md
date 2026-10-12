@@ -43,7 +43,7 @@ Run supporting services in throwaway Docker containers instead of installing the
 pnpm seed
 ```
 
-Creates `admin@vanidel.local` and `commercial@vanidel.local` (passwords from `SEED_ADMIN_PASSWORD` and `SEED_COMMERCIAL_PASSWORD` in `.env`) and a published French/Arabic contest at `/concours/concours-demo`, open for four weeks, with placeholder images. It is safe to re-run: existing users, images and the contest are left as they are. It refuses to run with `NODE_ENV=production`. Like `pnpm dev`, it pushes schema changes to the development database; to seed a database managed by migrations instead, run `pnpm migrate` first and seed with `PAYLOAD_MIGRATING=true pnpm seed`.
+Creates `admin@vanidel.local` and `commercial@vanidel.local` (passwords from `SEED_ADMIN_PASSWORD` and `SEED_COMMERCIAL_PASSWORD` in `.env`) and a published French/Arabic contest at `/concours/gamme-mix-2026`, open for four weeks, with placeholder images. Its texts, including the consent wording (versioned `placeholder-2026-10`), are placeholders until Vanidel supplies its own. It is safe to re-run: existing users, images and the contest are left as they are. It refuses to run with `NODE_ENV=production`. Like `pnpm dev`, it pushes schema changes to the development database; to seed a database managed by migrations instead, run `pnpm migrate` first and seed with `PAYLOAD_MIGRATING=true pnpm seed`.
 
 ### Upload storage
 
