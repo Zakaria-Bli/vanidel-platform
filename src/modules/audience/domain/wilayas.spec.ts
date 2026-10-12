@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { isWilayaCode, wilayas } from './wilayas'
+import { isWilayaCode, wilayaLabel, wilayas } from './wilayas'
 
 describe('wilayas', () => {
   it('lists the 69 wilayas in code order', () => {
@@ -21,5 +21,11 @@ describe('wilayas', () => {
     expect(isWilayaCode('69')).toBe(true)
     expect(isWilayaCode('70')).toBe(false)
     expect(isWilayaCode(16)).toBe(false)
+  })
+
+  it('labels wilayas with their code', () => {
+    const [adrar] = wilayas
+    expect(wilayaLabel(adrar, 'fr')).toBe('01 - Adrar')
+    expect(wilayaLabel(adrar, 'ar')).toBe('01 - أدرار')
   })
 })

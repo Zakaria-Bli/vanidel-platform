@@ -28,6 +28,13 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  experimental: {
+    serverActions: {
+      // Receipt photos are resized in the browser to a few hundred KB, but an undecodable one
+      // (HEIC outside Safari) is sent as is; 10 MB, the service's limit, plus multipart overhead.
+      bodySizeLimit: '11mb',
+    },
+  },
   turbopack: {
     root: path.resolve(dirname),
   },

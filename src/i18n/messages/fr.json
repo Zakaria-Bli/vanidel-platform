@@ -28,5 +28,42 @@
     "formTitle": "Formulaire de participation",
     "opensOn": "Les participations ouvrent le {date}.",
     "ended": "Ce concours est terminé. Merci à tous les participants !"
+  },
+  "participation": {
+    "optional": "(facultatif)",
+    "consentsLegend": "Consentements",
+    "readRules": "Lire le règlement",
+    "submit": "Envoyer ma participation",
+    "sending": "Envoi en cours…",
+    "fields": {
+      "name": "Nom et prénom",
+      "phone": "Numéro de téléphone",
+      "email": "E-mail",
+      "wilaya": "Wilaya",
+      "wilayaPlaceholder": "Choisissez votre wilaya",
+      "ticket": "Photo du ticket de caisse",
+      "ticketHint": "Une photo nette et lisible du ticket entier, montrant l’achat (JPEG, PNG ou WebP)."
+    },
+    "success": {
+      "title": "Participation enregistrée !",
+      "body": "Merci et bonne chance. Gardez votre ticket de caisse : il vous sera demandé si vous êtes tiré au sort."
+    },
+    "errors": {
+      "contest-not-found": "Ce concours n’existe pas ou n’est plus disponible.",
+      "contest-not-open": "Les participations ne sont pas encore ouvertes.",
+      "contest-closed": "Ce concours est terminé.",
+      "invalid-name": "Indiquez votre nom et prénom.",
+      "invalid-phone": "Indiquez un numéro de mobile algérien valide (05, 06 ou 07).",
+      "invalid-email": "Indiquez une adresse e-mail valide.",
+      "invalid-wilaya": "Choisissez votre wilaya.",
+      "consent-required": "Cette case est obligatoire pour participer.",
+      "ticket-missing": "Ajoutez la photo de votre ticket de caisse.",
+      "ticket-too-large": "Cette photo est trop lourde (10 Mo maximum). Reprenez-la ou choisissez-en une autre.",
+      "ticket-unsupported": "Ce format de photo n’est pas accepté. Prenez la photo avec l’appareil photo ou envoyez un JPEG ou un PNG.",
+      "duplicate-ticket": "Ce ticket a déjà été envoyé pour ce concours.",
+      "entry-limit": "Ce numéro a déjà atteint le nombre de participations autorisé pour cette période. Réessayez à la prochaine période.",
+      "rate-limited": "Trop de tentatives. Réessayez dans quelques minutes.",
+      "unexpected": "Une erreur est survenue. Rechargez la page et réessayez."
+    }
   }
 }

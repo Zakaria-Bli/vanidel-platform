@@ -7,11 +7,14 @@ import { ContestParticipationSection } from '@/components/contests/ContestPartic
 import { ContestPrizes } from '@/components/contests/ContestPrizes'
 import { ContestRules } from '@/components/contests/ContestRules'
 import { ContestSteps } from '@/components/contests/ContestSteps'
+import { ParticipationForm } from '@/components/contests/ParticipationForm'
 import { Container } from '@/components/shared/Container'
 import { locales, type Locale } from '@/i18n/config'
 import { getPathname, Link } from '@/i18n/navigation'
-import { getCachedPublicContest } from '@/modules/contests/queries/cached'
 import { imageSize, populated } from '@/lib/media'
+import { getCachedPublicContest } from '@/modules/contests/queries/cached'
+
+import { participate } from './actions'
 
 // Generated on the first visit, then served from cache: edits revalidate it immediately, and it
 // rebuilds every minute so a contest opening or closing shows without an edit. Nothing is built
@@ -72,7 +75,21 @@ export default async function ContestPage({ params }: Props) {
       <ContestSteps steps={contest.steps ?? []} />
       <ContestPrizes prizes={contest.prizes ?? []} />
       <ContestRules contest={contest} />
-      <ContestParticipationSection contest={contest}>{null}</ContestParticipationSection>
+      <ContestParticipationSection contest={contest}>
+        <ParticipationForm
+          contestSlug={contest.slug}
+          locale={locale}
+          email={contest.form?.email ?? 'optional'}
+          wilayaRequired={contest.form?.wilayaRequired !== false}
+          consents={(contest.consents ?? []).map(({ type, required, label }) => ({
+            type,
+            required: Boolean(required),
+            label,
+          }))}
+          regulationUrl={populated(contest.regulation)?.url ?? undefined}
+          action={participate}
+        />
+      </ContestParticipationSection>
       <Link href="/concours" className="text-primary-hover underline-offset-4 hover:underline">
         {t('backToContests')}
       </Link>

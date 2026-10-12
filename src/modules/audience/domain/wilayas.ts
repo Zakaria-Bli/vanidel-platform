@@ -89,3 +89,8 @@ const codes = new Set<string>(wilayas.map(({ code }) => code))
 export function isWilayaCode(value: unknown): value is WilayaCode {
   return typeof value === 'string' && codes.has(value)
 }
+
+/** Select label in the visitor's language, e.g. "16 - Alger" or "16 - الجزائر". */
+export function wilayaLabel(wilaya: Wilaya, locale: 'fr' | 'ar'): string {
+  return `${wilaya.code} - ${wilaya[locale]}`
+}
