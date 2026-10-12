@@ -157,21 +157,15 @@ export interface Contest {
     };
     [k: string]: unknown;
   } | null;
-  participationInstructions?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
+  /**
+   * Shown numbered, in this order. At least one step to publish.
+   */
+  steps?:
+    | {
+        text: string;
+        id?: string | null;
+      }[]
+    | null;
   heroMedia?: (number | null) | Media;
   regulation?: (number | null) | Media;
   prizes?:
@@ -193,7 +187,7 @@ export interface Contest {
   entryLimitPerPhone: number;
   consents?:
     | {
-        type: 'regulation' | 'marketing';
+        type: 'regulation' | 'dataProcessing' | 'marketing';
         required?: boolean | null;
         label: string;
         /**
@@ -357,6 +351,10 @@ export interface Winner {
 export interface Participation {
   id: number;
   contest: number | Contest;
+  /**
+   * Computed on submission, for filtering. Draws use the submission time.
+   */
+  periodStart: string;
   contact: number | Contact;
   submittedAt: string;
   name: string;
@@ -419,7 +417,7 @@ export interface ConsentRecord {
   id: number;
   contact: number | Contact;
   participation: number | Participation;
-  type: 'regulation' | 'marketing';
+  type: 'regulation' | 'dataProcessing' | 'marketing';
   granted: boolean;
   textVersion: string;
   capturedAt: string;
@@ -536,7 +534,12 @@ export interface PayloadMigration {
 export interface ContestsSelect<T extends boolean = true> {
   title?: T;
   description?: T;
-  participationInstructions?: T;
+  steps?:
+    | T
+    | {
+        text?: T;
+        id?: T;
+      };
   heroMedia?: T;
   regulation?: T;
   prizes?:
@@ -629,6 +632,7 @@ export interface WinnersSelect<T extends boolean = true> {
  */
 export interface ParticipationsSelect<T extends boolean = true> {
   contest?: T;
+  periodStart?: T;
   contact?: T;
   submittedAt?: T;
   name?: T;

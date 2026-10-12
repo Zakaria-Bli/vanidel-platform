@@ -8,19 +8,16 @@ import { missingTranslations, valueAt } from '@/modules/contests/domain/translat
 import { hasRole, isAdmin, isStaff } from '../access'
 import { integer } from '../fields/integer'
 import { groups, label } from '../fields/label'
+import { consentTypes } from './ConsentRecords'
 
 export const reservedSlugs = ['archives']
 
 /** Localized fields that must be filled in every locale before a contest goes public. */
-export const requiredTranslations = [
-  'title',
-  'description',
-  'participationInstructions',
-  'seo.title',
-] as const
+export const requiredTranslations = ['title', 'description', 'seo.title'] as const
 
-/** The same for array rows: every prize title and consent text is shown to participants. */
+/** The same for array rows: every step, prize title and consent text is shown to participants. */
 export const requiredRowTranslations = {
+  steps: ['text'],
   prizes: ['title'],
   consents: ['label'],
 } as const
@@ -100,6 +97,8 @@ const requireTranslationsWhenPublic: CollectionBeforeChangeHook = async ({
     ),
   ]
   const missing = missingTranslations(merged, paths, locales)
+  if (((merged.steps as unknown[] | undefined) ?? []).length === 0)
+    missing.push('steps (at least one)')
   if (missing.length > 0) {
     throw new ValidationError({
       collection: 'contests',
@@ -155,10 +154,24 @@ export const Contests: CollectionConfig = {
               localized: true,
             },
             {
-              name: 'participationInstructions',
-              label: label('Comment participer', 'How to take part'),
-              type: 'richText',
-              localized: true,
+              name: 'steps',
+              label: label('Comment participer (étapes)', 'How to take part (steps)'),
+              type: 'array',
+              admin: {
+                description: label(
+                  'Affichées numérotées, dans cet ordre. Au moins une étape pour publier.',
+                  'Shown numbered, in this order. At least one step to publish.',
+                ),
+              },
+              fields: [
+                {
+                  name: 'text',
+                  label: label('Étape', 'Step'),
+                  type: 'textarea',
+                  required: true,
+                  localized: true,
+                },
+              ],
             },
             {
               name: 'heroMedia',
@@ -231,7 +244,7 @@ export const Contests: CollectionConfig = {
                   label: label('E-mail', 'Email'),
                   type: 'select',
                   required: true,
-                  defaultValue: 'off',
+                  defaultValue: 'optional',
                   options: [
                     { label: label('Non demandé', 'Not asked'), value: 'off' },
                     { label: label('Facultatif', 'Optional'), value: 'optional' },
@@ -269,10 +282,14 @@ export const Contests: CollectionConfig = {
                   label: label('Type', 'Type'),
                   type: 'select',
                   required: true,
-                  options: [
-                    { label: label('Règlement', 'Regulation'), value: 'regulation' },
-                    { label: label('Marketing', 'Marketing'), value: 'marketing' },
-                  ],
+                  options: consentTypes.map((value) => ({
+                    value,
+                    label: {
+                      regulation: label('Règlement', 'Regulation'),
+                      dataProcessing: label('Traitement des données', 'Data processing'),
+                      marketing: label('Marketing', 'Marketing'),
+                    }[value],
+                  })),
                 },
                 {
                   name: 'required',

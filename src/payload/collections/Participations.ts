@@ -44,6 +44,20 @@ export const Participations: CollectionConfig = {
       required: true,
     },
     {
+      name: 'periodStart',
+      label: label('Période de tirage (début)', 'Draw period (start)'),
+      type: 'date',
+      required: true,
+      index: true,
+      admin: {
+        date: { pickerAppearance: 'dayAndTime' },
+        description: label(
+          'Calculée à l’envoi, pour filtrer la liste. Les tirages utilisent la date d’envoi.',
+          'Computed on submission, for filtering. Draws use the submission time.',
+        ),
+      },
+    },
+    {
       name: 'contact',
       label: label('Contact', 'Contact'),
       type: 'relationship',

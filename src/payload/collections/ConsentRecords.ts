@@ -4,7 +4,11 @@ import { isAdmin, isStaff, nobody } from '../access'
 import { groups, label } from '../fields/label'
 import { readOnly } from '../fields/readOnly'
 
-export const consentTypes = ['regulation', 'marketing'] as const
+/**
+ * Consent kinds a contest can ask for: accepting the rules, the processing of personal data for
+ * the participation, and marketing. Exports to marketing use only `marketing`.
+ */
+export const consentTypes = ['regulation', 'dataProcessing', 'marketing'] as const
 
 /**
  * Historical evidence of a consent decision. Never updated: a Contact's effective consent for a

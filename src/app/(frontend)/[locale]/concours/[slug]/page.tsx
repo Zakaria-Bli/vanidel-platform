@@ -72,10 +72,14 @@ export default async function ContestPage({ params }: Props) {
       <h1>{contest.title}</h1>
       <ContestDates contest={contest} />
       {contest.description && <RichText data={contest.description} />}
-      {contest.participationInstructions && (
+      {(contest.steps?.length ?? 0) > 0 && (
         <section className="flex flex-col gap-2">
           <h2>{t('howToTakePart')}</h2>
-          <RichText data={contest.participationInstructions} />
+          <ol className="list-decimal ps-6">
+            {contest.steps?.map((step) => (
+              <li key={step.id}>{step.text}</li>
+            ))}
+          </ol>
         </section>
       )}
       {(contest.prizes?.length ?? 0) > 0 && (

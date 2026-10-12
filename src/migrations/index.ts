@@ -5,6 +5,7 @@ import * as migration_20261012_072037_contests_media_settings from './20261012_0
 import * as migration_20261012_072855_participation_schema from './20261012_072855_participation_schema';
 import * as migration_20261012_073545_storage_prefix from './20261012_073545_storage_prefix';
 import * as migration_20261012_124811_role_default from './20261012_124811_role_default';
+import * as migration_20261012_171830_participation_steps from './20261012_171830_participation_steps';
 
 export const migrations = [
   {
@@ -40,6 +41,11 @@ export const migrations = [
   {
     up: migration_20261012_124811_role_default.up,
     down: migration_20261012_124811_role_default.down,
-    name: '20261012_124811_role_default'
+    name: '20261012_124811_role_default',
+  },
+  {
+    up: migration_20261012_171830_participation_steps.up,
+    down: migration_20261012_171830_participation_steps.down,
+    name: '20261012_171830_participation_steps'
   },
 ];

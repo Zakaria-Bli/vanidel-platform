@@ -129,9 +129,11 @@ export async function seed(payload: Payload, options: SeedOptions): Promise<Cont
       endAt: new Date(now.getTime() + 28 * day).toISOString(),
       title: 'Concours de démonstration',
       description: text('Achetez un produit Vanidel et tentez de gagner chaque semaine.'),
-      participationInstructions: text(
-        'Remplissez le formulaire et envoyez une photo lisible de votre ticket de caisse.',
-      ),
+      steps: [
+        {
+          text: 'Remplissez le formulaire et envoyez une photo lisible de votre ticket de caisse.',
+        },
+      ],
       seo: {
         title: 'Concours de démonstration Vanidel',
         description: 'Participez au concours Vanidel et gagnez des lots chaque semaine.',
@@ -142,7 +144,7 @@ export async function seed(payload: Payload, options: SeedOptions): Promise<Cont
         { title: 'Panier de produits Vanidel', quantity: 4 },
         { title: 'Bon d’achat', quantity: 10 },
       ],
-      form: { email: 'off', wilayaRequired: true },
+      form: { email: 'optional', wilayaRequired: true },
       entryLimitPerPhone: 1,
       draw: { periodDays: 7, winnersPerDraw: 1 },
       consents: [
@@ -172,7 +174,10 @@ export async function seed(payload: Payload, options: SeedOptions): Promise<Cont
     data: {
       title: 'مسابقة العرض',
       description: text('اشتروا منتجًا من Vanidel وحاولوا الفوز كل أسبوع.'),
-      participationInstructions: text('املؤوا الاستمارة وأرسلوا صورة واضحة لتذكرة الشراء.'),
+      steps: (contest.steps ?? []).map((step) => ({
+        ...step,
+        text: 'املؤوا الاستمارة وأرسلوا صورة واضحة لتذكرة الشراء.',
+      })),
       seo: {
         title: 'مسابقة العرض من Vanidel',
         description: 'شاركوا في مسابقة Vanidel واربحوا جوائز كل أسبوع.',

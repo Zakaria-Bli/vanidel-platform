@@ -37,6 +37,7 @@ beforeAll(async () => {
       contest: contest.id,
       contact: contact.id,
       submittedAt: new Date().toISOString(),
+      periodStart: new Date().toISOString(),
       name: 'Amine Benali',
       phone: '0' + phone.slice(4),
       phoneNormalized: phone,
