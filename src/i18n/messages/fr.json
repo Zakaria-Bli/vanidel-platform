@@ -23,6 +23,10 @@
       "scheduled": "Ouverture le {date}",
       "open": "Jusqu’au {date}",
       "closed": "Terminé le {date}"
-    }
+    },
+    "cta": "Participer maintenant",
+    "formTitle": "Formulaire de participation",
+    "opensOn": "Les participations ouvrent le {date}.",
+    "ended": "Ce concours est terminé. Merci à tous les participants !"
   }
 }
