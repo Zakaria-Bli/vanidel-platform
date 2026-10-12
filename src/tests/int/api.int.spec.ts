@@ -1,60 +1,16 @@
-import { postgresAdapter, type MigrateDownArgs, type MigrateUpArgs } from '@payloadcms/db-postgres'
 import { randomUUID } from 'node:crypto'
-import { resolve } from 'node:path'
-import { getPayload, type Payload } from 'payload'
-import config from '@/payload.config'
-import { env } from '@/lib/env'
+import type { Payload } from 'payload'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+
 import { migrations } from '@/migrations'
 
-import { describe, it, beforeAll, afterAll, expect } from 'vitest'
+import { getMigratedPayload, testMigrations } from './helpers/payload'
 
 let payload: Payload
 
-// Use the same bundled registry as production. Payload's generic migration API
-// accepts unknown arguments; the PostgreSQL adapter supplies its typed arguments.
-const testMigrations = migrations.map(({ name, up, down }) => ({
-  name,
-  up: (args: unknown) => up(args as MigrateUpArgs),
-  down: (args: unknown) => down(args as MigrateDownArgs),
-}))
-
 describe('Payload with committed PostgreSQL migrations', () => {
   beforeAll(async () => {
-    const payloadConfig = await config
-    payload = await getPayload({
-      config: {
-        ...payloadConfig,
-        db: {
-          ...postgresAdapter({
-            pool: { connectionString: env.DATABASE_URL },
-            migrationDir: resolve(import.meta.dirname, '../../migrations'),
-            disableCreateDatabase: true,
-            push: false,
-          }),
-          allowIDOnCreate: payloadConfig.db.allowIDOnCreate,
-          name: payloadConfig.db.name,
-        },
-      },
-    })
-
-    // Refuse schema-push databases before Payload can prompt to replace their data.
-    const { rows } = await payload.db.pool.query(
-      "SELECT to_regclass('public.payload_migrations') AS table_name",
-    )
-    if (rows[0].table_name) {
-      const pushed = await payload.find({
-        collection: 'payload-migrations',
-        where: { batch: { equals: -1 } },
-        limit: 1,
-      })
-      if (pushed.totalDocs > 0) {
-        throw new Error(
-          'Use a fresh test database: this database was initialized with schema push.',
-        )
-      }
-    }
-
-    await payload.db.migrate({ migrations: testMigrations })
+    payload = await getMigratedPayload()
   }, 30_000)
 
   afterAll(async () => {
@@ -77,7 +33,7 @@ describe('Payload with committed PostgreSQL migrations', () => {
     const email = `migration-${randomUUID()}@example.com`
     const user = await payload.create({
       collection: 'users',
-      data: { email, password: randomUUID() },
+      data: { email, password: randomUUID(), role: 'commercial' },
     })
 
     try {
