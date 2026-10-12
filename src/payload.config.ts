@@ -1,5 +1,8 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { ar } from '@payloadcms/translations/languages/ar'
+import { en } from '@payloadcms/translations/languages/en'
+import { fr } from '@payloadcms/translations/languages/fr'
 import path from 'path'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
@@ -23,6 +26,11 @@ export default buildConfig({
   },
   collections: [Users, Media],
   editor: lexicalEditor(),
+  // Admin interface languages; each admin user picks theirs in their account settings.
+  i18n: {
+    supportedLanguages: { fr, ar, en },
+    fallbackLanguage: 'fr',
+  },
   // Editorial content (contest titles, descriptions, …) is localized with `localized: true`
   // fields; interface strings live in src/i18n/messages. Both follow src/i18n/config.ts.
   localization: {
