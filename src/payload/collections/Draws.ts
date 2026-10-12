@@ -10,7 +10,10 @@ import { readOnly } from '../fields/readOnly'
  */
 export const Draws: CollectionConfig = {
   slug: 'draws',
-  labels: { singular: label('Tirage', 'Draw'), plural: label('Tirages', 'Draws') },
+  labels: {
+    singular: label('Tirage', 'Draw', 'السحب'),
+    plural: label('Tirages', 'Draws', 'السحوبات'),
+  },
   admin: {
     group: groups.contests,
     defaultColumns: ['contest', 'periodStart', 'periodEnd', 'eligibleCount', 'executedAt'],
@@ -24,7 +27,7 @@ export const Draws: CollectionConfig = {
   fields: readOnly([
     {
       name: 'contest',
-      label: label('Concours', 'Contest'),
+      label: label('Concours', 'Contest', 'المسابقة'),
       type: 'relationship',
       relationTo: 'contests',
       required: true,
@@ -32,68 +35,73 @@ export const Draws: CollectionConfig = {
     },
     {
       name: 'periodStart',
-      label: label('Début de période', 'Period start'),
+      label: label('Début de période', 'Period start', 'بداية الفترة'),
       type: 'date',
       required: true,
       admin: { date: { pickerAppearance: 'dayAndTime' } },
     },
     {
       name: 'periodEnd',
-      label: label('Fin de période (exclue)', 'Period end (exclusive)'),
+      label: label(
+        'Fin de période (exclue)',
+        'Period end (exclusive)',
+        'نهاية الفترة (غير مشمولة)',
+      ),
       type: 'date',
       required: true,
       admin: { date: { pickerAppearance: 'dayAndTime' } },
     },
     {
       name: 'status',
-      label: label('Statut', 'Status'),
+      label: label('Statut', 'Status', 'الحالة'),
       type: 'select',
-      options: ['completed'],
+      options: [{ value: 'completed', label: label('Terminé', 'Completed', 'مكتمل') }],
       defaultValue: 'completed',
       required: true,
     },
     {
       name: 'eligibleCount',
-      label: label('Participations éligibles', 'Eligible participations'),
+      label: label('Participations éligibles', 'Eligible participations', 'المشاركات المؤهلة'),
       type: 'number',
       required: true,
     },
     {
       name: 'poolHash',
-      label: label('Empreinte du panier', 'Pool hash'),
+      label: label('Empreinte du panier', 'Pool hash', 'بصمة مجموعة المشاركات'),
       type: 'text',
       required: true,
       admin: {
         description: label(
           'SHA-256 de la liste ordonnée des participations éligibles.',
           'SHA-256 of the ordered list of eligible participation IDs.',
+          'بصمة SHA-256 للقائمة المرتبة لمعرّفات المشاركات المؤهلة.',
         ),
       },
     },
     {
       name: 'executedAt',
-      label: label('Exécuté le', 'Executed at'),
+      label: label('Exécuté le', 'Executed at', 'نُفّذ في'),
       type: 'date',
       required: true,
       admin: { date: { pickerAppearance: 'dayAndTime' } },
     },
     {
       name: 'executedBy',
-      label: label('Exécuté par', 'Executed by'),
+      label: label('Exécuté par', 'Executed by', 'نُفّذ من طرف'),
       type: 'relationship',
       relationTo: 'users',
       required: true,
     },
     {
       name: 'algorithmVersion',
-      label: label('Version de l’algorithme', 'Algorithm version'),
+      label: label('Version de l’algorithme', 'Algorithm version', 'إصدار الخوارزمية'),
       type: 'text',
       required: true,
     },
-    { name: 'randomnessMetadata', label: label('Aléa', 'Randomness'), type: 'json' },
+    { name: 'randomnessMetadata', label: label('Aléa', 'Randomness', 'العشوائية'), type: 'json' },
     {
       name: 'redrawOf',
-      label: label('Remplace le tirage', 'Re-draw of'),
+      label: label('Remplace le tirage', 'Re-draw of', 'إعادة سحب لـ'),
       type: 'relationship',
       relationTo: 'draws',
     },

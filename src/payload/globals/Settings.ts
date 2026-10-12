@@ -7,7 +7,7 @@ import { revalidateSettingsAfterChange } from '../hooks/revalidate'
 
 export const Settings: GlobalConfig = {
   slug: 'settings',
-  label: label('Paramètres', 'Settings'),
+  label: label('Paramètres', 'Settings', 'الإعدادات'),
   admin: {
     group: groups.administration,
   },
@@ -21,18 +21,22 @@ export const Settings: GlobalConfig = {
   fields: [
     {
       type: 'collapsible',
-      label: label('Suivi', 'Tracking'),
+      label: label('Suivi', 'Tracking', 'التتبع'),
       fields: [
         {
           name: 'metaPixelId',
-          label: label('ID Meta Pixel', 'Meta Pixel ID'),
+          label: label('ID Meta Pixel', 'Meta Pixel ID', 'معرّف Meta Pixel'),
           type: 'text',
           validate: (value: unknown) =>
             !value || /^\d{10,20}$/.test(String(value)) ? true : 'Digits only.',
         },
         {
           name: 'ga4Id',
-          label: label('ID de mesure Google Analytics', 'Google Analytics measurement ID'),
+          label: label(
+            'ID de mesure Google Analytics',
+            'Google Analytics measurement ID',
+            'معرّف القياس في Google Analytics',
+          ),
           type: 'text',
           validate: (value: unknown) =>
             !value || /^G-[A-Z0-9]+$/.test(String(value)) ? true : 'Expected G-XXXXXXX.',
@@ -41,33 +45,38 @@ export const Settings: GlobalConfig = {
     },
     {
       name: 'socialLinks',
-      label: label('Réseaux sociaux', 'Social links'),
+      label: label('Réseaux sociaux', 'Social links', 'شبكات التواصل الاجتماعي'),
       type: 'array',
       fields: [
         {
           name: 'platform',
+          label: label('Réseau', 'Platform', 'المنصة'),
           type: 'select',
           required: true,
           options: ['facebook', 'instagram', 'tiktok', 'youtube'],
         },
-        { name: 'url', type: 'text', required: true },
+        { name: 'url', label: label('Lien', 'Link', 'الرابط'), type: 'text', required: true },
       ],
     },
     {
       name: 'privacyText',
-      label: label('Politique de confidentialité', 'Privacy policy'),
+      label: label('Politique de confidentialité', 'Privacy policy', 'سياسة الخصوصية'),
       type: 'richText',
       localized: true,
     },
     {
       name: 'legalText',
-      label: label('Mentions légales', 'Legal notice'),
+      label: label('Mentions légales', 'Legal notice', 'الإشعار القانوني'),
       type: 'richText',
       localized: true,
     },
     {
       name: 'retentionDays',
-      label: label('Durée de conservation (jours)', 'Retention period (days)'),
+      label: label(
+        'Durée de conservation (jours)',
+        'Retention period (days)',
+        'مدة الاحتفاظ (بالأيام)',
+      ),
       type: 'number',
       min: 1,
       validate: integer,
@@ -76,6 +85,7 @@ export const Settings: GlobalConfig = {
         description: label(
           'Durée de conservation des données des participants, à valider juridiquement (loi 18-07).',
           'How long participant data is kept, to be validated legally (Law 18-07).',
+          'مدة الاحتفاظ ببيانات المشاركين، يجب التحقق منها قانونيًا (القانون 18-07).',
         ),
       },
       access: { read: isStaffField },

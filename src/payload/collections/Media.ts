@@ -6,7 +6,10 @@ import { revalidateMediaAfterChange, revalidateMediaAfterDelete } from '../hooks
 
 export const Media: CollectionConfig = {
   slug: 'media',
-  labels: { singular: label('Média', 'Media'), plural: label('Médias', 'Media') },
+  labels: {
+    singular: label('Média', 'Media', 'الوسائط'),
+    plural: label('Médias', 'Media', 'الوسائط'),
+  },
   admin: {
     group: groups.content,
   },
@@ -24,7 +27,7 @@ export const Media: CollectionConfig = {
   fields: [
     {
       name: 'alt',
-      label: label('Texte alternatif', 'Alt text'),
+      label: label('Texte alternatif', 'Alt text', 'النص البديل'),
       type: 'text',
       required: true,
       localized: true,

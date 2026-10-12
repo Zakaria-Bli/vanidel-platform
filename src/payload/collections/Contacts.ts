@@ -12,7 +12,10 @@ import { exportMarketingContacts } from '../endpoints/exports'
  */
 export const Contacts: CollectionConfig = {
   slug: 'contacts',
-  labels: { singular: label('Contact', 'Contact'), plural: label('Contacts', 'Contacts') },
+  labels: {
+    singular: label('Contact', 'Contact', 'جهة الاتصال'),
+    plural: label('Contacts', 'Contacts', 'جهات الاتصال'),
+  },
   admin: {
     group: groups.participations,
     useAsTitle: 'phoneNormalized',
@@ -31,22 +34,22 @@ export const Contacts: CollectionConfig = {
   fields: readOnly([
     {
       name: 'phoneNormalized',
-      label: label('Téléphone', 'Phone'),
+      label: label('Téléphone', 'Phone', 'الهاتف'),
       type: 'text',
       required: true,
       unique: true,
     },
-    { name: 'name', label: label('Nom', 'Name'), type: 'text', required: true },
-    { name: 'emailNormalized', label: label('E-mail', 'Email'), type: 'text' },
+    { name: 'name', label: label('Nom', 'Name', 'الاسم'), type: 'text', required: true },
+    { name: 'emailNormalized', label: label('E-mail', 'Email', 'البريد الإلكتروني'), type: 'text' },
     {
       name: 'wilaya',
-      label: label('Wilaya', 'Wilaya'),
+      label: label('Wilaya', 'Wilaya', 'الولاية'),
       type: 'text',
       admin: { components: { Cell: '/payload/components/WilayaCell#WilayaCell' } },
     },
     {
       name: 'firstContest',
-      label: label('Premier concours', 'First contest'),
+      label: label('Premier concours', 'First contest', 'أول مسابقة'),
       type: 'relationship',
       relationTo: 'contests',
       required: true,

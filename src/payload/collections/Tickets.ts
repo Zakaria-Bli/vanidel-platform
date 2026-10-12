@@ -10,7 +10,10 @@ import { readOnly } from '../fields/readOnly'
  */
 export const Tickets: CollectionConfig = {
   slug: 'tickets',
-  labels: { singular: label('Ticket', 'Ticket'), plural: label('Tickets', 'Tickets') },
+  labels: {
+    singular: label('Ticket', 'Ticket', 'التذكرة'),
+    plural: label('Tickets', 'Tickets', 'التذاكر'),
+  },
   admin: {
     group: groups.participations,
     defaultColumns: ['filename', 'contest', 'uploadedAt'],
@@ -31,20 +34,20 @@ export const Tickets: CollectionConfig = {
   fields: readOnly([
     {
       name: 'contest',
-      label: label('Concours', 'Contest'),
+      label: label('Concours', 'Contest', 'المسابقة'),
       type: 'relationship',
       relationTo: 'contests',
       required: true,
     },
     {
       name: 'hash',
-      label: label('Empreinte SHA-256', 'SHA-256 hash'),
+      label: label('Empreinte SHA-256', 'SHA-256 hash', 'بصمة SHA-256'),
       type: 'text',
       required: true,
     },
     {
       name: 'uploadedAt',
-      label: label('Reçu le', 'Uploaded at'),
+      label: label('Reçu le', 'Uploaded at', 'رُفعت في'),
       type: 'date',
       required: true,
       admin: { date: { pickerAppearance: 'dayAndTime' } },

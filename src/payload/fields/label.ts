@@ -1,14 +1,11 @@
-/**
- * Admin label in French (the admin's default language) and English. Arabic admin users see the
- * English label until Arabic ones are added here.
- */
-export function label(fr: string, en: string): Record<'en' | 'fr', string> {
-  return { fr, en }
+/** Admin label in each admin language: French (the default), English and Arabic. */
+export function label(fr: string, en: string, ar: string): Record<'ar' | 'en' | 'fr', string> {
+  return { fr, en, ar }
 }
 
 export const groups = {
-  contests: label('Concours', 'Contests'),
-  participations: label('Participations', 'Participations'),
-  content: label('Contenu', 'Content'),
-  administration: label('Administration', 'Administration'),
+  contests: label('Concours', 'Contests', 'المسابقات'),
+  participations: label('Participations', 'Participations', 'المشاركات'),
+  content: label('Contenu', 'Content', 'المحتوى'),
+  administration: label('Administration', 'Administration', 'الإدارة'),
 }

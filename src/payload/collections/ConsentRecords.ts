@@ -10,6 +10,12 @@ import { readOnly } from '../fields/readOnly'
  */
 export const consentTypes = ['regulation', 'dataProcessing', 'marketing'] as const
 
+export const consentTypeLabels = {
+  regulation: label('Règlement', 'Regulation', 'النظام'),
+  dataProcessing: label('Traitement des données', 'Data processing', 'معالجة البيانات'),
+  marketing: label('Marketing', 'Marketing', 'التسويق'),
+}
+
 /**
  * Historical evidence of a consent decision. Never updated: a Contact's effective consent for a
  * type is its most recent record of that type (SPECIFICATION §7.1).
@@ -17,8 +23,8 @@ export const consentTypes = ['regulation', 'dataProcessing', 'marketing'] as con
 export const ConsentRecords: CollectionConfig = {
   slug: 'consent-records',
   labels: {
-    singular: label('Consentement', 'Consent record'),
-    plural: label('Consentements', 'Consent records'),
+    singular: label('Consentement', 'Consent record', 'سجل الموافقة'),
+    plural: label('Consentements', 'Consent records', 'سجلات الموافقة'),
   },
   admin: {
     group: groups.participations,
@@ -34,39 +40,44 @@ export const ConsentRecords: CollectionConfig = {
   fields: readOnly([
     {
       name: 'contact',
-      label: label('Contact', 'Contact'),
+      label: label('Contact', 'Contact', 'جهة الاتصال'),
       type: 'relationship',
       relationTo: 'contacts',
       required: true,
     },
     {
       name: 'participation',
-      label: label('Participation', 'Participation'),
+      label: label('Participation', 'Participation', 'المشاركة'),
       type: 'relationship',
       relationTo: 'participations',
       required: true,
     },
     {
       name: 'type',
-      label: label('Type', 'Type'),
+      label: label('Type', 'Type', 'النوع'),
       type: 'select',
-      options: [...consentTypes],
+      options: consentTypes.map((value) => ({ value, label: consentTypeLabels[value] })),
       required: true,
     },
-    { name: 'granted', label: label('Accordé', 'Granted'), type: 'checkbox', required: true },
+    {
+      name: 'granted',
+      label: label('Accordé', 'Granted', 'مقبول'),
+      type: 'checkbox',
+      required: true,
+    },
     {
       name: 'textVersion',
-      label: label('Version du texte', 'Text version'),
+      label: label('Version du texte', 'Text version', 'إصدار النص'),
       type: 'text',
       required: true,
     },
     {
       name: 'capturedAt',
-      label: label('Recueilli le', 'Captured at'),
+      label: label('Recueilli le', 'Captured at', 'سُجّلت في'),
       type: 'date',
       required: true,
       admin: { date: { pickerAppearance: 'dayAndTime' } },
     },
-    { name: 'source', label: label('Origine', 'Source'), type: 'text', required: true },
+    { name: 'source', label: label('Origine', 'Source', 'المصدر'), type: 'text', required: true },
   ]),
 }
