@@ -1,0 +1,11 @@
+{
+  "metadata": {
+    "title": "Vanidel",
+    "description": "شاركوا في مسابقات Vanidel."
+  },
+  "home": {
+    "welcome": "مرحبًا بكم في Vanidel",
+    "welcomeBack": "مرحبًا بعودتك، <bdi>{email}</bdi>",
+    "admin": "الإدارة"
+  }
+}
