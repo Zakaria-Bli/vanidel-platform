@@ -37,6 +37,14 @@ The app is available at <http://localhost:3000>; Payload admin is at <http://loc
 
 Run supporting services in throwaway Docker containers instead of installing them or adding Docker files to this repository.
 
+### Seed data
+
+```sh
+pnpm seed
+```
+
+Creates `admin@vanidel.local` and `commercial@vanidel.local` (passwords from `SEED_ADMIN_PASSWORD` and `SEED_COMMERCIAL_PASSWORD` in `.env`) and a published French/Arabic contest at `/concours/concours-demo`, open for four weeks, with placeholder images. It is safe to re-run: existing users, images and the contest are left as they are. It refuses to run with `NODE_ENV=production`. Like `pnpm dev`, it pushes schema changes to the development database; to seed a database managed by migrations instead, run `pnpm migrate` first and seed with `PAYLOAD_MIGRATING=true pnpm seed`.
+
 ### Upload storage
 
 Without S3 settings, uploads stay on local disk: campaign media in `media/` and receipt photos in `tickets/` (both git-ignored). Production stores them in SeaweedFS through its S3 API (see `docs/architecture/ARCHITECTURE.md` §9). To try that locally, start a throwaway SeaweedFS with its S3 port bound to `127.0.0.1` and create the two buckets:
