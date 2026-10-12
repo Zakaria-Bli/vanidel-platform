@@ -11,8 +11,10 @@ import sharp from 'sharp'
 import { defaultLocale, localeMetadata, locales } from './i18n/config'
 import { env } from './lib/env'
 import { migrations } from './migrations'
+import { Contests } from './payload/collections/Contests'
 import { Media } from './payload/collections/Media'
 import { Users } from './payload/collections/Users'
+import { Settings } from './payload/globals/Settings'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -24,7 +26,8 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media],
+  collections: [Contests, Media, Users],
+  globals: [Settings],
   editor: lexicalEditor(),
   // Admin interface languages; each admin user picks theirs in their account settings.
   i18n: {

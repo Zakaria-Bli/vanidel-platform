@@ -16,7 +16,8 @@ function isBlank(value: unknown): boolean {
   return false
 }
 
-function valueAt(doc: unknown, path: string): unknown {
+/** Value at a dotted path such as `seo.title`, or undefined. */
+export function valueAt(doc: unknown, path: string): unknown {
   return path.split('.').reduce<unknown>((node, key) => {
     return typeof node === 'object' && node !== null
       ? (node as Record<string, unknown>)[key]
