@@ -1,7 +1,7 @@
-import { createHash } from 'node:crypto'
+import { createHash, randomUUID } from 'node:crypto'
 import { rm } from 'node:fs/promises'
 import path from 'node:path'
-import type { Payload, PayloadRequest } from 'payload'
+import { createLocalReq, type Payload, type PayloadRequest } from 'payload'
 import sharp from 'sharp'
 
 import type { Ticket } from '@/payload-types'
@@ -98,30 +98,45 @@ export async function storeTicket(
   })
   if (totalDocs > 0) throw new TicketRejectedError('duplicate')
 
-  return payload.create({
-    collection: 'tickets',
-    data: { contest: contestId, hash, uploadedAt: new Date().toISOString() },
-    file: { data: image, mimetype: 'image/jpeg', name: `${hash}.jpg`, size: image.length },
-    overrideAccess: true,
-    req,
-  })
+  // Unique per upload: the contest ID keeps contests apart, and the random part keeps two
+  // concurrent uploads from choosing the same name. Payload can only check names already
+  // committed (and, on local disk, files already written), and with object storage two
+  // transactions in flight would both pick `{hash}.jpg` and collide on the unique filename
+  // index. Duplicates are detected by (contest, hash), not by name.
+  const filename = `${contestId}-${hash}-${randomUUID().slice(0, 8)}.jpg`
+  try {
+    return await payload.create({
+      collection: 'tickets',
+      data: { contest: contestId, hash, uploadedAt: new Date().toISOString() },
+      file: { data: image, mimetype: 'image/jpeg', name: filename, size: image.length },
+      overrideAccess: true,
+      req,
+    })
+  } catch (error) {
+    // On local disk Payload writes the file before inserting the record, so a failed insert
+    // would leave it behind. The name is unique to this attempt, so removing it is safe.
+    await removeTicketFiles(payload, { filename }, req)
+    throw error
+  }
 }
 
 /**
- * Deletes a stored ticket's file when the transaction that created its record was rolled back:
- * the record is gone, but the file was written to local disk or the bucket on create. Runs the
- * same delete path as deleting the record (local disk, or the storage plugin's afterDelete hook).
+ * Deletes a ticket's stored file whose record does not exist: its creation failed, or the
+ * transaction that created it was rolled back. Runs the same delete path as deleting a record:
+ * local disk, or the storage plugin's afterDelete hook for the bucket.
  */
 export async function removeTicketFiles(
   payload: Payload,
-  ticket: Ticket,
-  req: PayloadRequest,
+  ticket: Pick<Ticket, 'filename'> & Partial<Ticket>,
+  req?: Partial<PayloadRequest>,
 ): Promise<void> {
+  if (!ticket.filename) return
   const { config } = payload.collections.tickets
-  if (!config.upload.disableLocalStorage && ticket.filename) {
+  if (!config.upload.disableLocalStorage) {
     await rm(path.resolve(config.upload.staticDir ?? 'tickets', ticket.filename), { force: true })
   }
+  const request = (req?.payload ? req : await createLocalReq({}, payload)) as PayloadRequest
   for (const hook of config.hooks.afterDelete ?? []) {
-    await hook({ collection: config, context: {}, doc: ticket, id: ticket.id, req })
+    await hook({ collection: config, context: {}, doc: ticket, id: ticket.id ?? 0, req: request })
   }
 }

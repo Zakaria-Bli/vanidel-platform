@@ -268,6 +268,74 @@ describe('consent wording', () => {
   })
 })
 
+describe('ticket files', () => {
+  it('leaves no file behind when the ticket record itself fails to save', async () => {
+    const files = await ticketFiles()
+    const dbCreate = payload.db.create.bind(payload.db)
+    const spy = vi.spyOn(payload.db, 'create').mockImplementation((async (
+      args: Parameters<typeof payload.db.create>[0],
+    ) => {
+      if (args.collection === 'tickets') throw new Error('insert failed')
+      return dbCreate(args)
+    }) as typeof payload.db.create)
+
+    try {
+      await expect(submitParticipation(payload, await input())).rejects.toThrow('insert failed')
+    } finally {
+      spy.mockRestore()
+    }
+    expect(await ticketFiles()).toEqual(files)
+  })
+
+  it('accepts the same photo sent to two contests at the same moment', async () => {
+    const other = await publishedContest()
+    const ticket = await newPhoto()
+
+    // Hold the first submission's transaction open until the second one has tried to save its
+    // ticket (or a second has passed), so both pick a file name before either commits.
+    let ticketInserts = 0
+    let secondTicketTried: () => void = () => {}
+    const bothTried = new Promise<void>((resolve) => {
+      secondTicketTried = resolve
+      setTimeout(resolve, 1000)
+    })
+    const dbCreate = payload.db.create.bind(payload.db)
+    const spy = vi.spyOn(payload.db, 'create').mockImplementation((async (
+      args: Parameters<typeof payload.db.create>[0],
+    ) => {
+      if (args.collection === 'tickets') {
+        ticketInserts++
+        if (ticketInserts === 2) secondTicketTried()
+        return dbCreate(args)
+      }
+      if (args.collection === 'participations') await bothTried
+      return dbCreate(args)
+    }) as typeof payload.db.create)
+
+    try {
+      const results = await Promise.allSettled([
+        submitParticipation(payload, await input({ ticket })),
+        submitParticipation(payload, await input({ ticket, contestSlug: other.slug })),
+      ])
+      expect(results.map((result) => result.status)).toEqual(['fulfilled', 'fulfilled'])
+    } finally {
+      spy.mockRestore()
+    }
+
+    // Names never depend on timing: each carries its contest and a per-upload part.
+    const { docs } = await payload.find({
+      collection: 'tickets',
+      where: { contest: { in: [contest.id, other.id] } },
+      sort: '-createdAt',
+      limit: 2,
+      depth: 0,
+    })
+    const names = docs.map(({ contest: id, filename }) => [id, filename] as const)
+    expect(new Set(names.map(([, filename]) => filename)).size).toBe(2)
+    for (const [id, filename] of names) expect(filename).toMatch(new RegExp(`^${id}-[0-9a-f]{64}-`))
+  })
+})
+
 describe('refused submissions', () => {
   it.each<[string, Partial<ParticipationInput>, string, string?]>([
     ['an empty name', { name: '  ' }, 'invalid-name', 'name'],
