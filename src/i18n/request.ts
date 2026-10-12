@@ -3,6 +3,8 @@ import { locale as localeParam } from 'next/root-params'
 import { hasLocale } from 'next-intl'
 import { getRequestConfig } from 'next-intl/server'
 
+import { drawTimeZone } from '@/modules/contests/domain/drawPeriod'
+
 import { routing } from './routing'
 
 export default getRequestConfig(async ({ locale: override }) => {
@@ -15,6 +17,8 @@ export default getRequestConfig(async ({ locale: override }) => {
 
   return {
     locale: requested,
+    // Contest dates and draw periods are Algerian time, whatever the server's or visitor's zone.
+    timeZone: drawTimeZone,
     messages: (await import(`./messages/${requested}.json`)).default,
   }
 })

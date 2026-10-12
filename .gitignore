@@ -42,3 +42,4 @@ test.env
 next-env.d.ts
 
 /media
+/tickets

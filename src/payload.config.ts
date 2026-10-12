@@ -10,9 +10,18 @@ import sharp from 'sharp'
 
 import { defaultLocale, localeMetadata, locales } from './i18n/config'
 import { env } from './lib/env'
+import { storagePlugins } from './lib/storage'
 import { migrations } from './migrations'
+import { ConsentRecords } from './payload/collections/ConsentRecords'
+import { Contacts } from './payload/collections/Contacts'
+import { Contests } from './payload/collections/Contests'
+import { Draws } from './payload/collections/Draws'
 import { Media } from './payload/collections/Media'
+import { Participations } from './payload/collections/Participations'
+import { Tickets } from './payload/collections/Tickets'
 import { Users } from './payload/collections/Users'
+import { Winners } from './payload/collections/Winners'
+import { Settings } from './payload/globals/Settings'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -24,7 +33,18 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media],
+  collections: [
+    Contests,
+    Draws,
+    Winners,
+    Participations,
+    Tickets,
+    Contacts,
+    ConsentRecords,
+    Media,
+    Users,
+  ],
+  globals: [Settings],
   editor: lexicalEditor(),
   // Admin interface languages; each admin user picks theirs in their account settings.
   i18n: {
@@ -43,6 +63,10 @@ export default buildConfig({
     fallback: true,
   },
   secret: env.PAYLOAD_SECRET,
+  // Applies to REST uploads; the participation service enforces its own ticket limit.
+  upload: {
+    limits: { fileSize: 10 * 1024 * 1024 },
+  },
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },
@@ -55,5 +79,5 @@ export default buildConfig({
     prodMigrations: migrations,
   }),
   sharp,
-  plugins: [],
+  plugins: [...storagePlugins()],
 })

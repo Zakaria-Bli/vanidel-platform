@@ -35,9 +35,30 @@ pnpm dev
 
 The app is available at <http://localhost:3000>; Payload admin is at <http://localhost:3000/admin>. In development, Payload pushes schema changes to the database directly.
 
-Uploads currently use Payload's local storage in `media/`. The SeaweedFS (S3 API) storage described in `docs/architecture/ARCHITECTURE.md` is not wired yet.
+Run supporting services in throwaway Docker containers instead of installing them or adding Docker files to this repository.
 
-Run supporting services in throwaway Docker containers instead of installing them or adding Docker files to this repository. Storage works the same way once the S3 adapter is wired: run SeaweedFS (`chrislusf/seaweedfs`) in a container with its S3 port bound to `127.0.0.1`.
+### Seed data
+
+```sh
+pnpm seed
+```
+
+Creates `admin@vanidel.local` and `commercial@vanidel.local` (passwords from `SEED_ADMIN_PASSWORD` and `SEED_COMMERCIAL_PASSWORD` in `.env`) and a published French/Arabic contest at `/concours/concours-demo`, open for four weeks, with placeholder images. It is safe to re-run: existing users, images and the contest are left as they are. It refuses to run with `NODE_ENV=production`. Like `pnpm dev`, it pushes schema changes to the development database; to seed a database managed by migrations instead, run `pnpm migrate` first and seed with `PAYLOAD_MIGRATING=true pnpm seed`.
+
+### Upload storage
+
+Without S3 settings, uploads stay on local disk: campaign media in `media/` and receipt photos in `tickets/` (both git-ignored). Production stores them in SeaweedFS through its S3 API (see `docs/architecture/ARCHITECTURE.md` §9). To try that locally, start a throwaway SeaweedFS with its S3 port bound to `127.0.0.1` and create the two buckets:
+
+```sh
+docker run -d --rm --name vanidel-seaweedfs -p 127.0.0.1:8333:8333 \
+  chrislusf/seaweedfs:4.23 server -dir=/data -s3
+# Wait a few seconds for the S3 gateway, then:
+for bucket in vanidel-public vanidel-private; do
+  docker exec vanidel-seaweedfs sh -c "echo 's3.bucket.create -name $bucket' | weed shell"
+done
+```
+
+Then set the `S3_*` variables in `.env` (`S3_ENDPOINT=http://127.0.0.1:8333`, the bucket names above, and any access key and secret: this local gateway has no identities configured, so it accepts any credentials and allows anonymous access). Production must configure SeaweedFS S3 identities so that only the application's credentials can read the private bucket. Either way, files are downloaded through Payload (`/api/media/file/…`, `/api/tickets/file/…`), so collection access control applies: receipt photos are only served to logged-in staff.
 
 ## Payload schema changes
 
@@ -74,7 +95,7 @@ pnpm test           # applies committed migrations with schema push disabled, th
 pnpm test:coverage  # integration-test coverage
 ```
 
-The test setup loads `.env.test` explicitly, requires a local database whose name ends in `_test`, and fails if the file is missing. `DOTENV_CONFIG_PATH` can select another test-only environment file. Tests apply pending migrations, check that a second migration run is a no-op, exercise user persistence, and close the Payload instance. CI starts with an empty database.
+The test setup loads `.env.test` explicitly, requires a local database whose name ends in `_test`, and fails if the file is missing. `DOTENV_CONFIG_PATH` can select another test-only environment file. Tests apply pending migrations, check that a second migration run is a no-op, exercise access control and persistence, and close the Payload instance. Run test files serially (`fileParallelism: false`): they share one database. Unit tests for `src/lib` and `src/modules` sit next to the code as `*.spec.ts`. CI starts with an empty database.
 
 If an old test database was initialized by schema push, tests refuse it without deleting data. Recreate only your disposable `vanidel_test` database:
 

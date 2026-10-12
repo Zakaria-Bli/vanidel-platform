@@ -1,0 +1,53 @@
+import type { CollectionConfig } from 'payload'
+
+import { isAdmin, isStaff, nobody } from '../access'
+import { groups, label } from '../fields/label'
+import { readOnly } from '../fields/readOnly'
+
+/**
+ * Proof-of-purchase photos. Private: files are served only through /api/tickets/file/* to staff,
+ * and created only by the participation service, which re-encodes and hashes them first.
+ */
+export const Tickets: CollectionConfig = {
+  slug: 'tickets',
+  labels: { singular: label('Ticket', 'Ticket'), plural: label('Tickets', 'Tickets') },
+  admin: {
+    group: groups.participations,
+    defaultColumns: ['filename', 'contest', 'uploadedAt'],
+  },
+  access: {
+    read: isStaff,
+    create: nobody,
+    update: nobody,
+    delete: isAdmin,
+  },
+  // The same receipt photo can enter a contest only once (SPECIFICATION §8.1).
+  indexes: [{ fields: ['contest', 'hash'], unique: true }],
+  upload: {
+    mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
+    displayPreview: true,
+    hideRemoveFile: true,
+  },
+  fields: readOnly([
+    {
+      name: 'contest',
+      label: label('Concours', 'Contest'),
+      type: 'relationship',
+      relationTo: 'contests',
+      required: true,
+    },
+    {
+      name: 'hash',
+      label: label('Empreinte SHA-256', 'SHA-256 hash'),
+      type: 'text',
+      required: true,
+    },
+    {
+      name: 'uploadedAt',
+      label: label('Reçu le', 'Uploaded at'),
+      type: 'date',
+      required: true,
+      admin: { date: { pickerAppearance: 'dayAndTime' } },
+    },
+  ]),
+}

@@ -3,14 +3,26 @@
     "title": "Vanidel",
     "description": "Participez aux concours Vanidel."
   },
-  "home": {
-    "welcome": "Bienvenue sur Vanidel",
-    "welcomeBack": "Bon retour, <bdi>{email}</bdi>",
-    "admin": "Administration"
-  },
   "notFound": {
     "title": "Page introuvable",
     "description": "La page que vous cherchez n'existe pas ou a été déplacée.",
-    "backHome": "Retour à l'accueil"
+    "backHome": "Voir les concours"
+  },
+  "contests": {
+    "title": "Concours",
+    "current": "Concours en cours",
+    "noCurrent": "Aucun concours en cours pour le moment.",
+    "archiveLink": "Voir les concours passés",
+    "archiveTitle": "Concours passés",
+    "noArchive": "Aucun concours passé pour le moment.",
+    "backToContests": "Tous les concours",
+    "howToTakePart": "Comment participer",
+    "prizes": "Lots à gagner",
+    "regulation": "Règlement du concours (PDF)",
+    "phase": {
+      "scheduled": "Ouverture le {date}",
+      "open": "Jusqu’au {date}",
+      "closed": "Terminé le {date}"
+    }
   }
 }
