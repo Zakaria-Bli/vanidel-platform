@@ -3,8 +3,10 @@ import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getTranslations } from 'next-intl/server'
 import React from 'react'
 
+import { Tracking } from '@/components/analytics/Tracking'
 import { Container } from '@/components/shared/Container'
 import { LocaleSwitcher } from '@/components/shared/LocaleSwitcher'
+import { SiteFooter } from '@/components/shared/SiteFooter'
 import { DirectionProvider } from '@/components/ui/direction'
 import { getDirection } from '@/i18n/config'
 import { routing } from '@/i18n/routing'
@@ -42,6 +44,8 @@ export default async function LocaleLayout({ children }: LayoutProps<'/[locale]'
               </Container>
             </header>
             <main>{children}</main>
+            <SiteFooter />
+            <Tracking />
           </DirectionProvider>
         </NextIntlClientProvider>
       </body>

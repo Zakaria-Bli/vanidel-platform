@@ -102,3 +102,17 @@ export function drawPeriodFor(
     end: new Date(Math.min(periodStart + length, endAt)),
   }
 }
+
+/**
+ * 00:00 Algiers time on a calendar day given as `YYYY-MM-DD`, as a UTC instant; null when the
+ * string is not a valid date. For date filters typed by staff.
+ */
+export function startOfAlgiersDay(day: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day)
+  if (!match) return null
+  const [year, month, date] = match.slice(1).map(Number)
+  const utcMidnight = Date.UTC(year, month - 1, date)
+  const check = new Date(utcMidnight)
+  if (check.getUTCMonth() !== month - 1 || check.getUTCDate() !== date) return null
+  return new Date(utcMidnight - algiersOffset(utcMidnight))
+}

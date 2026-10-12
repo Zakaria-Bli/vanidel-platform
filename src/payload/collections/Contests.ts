@@ -8,19 +8,27 @@ import { missingTranslations, valueAt } from '@/modules/contests/domain/translat
 import { hasRole, isAdmin, isStaff } from '../access'
 import { integer } from '../fields/integer'
 import { groups, label } from '../fields/label'
+import { revalidateContestAfterChange, revalidateContestAfterDelete } from '../hooks/revalidate'
+import { consentTypeLabels, consentTypes } from './ConsentRecords'
+
+const weekdayLabels = {
+  sunday: label('Dimanche', 'Sunday', 'الأحد'),
+  monday: label('Lundi', 'Monday', 'الاثنين'),
+  tuesday: label('Mardi', 'Tuesday', 'الثلاثاء'),
+  wednesday: label('Mercredi', 'Wednesday', 'الأربعاء'),
+  thursday: label('Jeudi', 'Thursday', 'الخميس'),
+  friday: label('Vendredi', 'Friday', 'الجمعة'),
+  saturday: label('Samedi', 'Saturday', 'السبت'),
+}
 
 export const reservedSlugs = ['archives']
 
 /** Localized fields that must be filled in every locale before a contest goes public. */
-export const requiredTranslations = [
-  'title',
-  'description',
-  'participationInstructions',
-  'seo.title',
-] as const
+export const requiredTranslations = ['title', 'description', 'seo.title'] as const
 
-/** The same for array rows: every prize title and consent text is shown to participants. */
+/** The same for array rows: every step, prize title and consent text is shown to participants. */
 export const requiredRowTranslations = {
+  steps: ['text'],
   prizes: ['title'],
   consents: ['label'],
 } as const
@@ -100,6 +108,8 @@ const requireTranslationsWhenPublic: CollectionBeforeChangeHook = async ({
     ),
   ]
   const missing = missingTranslations(merged, paths, locales)
+  if (((merged.steps as unknown[] | undefined) ?? []).length === 0)
+    missing.push('steps (at least one)')
   if (missing.length > 0) {
     throw new ValidationError({
       collection: 'contests',
@@ -117,7 +127,10 @@ const requireTranslationsWhenPublic: CollectionBeforeChangeHook = async ({
 
 export const Contests: CollectionConfig = {
   slug: 'contests',
-  labels: { singular: label('Concours', 'Contest'), plural: label('Concours', 'Contests') },
+  labels: {
+    singular: label('Concours', 'Contest', 'المسابقة'),
+    plural: label('Concours', 'Contests', 'المسابقات'),
+  },
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'status', 'startAt', 'endAt'],
@@ -133,43 +146,64 @@ export const Contests: CollectionConfig = {
   },
   hooks: {
     beforeChange: [requireTranslationsWhenPublic],
+    afterChange: [revalidateContestAfterChange],
+    afterDelete: [revalidateContestAfterDelete],
   },
   fields: [
     {
       type: 'tabs',
       tabs: [
         {
-          label: label('Contenu', 'Content'),
+          label: label('Contenu', 'Content', 'المحتوى'),
           fields: [
             {
               name: 'title',
-              label: label('Titre', 'Title'),
+              label: label('Titre', 'Title', 'العنوان'),
               type: 'text',
               required: true,
               localized: true,
             },
             {
               name: 'description',
-              label: label('Description', 'Description'),
+              label: label('Description', 'Description', 'الوصف'),
               type: 'richText',
               localized: true,
             },
             {
-              name: 'participationInstructions',
-              label: label('Comment participer', 'How to take part'),
-              type: 'richText',
-              localized: true,
+              name: 'steps',
+              label: label(
+                'Comment participer (étapes)',
+                'How to take part (steps)',
+                'كيفية المشاركة (الخطوات)',
+              ),
+              type: 'array',
+              admin: {
+                description: label(
+                  'Affichées numérotées, dans cet ordre. Au moins une étape pour publier.',
+                  'Shown numbered, in this order. At least one step to publish.',
+                  'تُعرض مرقّمة بهذا الترتيب. يلزم خطوة واحدة على الأقل للنشر.',
+                ),
+              },
+              fields: [
+                {
+                  name: 'text',
+                  label: label('Étape', 'Step', 'الخطوة'),
+                  type: 'textarea',
+                  required: true,
+                  localized: true,
+                },
+              ],
             },
             {
               name: 'heroMedia',
-              label: label('Visuel principal', 'Hero image'),
+              label: label('Visuel principal', 'Hero image', 'الصورة الرئيسية'),
               type: 'upload',
               relationTo: 'media',
               filterOptions: { mimeType: { contains: 'image' } },
             },
             {
               name: 'regulation',
-              label: label('Règlement (PDF)', 'Regulation (PDF)'),
+              label: label('Règlement (PDF)', 'Regulation (PDF)', 'النظام (PDF)'),
               type: 'upload',
               relationTo: 'media',
               localized: true,
@@ -177,32 +211,32 @@ export const Contests: CollectionConfig = {
             },
             {
               name: 'prizes',
-              label: label('Lots', 'Prizes'),
+              label: label('Lots', 'Prizes', 'الجوائز'),
               type: 'array',
               fields: [
                 {
                   name: 'title',
-                  label: label('Titre', 'Title'),
+                  label: label('Titre', 'Title', 'العنوان'),
                   type: 'text',
                   required: true,
                   localized: true,
                 },
                 {
                   name: 'description',
-                  label: label('Description', 'Description'),
+                  label: label('Description', 'Description', 'الوصف'),
                   type: 'textarea',
                   localized: true,
                 },
                 {
                   name: 'media',
-                  label: label('Image', 'Image'),
+                  label: label('Image', 'Image', 'الصورة'),
                   type: 'upload',
                   relationTo: 'media',
                   filterOptions: { mimeType: { contains: 'image' } },
                 },
                 {
                   name: 'quantity',
-                  label: label('Quantité', 'Quantity'),
+                  label: label('Quantité', 'Quantity', 'الكمية'),
                   type: 'number',
                   min: 1,
                   admin: { step: 1 },
@@ -213,34 +247,35 @@ export const Contests: CollectionConfig = {
           ],
         },
         {
-          label: label('Participation', 'Participation'),
+          label: label('Participation', 'Participation', 'المشاركة'),
           fields: [
             {
               name: 'form',
-              label: label('Formulaire', 'Form'),
+              label: label('Formulaire', 'Form', 'الاستمارة'),
               type: 'group',
               admin: {
                 description: label(
                   'Le nom, le téléphone et la photo du ticket sont toujours demandés.',
                   'Name, phone and ticket photo are always required.',
+                  'الاسم والهاتف وصورة التذكرة مطلوبة دائمًا.',
                 ),
               },
               fields: [
                 {
                   name: 'email',
-                  label: label('E-mail', 'Email'),
+                  label: label('E-mail', 'Email', 'البريد الإلكتروني'),
                   type: 'select',
                   required: true,
-                  defaultValue: 'off',
+                  defaultValue: 'optional',
                   options: [
-                    { label: label('Non demandé', 'Not asked'), value: 'off' },
-                    { label: label('Facultatif', 'Optional'), value: 'optional' },
-                    { label: label('Obligatoire', 'Required'), value: 'required' },
+                    { label: label('Non demandé', 'Not asked', 'غير مطلوب'), value: 'off' },
+                    { label: label('Facultatif', 'Optional', 'اختياري'), value: 'optional' },
+                    { label: label('Obligatoire', 'Required', 'إلزامي'), value: 'required' },
                   ],
                 },
                 {
                   name: 'wilayaRequired',
-                  label: label('Wilaya obligatoire', 'Wilaya required'),
+                  label: label('Wilaya obligatoire', 'Wilaya required', 'الولاية إلزامية'),
                   type: 'checkbox',
                   defaultValue: true,
                 },
@@ -251,6 +286,7 @@ export const Contests: CollectionConfig = {
               label: label(
                 'Participations max. par téléphone et par période',
                 'Max entries per phone per draw period',
+                'الحد الأقصى للمشاركات لكل هاتف في كل فترة سحب',
               ),
               type: 'number',
               required: true,
@@ -261,41 +297,42 @@ export const Contests: CollectionConfig = {
             },
             {
               name: 'consents',
-              label: label('Consentements', 'Consents'),
+              label: label('Consentements', 'Consents', 'الموافقات'),
               type: 'array',
               fields: [
                 {
                   name: 'type',
-                  label: label('Type', 'Type'),
+                  label: label('Type', 'Type', 'النوع'),
                   type: 'select',
                   required: true,
-                  options: [
-                    { label: label('Règlement', 'Regulation'), value: 'regulation' },
-                    { label: label('Marketing', 'Marketing'), value: 'marketing' },
-                  ],
+                  options: consentTypes.map((value) => ({
+                    value,
+                    label: consentTypeLabels[value],
+                  })),
                 },
                 {
                   name: 'required',
-                  label: label('Obligatoire', 'Required'),
+                  label: label('Obligatoire', 'Required', 'إلزامي'),
                   type: 'checkbox',
                   defaultValue: false,
                 },
                 {
                   name: 'label',
-                  label: label('Texte affiché', 'Displayed text'),
+                  label: label('Texte affiché', 'Displayed text', 'النص المعروض'),
                   type: 'textarea',
                   required: true,
                   localized: true,
                 },
                 {
                   name: 'textVersion',
-                  label: label('Version du texte', 'Text version'),
+                  label: label('Version du texte', 'Text version', 'إصدار النص'),
                   type: 'text',
                   required: true,
                   admin: {
                     description: label(
                       'À changer dès que le texte change, pour garder la preuve du texte accepté.',
                       'Change it whenever the text changes, to keep evidence of the accepted text.',
+                      'غيّره كلما تغيّر النص، للاحتفاظ بإثبات النص المقبول.',
                     ),
                   },
                 },
@@ -304,7 +341,7 @@ export const Contests: CollectionConfig = {
           ],
         },
         {
-          label: label('Tirages', 'Draws'),
+          label: label('Tirages', 'Draws', 'السحوبات'),
           fields: [
             {
               name: 'draw',
@@ -313,7 +350,11 @@ export const Contests: CollectionConfig = {
               fields: [
                 {
                   name: 'periodDays',
-                  label: label('Durée d’une période (jours)', 'Period length (days)'),
+                  label: label(
+                    'Durée d’une période (jours)',
+                    'Period length (days)',
+                    'مدة الفترة (بالأيام)',
+                  ),
                   type: 'number',
                   required: true,
                   defaultValue: 7,
@@ -323,19 +364,24 @@ export const Contests: CollectionConfig = {
                 },
                 {
                   name: 'periodStartDay',
-                  label: label('Premier jour de la période', 'Period start day'),
+                  label: label(
+                    'Premier jour de la période',
+                    'Period start day',
+                    'يوم بداية الفترة',
+                  ),
                   type: 'select',
-                  options: weekdays.map((value) => ({ label: value, value })),
+                  options: weekdays.map((value) => ({ value, label: weekdayLabels[value] })),
                   admin: {
                     description: label(
                       'Heure d’Alger, à minuit. Par défaut : le jour de début du concours.',
                       'Algiers time, at midnight. Defaults to the contest start day.',
+                      'بتوقيت الجزائر، عند منتصف الليل. افتراضيًا: يوم بداية المسابقة.',
                     ),
                   },
                 },
                 {
                   name: 'winnersPerDraw',
-                  label: label('Gagnants par tirage', 'Winners per draw'),
+                  label: label('Gagnants par tirage', 'Winners per draw', 'عدد الفائزين في كل سحب'),
                   type: 'number',
                   required: true,
                   defaultValue: 1,
@@ -348,7 +394,7 @@ export const Contests: CollectionConfig = {
           ],
         },
         {
-          label: label('Partage et SEO', 'Sharing and SEO'),
+          label: label('Partage et SEO', 'Sharing and SEO', 'المشاركة وتحسين محركات البحث'),
           fields: [
             {
               name: 'seo',
@@ -357,13 +403,13 @@ export const Contests: CollectionConfig = {
               fields: [
                 {
                   name: 'title',
-                  label: label('Titre SEO', 'SEO title'),
+                  label: label('Titre SEO', 'SEO title', 'عنوان تحسين محركات البحث'),
                   type: 'text',
                   localized: true,
                 },
                 {
                   name: 'description',
-                  label: label('Description SEO', 'SEO description'),
+                  label: label('Description SEO', 'SEO description', 'وصف تحسين محركات البحث'),
                   type: 'textarea',
                   localized: true,
                 },
@@ -371,7 +417,11 @@ export const Contests: CollectionConfig = {
             },
             {
               name: 'shareMedia',
-              label: label('Image de partage (1200×630)', 'Share image (1200×630)'),
+              label: label(
+                'Image de partage (1200×630)',
+                'Share image (1200×630)',
+                'صورة المشاركة (1200×630)',
+              ),
               type: 'upload',
               relationTo: 'media',
               filterOptions: { mimeType: { contains: 'image' } },
@@ -382,7 +432,7 @@ export const Contests: CollectionConfig = {
     },
     {
       name: 'slug',
-      label: label('Identifiant URL', 'URL slug'),
+      label: label('Identifiant URL', 'URL slug', 'معرّف الرابط'),
       type: 'text',
       required: true,
       unique: true,
@@ -392,6 +442,7 @@ export const Contests: CollectionConfig = {
         description: label(
           'Utilisé dans /concours/{slug}, imprimé sur les QR codes : ne plus le changer après impression.',
           'Used in /concours/{slug}, printed on QR codes: do not change it once printed.',
+          'يُستخدم في /concours/{slug} ويُطبع على رموز QR: لا تغيّره بعد الطباعة.',
         ),
       },
       validate: (value: unknown) => {
@@ -404,16 +455,16 @@ export const Contests: CollectionConfig = {
     },
     {
       name: 'status',
-      label: label('Statut', 'Status'),
+      label: label('Statut', 'Status', 'الحالة'),
       type: 'select',
       required: true,
       defaultValue: 'draft',
       options: contestStatuses.map((value) => ({
         value,
         label: {
-          draft: label('Brouillon', 'Draft'),
-          published: label('Publié', 'Published'),
-          archived: label('Archivé', 'Archived'),
+          draft: label('Brouillon', 'Draft', 'مسودة'),
+          published: label('Publié', 'Published', 'منشور'),
+          archived: label('Archivé', 'Archived', 'مؤرشف'),
         }[value],
       })),
       admin: {
@@ -421,12 +472,13 @@ export const Contests: CollectionConfig = {
         description: label(
           'Publié : ouvert entre les dates de début et de fin.',
           'Published: open between the start and end dates.',
+          'منشورة: مفتوحة بين تاريخي البداية والنهاية.',
         ),
       },
     },
     {
       name: 'startAt',
-      label: label('Début', 'Start'),
+      label: label('Début', 'Start', 'البداية'),
       type: 'date',
       required: true,
       admin: {
@@ -436,7 +488,7 @@ export const Contests: CollectionConfig = {
     },
     {
       name: 'endAt',
-      label: label('Fin', 'End'),
+      label: label('Fin', 'End', 'النهاية'),
       type: 'date',
       required: true,
       admin: {

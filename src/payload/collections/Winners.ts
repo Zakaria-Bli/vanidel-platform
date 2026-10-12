@@ -17,7 +17,10 @@ function serviceOnly(fields: Field[]): Field[] {
  */
 export const Winners: CollectionConfig = {
   slug: 'winners',
-  labels: { singular: label('Gagnant', 'Winner'), plural: label('Gagnants', 'Winners') },
+  labels: {
+    singular: label('Gagnant', 'Winner', 'الفائز'),
+    plural: label('Gagnants', 'Winners', 'الفائزون'),
+  },
   admin: {
     group: groups.contests,
     useAsTitle: 'publicDisplayName',
@@ -33,7 +36,7 @@ export const Winners: CollectionConfig = {
     ...serviceOnly([
       {
         name: 'draw',
-        label: label('Tirage', 'Draw'),
+        label: label('Tirage', 'Draw', 'السحب'),
         type: 'relationship',
         relationTo: 'draws',
         required: true,
@@ -41,15 +44,15 @@ export const Winners: CollectionConfig = {
       },
       {
         name: 'participation',
-        label: label('Participation', 'Participation'),
+        label: label('Participation', 'Participation', 'المشاركة'),
         type: 'relationship',
         relationTo: 'participations',
         required: true,
       },
-      { name: 'rank', label: label('Rang', 'Rank'), type: 'number', required: true },
+      { name: 'rank', label: label('Rang', 'Rank', 'الترتيب'), type: 'number', required: true },
       {
         name: 'selectedAt',
-        label: label('Tiré le', 'Selected at'),
+        label: label('Tiré le', 'Selected at', 'اختير في'),
         type: 'date',
         required: true,
         admin: { date: { pickerAppearance: 'dayAndTime' } },
@@ -57,24 +60,30 @@ export const Winners: CollectionConfig = {
     ]),
     {
       type: 'collapsible',
-      label: label('Publication', 'Publication'),
+      label: label('Publication', 'Publication', 'النشر'),
       fields: [
         {
           name: 'publicDisplayName',
-          label: label('Nom affiché', 'Public name'),
+          label: label('Nom affiché', 'Public name', 'الاسم المعروض'),
           type: 'text',
           required: true,
-          admin: { description: label('Par exemple « Amine B. ».', 'For example "Amine B.".') },
+          admin: {
+            description: label(
+              'Par exemple « Amine B. ».',
+              'For example "Amine B.".',
+              'مثال: «أمين ب.».',
+            ),
+          },
         },
         {
           name: 'publicMedia',
-          label: label('Photo ou vidéo', 'Photo or video'),
+          label: label('Photo ou vidéo', 'Photo or video', 'صورة أو فيديو'),
           type: 'upload',
           relationTo: 'media',
         },
         {
           name: 'published',
-          label: label('Publié', 'Published'),
+          label: label('Publié', 'Published', 'منشور'),
           type: 'checkbox',
           defaultValue: false,
         },
@@ -82,19 +91,24 @@ export const Winners: CollectionConfig = {
     },
     {
       type: 'collapsible',
-      label: label('Annulation', 'Voiding'),
+      label: label('Annulation', 'Voiding', 'الإلغاء'),
       fields: serviceOnly([
-        { name: 'voided', label: label('Annulé', 'Voided'), type: 'checkbox', defaultValue: false },
-        { name: 'voidReason', label: label('Motif', 'Reason'), type: 'textarea' },
+        {
+          name: 'voided',
+          label: label('Annulé', 'Voided', 'ملغى'),
+          type: 'checkbox',
+          defaultValue: false,
+        },
+        { name: 'voidReason', label: label('Motif', 'Reason', 'السبب'), type: 'textarea' },
         {
           name: 'voidedBy',
-          label: label('Annulé par', 'Voided by'),
+          label: label('Annulé par', 'Voided by', 'أُلغي من طرف'),
           type: 'relationship',
           relationTo: 'users',
         },
         {
           name: 'voidedAt',
-          label: label('Annulé le', 'Voided at'),
+          label: label('Annulé le', 'Voided at', 'أُلغي في'),
           type: 'date',
           admin: { date: { pickerAppearance: 'dayAndTime' } },
         },

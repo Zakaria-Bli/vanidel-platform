@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { drawPeriodFor, type DrawSettings } from './drawPeriod'
+import { drawPeriodFor, startOfAlgiersDay, type DrawSettings } from './drawPeriod'
 
 // Algiers is UTC+1 all year, so 00:00 Algiers is 23:00 UTC the day before.
 // 2026-10-15 is a Thursday.
@@ -73,5 +73,15 @@ describe('drawPeriodFor', () => {
     expect(() =>
       period('2026-10-16T12:00:00.000Z', { ...contest, draw: { periodDays: 0 } }),
     ).toThrow(RangeError)
+  })
+})
+
+describe('startOfAlgiersDay', () => {
+  it('is 23:00 UTC the day before', () => {
+    expect(startOfAlgiersDay('2026-10-15')?.toISOString()).toBe('2026-10-14T23:00:00.000Z')
+  })
+
+  it.each(['2026-02-30', '15/10/2026', '', '2026-13-01'])('rejects %j', (day) => {
+    expect(startOfAlgiersDay(day)).toBeNull()
   })
 })

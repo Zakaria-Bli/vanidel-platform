@@ -54,15 +54,20 @@ describe('development seed', () => {
     })
     expect(contest.status).toBe('published')
     expect(contest.title).toMatchObject({ fr: expect.any(String), ar: expect.any(String) })
+    // Every row is translated: six steps, one prize, three consents.
+    const languagesOf = (value: unknown) => Object.keys(value as object).sort()
+    expect(contest.steps?.map(({ text }) => languagesOf(text))).toEqual(Array(6).fill(['ar', 'fr']))
+    expect(contest.prizes?.map(({ title }) => languagesOf(title))).toEqual([['ar', 'fr']])
+    expect(contest.form).toMatchObject({ email: 'optional', wilayaRequired: true })
     expect(
-      contest.prizes?.map(({ title }) => Object.keys(title as unknown as object).sort()),
+      contest.consents?.map(({ type, required, textVersion }) => [type, required, textVersion]),
     ).toEqual([
-      ['ar', 'fr'],
-      ['ar', 'fr'],
+      ['regulation', true, 'placeholder-2026-10'],
+      ['dataProcessing', true, 'placeholder-2026-10'],
+      ['marketing', false, 'placeholder-2026-10'],
     ])
-    expect(contest.consents?.map(({ type, required }) => [type, required])).toEqual([
-      ['regulation', true],
-      ['marketing', false],
-    ])
+    expect(contest.consents?.map(({ label }) => languagesOf(label))).toEqual(
+      Array(3).fill(['ar', 'fr']),
+    )
   })
 })

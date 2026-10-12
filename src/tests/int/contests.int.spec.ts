@@ -135,6 +135,12 @@ describe('translated rows', () => {
             label: 'J’accepte le règlement.',
             textVersion: 'v1',
           },
+          {
+            type: 'dataProcessing',
+            required: true,
+            label: 'J’accepte le traitement de mes données.',
+            textVersion: 'v1',
+          },
         ],
       },
     })
@@ -152,14 +158,13 @@ describe('translated rows', () => {
     const draft = await withFrenchOnlyRows()
     // Array rows keep their IDs across locales.
     const [prize] = draft.prizes ?? []
-    const [consent] = draft.consents ?? []
     await payload.update({
       collection: 'contests',
       id: draft.id,
       locale: 'ar',
       data: {
         prizes: [{ ...prize, title: 'سلة' }],
-        consents: [{ ...consent, label: 'أوافق على النظام.' }],
+        consents: (draft.consents ?? []).map((row) => ({ ...row, label: 'أوافق.' })),
       },
     })
 
@@ -169,6 +174,29 @@ describe('translated rows', () => {
       data: { status: 'published' },
     })
     expect(published.status).toBe('published')
+  })
+
+  it('refuses to publish without any step', async () => {
+    const draft = await track(createDraftContest(payload))
+    await translateToArabic(payload, draft.id)
+    await payload.update({ collection: 'contests', id: draft.id, data: { steps: [] } })
+
+    await expect(
+      payload.update({ collection: 'contests', id: draft.id, data: { status: 'published' } }),
+    ).rejects.toMatchObject(missing('steps (at least one)'))
+  })
+
+  it('refuses a French-only step added to a published contest', async () => {
+    const published = await track(createPublishedContest(payload))
+
+    await expect(
+      payload.update({
+        collection: 'contests',
+        id: published.id,
+        locale: 'fr',
+        data: { steps: [...(published.steps ?? []), { text: 'Nouvelle étape' }] },
+      }),
+    ).rejects.toMatchObject(missing('steps.1.text (ar)'))
   })
 
   it('refuses a French-only prize added to a published contest', async () => {
@@ -248,7 +276,7 @@ describe('contest rules', () => {
     )
 
     expect(contest.status).toBe('draft')
-    expect(contest.form).toMatchObject({ email: 'off', wilayaRequired: true })
+    expect(contest.form).toMatchObject({ email: 'optional', wilayaRequired: true })
     expect(contest.entryLimitPerPhone).toBe(1)
     expect(contest.draw).toMatchObject({ periodDays: 7, winnersPerDraw: 1 })
   })

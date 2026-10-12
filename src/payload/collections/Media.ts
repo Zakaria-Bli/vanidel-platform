@@ -2,10 +2,14 @@ import type { CollectionConfig } from 'payload'
 
 import { anyone, isAdmin, isStaff } from '../access'
 import { groups, label } from '../fields/label'
+import { revalidateMediaAfterChange, revalidateMediaAfterDelete } from '../hooks/revalidate'
 
 export const Media: CollectionConfig = {
   slug: 'media',
-  labels: { singular: label('Média', 'Media'), plural: label('Médias', 'Media') },
+  labels: {
+    singular: label('Média', 'Media', 'الوسائط'),
+    plural: label('Médias', 'Media', 'الوسائط'),
+  },
   admin: {
     group: groups.content,
   },
@@ -16,10 +20,14 @@ export const Media: CollectionConfig = {
     update: isStaff,
     delete: isAdmin,
   },
+  hooks: {
+    afterChange: [revalidateMediaAfterChange],
+    afterDelete: [revalidateMediaAfterDelete],
+  },
   fields: [
     {
       name: 'alt',
-      label: label('Texte alternatif', 'Alt text'),
+      label: label('Texte alternatif', 'Alt text', 'النص البديل'),
       type: 'text',
       required: true,
       localized: true,

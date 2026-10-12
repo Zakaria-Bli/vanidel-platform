@@ -3,6 +3,7 @@ import type { CollectionConfig } from 'payload'
 import { isAdmin, isStaff, nobody } from '../access'
 import { groups, label } from '../fields/label'
 import { readOnly } from '../fields/readOnly'
+import { exportMarketingContacts } from '../endpoints/exports'
 
 /**
  * One person in the cross-contest audience, identified only by normalized phone. Created on the
@@ -11,12 +12,19 @@ import { readOnly } from '../fields/readOnly'
  */
 export const Contacts: CollectionConfig = {
   slug: 'contacts',
-  labels: { singular: label('Contact', 'Contact'), plural: label('Contacts', 'Contacts') },
+  labels: {
+    singular: label('Contact', 'Contact', 'جهة الاتصال'),
+    plural: label('Contacts', 'Contacts', 'جهات الاتصال'),
+  },
   admin: {
     group: groups.participations,
     useAsTitle: 'phoneNormalized',
     defaultColumns: ['phoneNormalized', 'name', 'wilaya', 'createdAt'],
+    components: {
+      beforeListTable: ['/payload/components/ExportPanel#MarketingContactsExport'],
+    },
   },
+  endpoints: [exportMarketingContacts],
   access: {
     read: isStaff,
     create: nobody,
@@ -26,17 +34,22 @@ export const Contacts: CollectionConfig = {
   fields: readOnly([
     {
       name: 'phoneNormalized',
-      label: label('Téléphone', 'Phone'),
+      label: label('Téléphone', 'Phone', 'الهاتف'),
       type: 'text',
       required: true,
       unique: true,
     },
-    { name: 'name', label: label('Nom', 'Name'), type: 'text', required: true },
-    { name: 'emailNormalized', label: label('E-mail', 'Email'), type: 'text' },
-    { name: 'wilaya', label: label('Wilaya', 'Wilaya'), type: 'text' },
+    { name: 'name', label: label('Nom', 'Name', 'الاسم'), type: 'text', required: true },
+    { name: 'emailNormalized', label: label('E-mail', 'Email', 'البريد الإلكتروني'), type: 'text' },
+    {
+      name: 'wilaya',
+      label: label('Wilaya', 'Wilaya', 'الولاية'),
+      type: 'text',
+      admin: { components: { Cell: '/payload/components/WilayaCell#WilayaCell' } },
+    },
     {
       name: 'firstContest',
-      label: label('Premier concours', 'First contest'),
+      label: label('Premier concours', 'First contest', 'أول مسابقة'),
       type: 'relationship',
       relationTo: 'contests',
       required: true,
