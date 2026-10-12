@@ -3,6 +3,7 @@ import type { CollectionConfig } from 'payload'
 import { isAdmin, isStaff, nobody } from '../access'
 import { groups, label } from '../fields/label'
 import { readOnly } from '../fields/readOnly'
+import { exportMarketingContacts } from '../endpoints/exports'
 
 /**
  * One person in the cross-contest audience, identified only by normalized phone. Created on the
@@ -16,7 +17,11 @@ export const Contacts: CollectionConfig = {
     group: groups.participations,
     useAsTitle: 'phoneNormalized',
     defaultColumns: ['phoneNormalized', 'name', 'wilaya', 'createdAt'],
+    components: {
+      beforeListTable: ['/payload/components/ExportPanel#MarketingContactsExport'],
+    },
   },
+  endpoints: [exportMarketingContacts],
   access: {
     read: isStaff,
     create: nobody,

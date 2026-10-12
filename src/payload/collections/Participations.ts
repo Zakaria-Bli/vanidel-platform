@@ -5,6 +5,7 @@ import { locales } from '@/i18n/config'
 import { isAdmin, isStaff, nobody } from '../access'
 import { groups, label } from '../fields/label'
 import { readOnly } from '../fields/readOnly'
+import { exportParticipations } from '../endpoints/exports'
 
 /**
  * One accepted submission to one contest. There is no moderation (SPECIFICATION §9): a
@@ -22,7 +23,11 @@ export const Participations: CollectionConfig = {
     useAsTitle: 'name',
     defaultColumns: ['submittedAt', 'ticket', 'name', 'phone', 'wilaya', 'source', 'contest'],
     listSearchableFields: ['name', 'phone', 'phoneNormalized', 'email'],
+    components: {
+      beforeListTable: ['/payload/components/ExportPanel#ParticipationExport'],
+    },
   },
+  endpoints: [exportParticipations],
   access: {
     read: isStaff,
     create: nobody,
