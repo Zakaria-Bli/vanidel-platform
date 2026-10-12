@@ -1,13 +1,13 @@
 import type { GlobalConfig } from 'payload'
 
 import { anyone, isAdmin, isStaffField } from '../access'
-import { label } from '../fields/label'
+import { groups, label } from '../fields/label'
 
 export const Settings: GlobalConfig = {
   slug: 'settings',
   label: label('Paramètres', 'Settings'),
   admin: {
-    group: label('Administration', 'Administration'),
+    group: groups.administration,
   },
   access: {
     read: anyone,

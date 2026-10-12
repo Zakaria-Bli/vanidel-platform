@@ -68,6 +68,12 @@ export interface Config {
   blocks: {};
   collections: {
     contests: Contest;
+    draws: Draw;
+    winners: Winner;
+    participations: Participation;
+    tickets: Ticket;
+    contacts: Contact;
+    'consent-records': ConsentRecord;
     media: Media;
     users: User;
     'payload-kv': PayloadKv;
@@ -78,6 +84,12 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     contests: ContestsSelect<false> | ContestsSelect<true>;
+    draws: DrawsSelect<false> | DrawsSelect<true>;
+    winners: WinnersSelect<false> | WinnersSelect<true>;
+    participations: ParticipationsSelect<false> | ParticipationsSelect<true>;
+    tickets: TicketsSelect<false> | TicketsSelect<true>;
+    contacts: ContactsSelect<false> | ContactsSelect<true>;
+    'consent-records': ConsentRecordsSelect<false> | ConsentRecordsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -256,6 +268,37 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "draws".
+ */
+export interface Draw {
+  id: number;
+  contest: number | Contest;
+  periodStart: string;
+  periodEnd: string;
+  status: 'completed';
+  eligibleCount: number;
+  /**
+   * SHA-256 of the ordered list of eligible participation IDs.
+   */
+  poolHash: string;
+  executedAt: string;
+  executedBy: number | User;
+  algorithmVersion: string;
+  randomnessMetadata?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  redrawOf?: (number | null) | Draw;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
@@ -284,6 +327,104 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "winners".
+ */
+export interface Winner {
+  id: number;
+  draw: number | Draw;
+  participation: number | Participation;
+  rank: number;
+  selectedAt: string;
+  /**
+   * For example "Amine B.".
+   */
+  publicDisplayName: string;
+  publicMedia?: (number | null) | Media;
+  published?: boolean | null;
+  voided?: boolean | null;
+  voidReason?: string | null;
+  voidedBy?: (number | null) | User;
+  voidedAt?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "participations".
+ */
+export interface Participation {
+  id: number;
+  contest: number | Contest;
+  contact: number | Contact;
+  submittedAt: string;
+  name: string;
+  phone: string;
+  phoneNormalized: string;
+  email?: string | null;
+  wilaya?: string | null;
+  ticket: number | Ticket;
+  locale: 'fr' | 'ar';
+  source?: string | null;
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  utmCampaign?: string | null;
+  utmContent?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contacts".
+ */
+export interface Contact {
+  id: number;
+  phoneNormalized: string;
+  name: string;
+  emailNormalized?: string | null;
+  wilaya?: string | null;
+  firstContest: number | Contest;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tickets".
+ */
+export interface Ticket {
+  id: number;
+  contest: number | Contest;
+  hash: string;
+  uploadedAt: string;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consent-records".
+ */
+export interface ConsentRecord {
+  id: number;
+  contact: number | Contact;
+  participation: number | Participation;
+  type: 'regulation' | 'marketing';
+  granted: boolean;
+  textVersion: string;
+  capturedAt: string;
+  source: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -309,6 +450,30 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'contests';
         value: number | Contest;
+      } | null)
+    | ({
+        relationTo: 'draws';
+        value: number | Draw;
+      } | null)
+    | ({
+        relationTo: 'winners';
+        value: number | Winner;
+      } | null)
+    | ({
+        relationTo: 'participations';
+        value: number | Participation;
+      } | null)
+    | ({
+        relationTo: 'tickets';
+        value: number | Ticket;
+      } | null)
+    | ({
+        relationTo: 'contacts';
+        value: number | Contact;
+      } | null)
+    | ({
+        relationTo: 'consent-records';
+        value: number | ConsentRecord;
       } | null)
     | ({
         relationTo: 'media';
@@ -413,6 +578,115 @@ export interface ContestsSelect<T extends boolean = true> {
   status?: T;
   startAt?: T;
   endAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "draws_select".
+ */
+export interface DrawsSelect<T extends boolean = true> {
+  contest?: T;
+  periodStart?: T;
+  periodEnd?: T;
+  status?: T;
+  eligibleCount?: T;
+  poolHash?: T;
+  executedAt?: T;
+  executedBy?: T;
+  algorithmVersion?: T;
+  randomnessMetadata?: T;
+  redrawOf?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "winners_select".
+ */
+export interface WinnersSelect<T extends boolean = true> {
+  draw?: T;
+  participation?: T;
+  rank?: T;
+  selectedAt?: T;
+  publicDisplayName?: T;
+  publicMedia?: T;
+  published?: T;
+  voided?: T;
+  voidReason?: T;
+  voidedBy?: T;
+  voidedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "participations_select".
+ */
+export interface ParticipationsSelect<T extends boolean = true> {
+  contest?: T;
+  contact?: T;
+  submittedAt?: T;
+  name?: T;
+  phone?: T;
+  phoneNormalized?: T;
+  email?: T;
+  wilaya?: T;
+  ticket?: T;
+  locale?: T;
+  source?: T;
+  utmSource?: T;
+  utmMedium?: T;
+  utmCampaign?: T;
+  utmContent?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tickets_select".
+ */
+export interface TicketsSelect<T extends boolean = true> {
+  contest?: T;
+  hash?: T;
+  uploadedAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "contacts_select".
+ */
+export interface ContactsSelect<T extends boolean = true> {
+  phoneNormalized?: T;
+  name?: T;
+  emailNormalized?: T;
+  wilaya?: T;
+  firstContest?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consent-records_select".
+ */
+export interface ConsentRecordsSelect<T extends boolean = true> {
+  contact?: T;
+  participation?: T;
+  type?: T;
+  granted?: T;
+  textVersion?: T;
+  capturedAt?: T;
+  source?: T;
   updatedAt?: T;
   createdAt?: T;
 }

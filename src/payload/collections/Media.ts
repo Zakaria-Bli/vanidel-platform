@@ -1,13 +1,13 @@
 import type { CollectionConfig } from 'payload'
 
 import { anyone, isAdmin, isStaff } from '../access'
-import { label } from '../fields/label'
+import { groups, label } from '../fields/label'
 
 export const Media: CollectionConfig = {
   slug: 'media',
   labels: { singular: label('Média', 'Media'), plural: label('Médias', 'Media') },
   admin: {
-    group: label('Contenu', 'Content'),
+    group: groups.content,
   },
   // Public campaign assets only. Proof-of-purchase images live in the private `tickets` collection.
   access: {

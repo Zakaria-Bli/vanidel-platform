@@ -5,3 +5,10 @@
 export function label(fr: string, en: string): Record<'en' | 'fr', string> {
   return { fr, en }
 }
+
+export const groups = {
+  contests: label('Concours', 'Contests'),
+  participations: label('Participations', 'Participations'),
+  content: label('Contenu', 'Content'),
+  administration: label('Administration', 'Administration'),
+}

@@ -6,7 +6,7 @@ import { contestStatuses } from '@/modules/contests/domain/phase'
 import { missingTranslations, valueAt } from '@/modules/contests/domain/translations'
 
 import { hasRole, isAdmin, isStaff } from '../access'
-import { label } from '../fields/label'
+import { groups, label } from '../fields/label'
 
 /** Localized fields that must be filled in every locale before a contest goes public. */
 export const requiredTranslations = [
@@ -85,7 +85,7 @@ export const Contests: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'status', 'startAt', 'endAt'],
-    group: label('Concours', 'Contests'),
+    group: groups.contests,
   },
   access: {
     // The public sees published and archived contests; drafts stay in the back office.
