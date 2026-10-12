@@ -13,7 +13,8 @@ import {
 const req = { payload: { logger: { debug: vi.fn() } } } as unknown as PayloadRequest
 type Args<T extends (...args: never[]) => unknown> = Parameters<T>[0]
 
-const tagsRevalidated = () => revalidateTag.mock.calls.map(([tag, profile]) => [tag, profile])
+const tagsRevalidated = () =>
+  revalidateTag.mock.calls.map(([tag, profile]) => [tag, profile.expire === 0 ? 'now' : profile])
 
 describe('revalidation hooks', () => {
   it('revalidates the contest lists and both slugs of a renamed contest', () => {
@@ -25,9 +26,9 @@ describe('revalidation hooks', () => {
     } as unknown as Args<typeof revalidateContestAfterChange>)
 
     expect(tagsRevalidated()).toEqual([
-      ['contests', 'max'],
-      ['contest:new', 'max'],
-      ['contest:old', 'max'],
+      ['contests', 'now'],
+      ['contest:new', 'now'],
+      ['contest:old', 'now'],
     ])
   })
 
@@ -35,14 +36,14 @@ describe('revalidation hooks', () => {
     revalidateMediaAfterChange({ doc: {}, req, context: {} } as unknown as Args<
       typeof revalidateMediaAfterChange
     >)
-    expect(tagsRevalidated()).toEqual([['contests', 'max']])
+    expect(tagsRevalidated()).toEqual([['contests', 'now']])
   })
 
   it('revalidates settings', () => {
     revalidateSettingsAfterChange({ doc: {}, req, context: {} } as unknown as Args<
       typeof revalidateSettingsAfterChange
     >)
-    expect(tagsRevalidated()).toEqual([['settings', 'max']])
+    expect(tagsRevalidated()).toEqual([['settings', 'now']])
   })
 
   it('can be skipped for writes outside Next.js', () => {

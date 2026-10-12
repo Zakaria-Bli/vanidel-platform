@@ -18,8 +18,9 @@ function revalidate(tags: string[], req: PayloadRequest, context: RevalidateCont
   if (context.skipRevalidate) return
   for (const tag of new Set(tags)) {
     try {
-      // Stale-while-revalidate: visitors keep the cached page while it rebuilds.
-      revalidateTag(tag, 'max')
+      // Expire immediately rather than serve stale-while-revalidate: the next visitor must see
+      // the edit, notably new consent texts, which a stale page would make them refuse.
+      revalidateTag(tag, { expire: 0 })
     } catch (error) {
       // Outside a Next.js request (tests, `payload run`) there is no cache to invalidate.
       req.payload.logger.debug({ err: error, msg: `Skipped revalidating ${tag}` })
