@@ -98,6 +98,34 @@ describe('proxy', () => {
     expect(response.headers.get('x-middleware-next')).toBe('1')
   })
 
+  describe('campaign attribution', () => {
+    const attributionOf = (response: Response) =>
+      response.headers.getSetCookie().find((cookie) => cookie.startsWith('vanidel_attribution='))
+
+    it('remembers the campaign on the QR redirect', async () => {
+      const response = await request('/concours/summer-2026?utm_source=qr&utm_campaign=ete')
+      const cookie = attributionOf(response)
+
+      expect(response.status).toBe(307)
+      expect(cookie).toMatch(/HttpOnly/i)
+      expect(cookie).toMatch(/SameSite=lax/i)
+      expect(decodeURIComponent(cookie!)).toContain('"source":"qr"')
+      expect(decodeURIComponent(cookie!)).toContain('"utmCampaign":"ete"')
+    })
+
+    it('remembers the campaign on localized pages too', async () => {
+      const response = await request('/ar/concours/summer-2026?src=poster')
+      expect(decodeURIComponent(attributionOf(response)!)).toContain('"source":"poster"')
+    })
+
+    it('keeps the existing cookie when the URL carries no campaign', async () => {
+      const response = await request('/fr/concours/summer-2026', {
+        cookie: 'vanidel_attribution=%7B%22source%22%3A%22qr%22%7D',
+      })
+      expect(attributionOf(response)).toBeUndefined()
+    })
+  })
+
   describe('matcher', () => {
     const [matcher] = proxyConfig.matcher
     const matches = (path: string) => new RegExp(`^${matcher}$`).test(path)
