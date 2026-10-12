@@ -2,8 +2,9 @@
 
 import { CircleCheck } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { startTransition, useActionState, useId, useState, type FormEvent } from 'react'
+import { startTransition, useActionState, useEffect, useId, useState, type FormEvent } from 'react'
 
+import { trackParticipation } from '@/components/analytics/Tracking'
 import { Button } from '@/components/ui/button'
 import type { Locale } from '@/i18n/config'
 import { resizeForUpload } from '@/lib/images/resizeForUpload'
@@ -59,6 +60,11 @@ export function ParticipationForm({
   const [localError, setLocalError] = useState<ParticipationState | null>(null)
   const [preparing, setPreparing] = useState(false)
   const shown = localError ?? state
+
+  // Conversion for the pixels, if the visitor accepted them: the contest slug only.
+  useEffect(() => {
+    if (state.status === 'success') trackParticipation(contestSlug)
+  }, [state, contestSlug])
   const busy = pending || preparing
 
   const errorFor = (field: string) =>

@@ -65,5 +65,18 @@
       "rate-limited": "Trop de tentatives. Réessayez dans quelques minutes.",
       "unexpected": "Une erreur est survenue. Rechargez la page et réessayez."
     }
+  },
+  "cookies": {
+    "title": "Cookies",
+    "text": "Nous utilisons des cookies de mesure d’audience (Meta, Google) pour savoir d’où viennent nos visiteurs. Vos réponses au formulaire ne leur sont jamais transmises.",
+    "privacy": "En savoir plus",
+    "accept": "Accepter",
+    "decline": "Refuser"
+  },
+  "footer": {
+    "legal": "Mentions légales",
+    "privacy": "Politique de confidentialité",
+    "cookies": "Gérer les cookies",
+    "notYetAvailable": "Ce texte sera bientôt disponible."
   }
 }
