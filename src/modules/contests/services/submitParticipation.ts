@@ -35,6 +35,7 @@ export const participationErrorCodes = [
   'invalid-email',
   'invalid-wilaya',
   'consent-required',
+  'consents-changed',
   'ticket-missing',
   'ticket-too-large',
   'ticket-unsupported',
@@ -64,6 +65,11 @@ export interface ParticipationInput {
   wilaya?: string
   /** Checkbox state per consent type configured on the contest. */
   consents: Record<string, boolean>
+  /**
+   * Text version of each consent as displayed to the visitor. Recorded as what they agreed to,
+   * so it must still be the contest's current version.
+   */
+  consentVersions: Record<string, string>
   /** The receipt photo as uploaded. */
   ticket: Buffer
   attribution?: Attribution | null
@@ -110,6 +116,17 @@ function validate(contest: Contest, input: ParticipationInput) {
   const wilaya = trim(input.wilaya) || undefined
   if (wilaya ? !isWilayaCode(wilaya) : contest.form?.wilayaRequired !== false) {
     throw new ParticipationError('invalid-wilaya', 'wilaya')
+  }
+
+  // The visitor must have seen exactly the current consent texts. A page loaded (or served from
+  // cache) before staff changed them would otherwise record agreement to wording never shown.
+  const shown = Object.entries(input.consentVersions)
+  const current = contest.consents ?? []
+  if (
+    shown.length !== current.length ||
+    current.some(({ type, textVersion }) => input.consentVersions[type] !== textVersion)
+  ) {
+    throw new ParticipationError('consents-changed')
   }
 
   const consents = (contest.consents ?? []).map((consent) => ({

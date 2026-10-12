@@ -40,10 +40,15 @@ export async function participate(
 
   const locale = text(formData, fields.locale)
   const ticket = formData.get(fields.ticket)
+  const withPrefix = (prefix: string) =>
+    [...new Set(formData.keys())]
+      .filter((key) => key.startsWith(prefix))
+      .map((key) => [key.slice(prefix.length), key] as const)
   const consents = Object.fromEntries(
-    [...formData.keys()]
-      .filter((key) => key.startsWith(fields.consent))
-      .map((key) => [key.slice(fields.consent.length), formData.get(key) === 'on']),
+    withPrefix(fields.consent).map(([type, key]) => [type, formData.get(key) === 'on']),
+  )
+  const consentVersions = Object.fromEntries(
+    withPrefix(fields.consentVersion).map(([type, key]) => [type, text(formData, key)]),
   )
 
   const payload = await getPayload({ config })
@@ -56,6 +61,7 @@ export async function participate(
       email: text(formData, fields.email),
       wilaya: text(formData, fields.wilaya),
       consents,
+      consentVersions,
       ticket:
         ticket instanceof File && ticket.size > 0
           ? Buffer.from(await ticket.arrayBuffer())

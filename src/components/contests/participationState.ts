@@ -21,6 +21,8 @@ export const participationFields = {
   ticket: 'ticket',
   /** Prefix: `consent.regulation`, `consent.marketing`… */
   consent: 'consent.',
+  /** Prefix: the text version of each consent as displayed, `consentVersion.regulation`… */
+  consentVersion: 'consentVersion.',
   /** Honeypot: hidden from people, filled in by naive bots. */
   honeypot: 'website',
 } as const

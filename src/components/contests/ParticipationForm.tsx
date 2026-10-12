@@ -25,7 +25,7 @@ export interface ParticipationFormProps {
   locale: Locale
   email: 'off' | 'optional' | 'required'
   wilayaRequired: boolean
-  consents: { type: string; required: boolean; label: string }[]
+  consents: { type: string; required: boolean; label: string; textVersion: string }[]
   regulationUrl?: string
   action: (state: ParticipationState, formData: FormData) => Promise<ParticipationState>
 }
@@ -223,6 +223,12 @@ export function ParticipationForm({
             const name = `${fields.consent}${consent.type}`
             return (
               <div key={consent.type} className="flex flex-col gap-1">
+                {/* Records which wording the visitor agreed to; refused if it has changed. */}
+                <input
+                  type="hidden"
+                  name={`${fields.consentVersion}${consent.type}`}
+                  value={consent.textVersion}
+                />
                 <div className="flex items-start gap-3">
                   <input
                     {...field(name)}
@@ -258,9 +264,18 @@ export function ParticipationForm({
       )}
 
       {generalError && (
-        <p role="alert" className="rounded-lg bg-destructive/10 p-3 font-medium text-destructive">
-          {generalError}
-        </p>
+        <div
+          role="alert"
+          className="flex flex-col items-start gap-3 rounded-lg bg-destructive/10 p-3 font-medium text-destructive"
+        >
+          <p>{generalError}</p>
+          {shown.status === 'error' &&
+            (shown.code === 'consents-changed' || shown.code === 'unexpected') && (
+              <Button type="button" variant="outline" onClick={() => window.location.reload()}>
+                {t('reload')}
+              </Button>
+            )}
+        </div>
       )}
 
       <Button type="submit" size="lg" className="h-12 text-base" disabled={busy}>

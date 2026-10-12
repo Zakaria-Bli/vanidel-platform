@@ -35,6 +35,7 @@ async function input(overrides: Partial<ParticipationInput> = {}): Promise<Parti
     phone: newPhone(),
     wilaya: '16',
     consents: { regulation: true, dataProcessing: true, marketing: false },
+    consentVersions: { regulation: 'r1', dataProcessing: 'd1', marketing: 'm1' },
     ticket: await newPhoto(),
     ...overrides,
   }
@@ -219,6 +220,51 @@ describe('duplicate prevention', () => {
     expect(results.find(({ status }) => status === 'rejected')).toMatchObject({
       reason: refused('duplicate-ticket'),
     })
+  })
+})
+
+describe('consent wording', () => {
+  it('refuses consent given to wording older than the current text version', async () => {
+    const changed = await publishedContest()
+    const stale = Object.fromEntries((changed.consents ?? []).map((c) => [c.type, c.textVersion]))
+    // Staff update the marketing wording after the visitor loaded the page.
+    await payload.update({
+      collection: 'contests',
+      id: changed.id,
+      locale: 'fr',
+      data: {
+        consents: (changed.consents ?? []).map((consent) =>
+          consent.type === 'marketing' ? { ...consent, textVersion: 'm2' } : consent,
+        ),
+      },
+    })
+
+    await expect(
+      submitParticipation(
+        payload,
+        await input({ contestSlug: changed.slug, consentVersions: stale }),
+      ),
+    ).rejects.toEqual(refused('consents-changed'))
+
+    const result = await submitParticipation(
+      payload,
+      await input({
+        contestSlug: changed.slug,
+        consentVersions: { ...stale, marketing: 'm2' },
+        consents: { regulation: true, dataProcessing: true, marketing: true },
+      }),
+    )
+    const { docs } = await payload.find({
+      collection: 'consent-records',
+      where: { participation: { equals: result.participationId }, type: { equals: 'marketing' } },
+    })
+    expect(docs.map(({ textVersion }) => textVersion)).toEqual(['m2'])
+  })
+
+  it('refuses a submission that does not say which wording was shown', async () => {
+    await expect(
+      submitParticipation(payload, await input({ consentVersions: {} })),
+    ).rejects.toEqual(refused('consents-changed'))
   })
 })
 

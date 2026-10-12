@@ -44,6 +44,7 @@ async function participate(
     email: `${name.split(' ')[0].toLowerCase()}.${daysFromNow}@example.com`,
     wilaya: '31',
     consents: { regulation: true, dataProcessing: true, marketing },
+    consentVersions: { regulation: 'r1', dataProcessing: 'd1', marketing: 'm1' },
     ticket: await phonePhoto(photoSeed++),
     attribution: { source: 'qr', utmCampaign: 'rentree', landedAt: new Date().toISOString() },
     now: new Date(Date.now() + daysFromNow * day),

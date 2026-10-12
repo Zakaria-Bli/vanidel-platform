@@ -81,10 +81,11 @@ export default async function ContestPage({ params }: Props) {
           locale={locale}
           email={contest.form?.email ?? 'optional'}
           wilayaRequired={contest.form?.wilayaRequired !== false}
-          consents={(contest.consents ?? []).map(({ type, required, label }) => ({
+          consents={(contest.consents ?? []).map(({ type, required, label, textVersion }) => ({
             type,
             required: Boolean(required),
             label,
+            textVersion,
           }))}
           regulationUrl={populated(contest.regulation)?.url ?? undefined}
           action={participate}
