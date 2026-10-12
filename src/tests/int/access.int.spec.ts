@@ -3,7 +3,7 @@ import type { Payload, PayloadRequest } from 'payload'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import type { User } from '@/payload-types'
-import { firstUserIsAdmin } from '@/payload/collections/Users'
+import { defaultRole } from '@/payload/collections/Users'
 
 import { createUser, getMigratedPayload } from './helpers/payload'
 
@@ -84,17 +84,21 @@ describe('users', () => {
     await expect(payload.find({ collection: 'users', overrideAccess: false })).rejects.toThrow()
   })
 
-  it('makes the very first user an admin', async () => {
+  it('makes the very first user an admin by default', async () => {
     const req = (count: number) =>
       ({ payload: { count: async () => ({ totalDocs: count }) } }) as unknown as PayloadRequest
-    const run = (count: number) =>
-      firstUserIsAdmin({
-        data: { role: 'commercial' },
-        operation: 'create',
-        req: req(count),
-      } as unknown as Parameters<typeof firstUserIsAdmin>[0])
 
-    expect(await run(0)).toMatchObject({ role: 'admin' })
-    expect(await run(1)).toMatchObject({ role: 'commercial' })
+    expect(await defaultRole({ req: req(0) })).toBe('admin')
+    expect(await defaultRole({ req: req(1) })).toBe('commercial')
+  })
+
+  it('keeps an explicitly given role, even for the first user', async () => {
+    // CI starts from an empty table, where the first test user must still get the role it asks for.
+    const created = await createUser(payload, 'commercial')
+    try {
+      expect(created.role).toBe('commercial')
+    } finally {
+      await payload.delete({ collection: 'users', id: created.id })
+    }
   })
 })

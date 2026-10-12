@@ -4,6 +4,7 @@ import * as migration_20261012_070755_roles from './20261012_070755_roles';
 import * as migration_20261012_072037_contests_media_settings from './20261012_072037_contests_media_settings';
 import * as migration_20261012_072855_participation_schema from './20261012_072855_participation_schema';
 import * as migration_20261012_073545_storage_prefix from './20261012_073545_storage_prefix';
+import * as migration_20261012_124811_role_default from './20261012_124811_role_default';
 
 export const migrations = [
   {
@@ -34,6 +35,11 @@ export const migrations = [
   {
     up: migration_20261012_073545_storage_prefix.up,
     down: migration_20261012_073545_storage_prefix.down,
-    name: '20261012_073545_storage_prefix'
+    name: '20261012_073545_storage_prefix',
+  },
+  {
+    up: migration_20261012_124811_role_default.up,
+    down: migration_20261012_124811_role_default.down,
+    name: '20261012_124811_role_default'
   },
 ];

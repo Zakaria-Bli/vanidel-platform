@@ -1,15 +1,17 @@
-import type { CollectionBeforeChangeHook, CollectionConfig } from 'payload'
+import type { CollectionConfig, PayloadRequest } from 'payload'
+
+import type { User } from '@/payload-types'
 
 import { isAdmin, isAdminField, isAdminOrSelf, isStaff, roles } from '../access'
 
 /**
- * The first account is created through Payload's create-first-user screen, where no one is logged
- * in to choose a role, so it always becomes an admin.
+ * Default role: the first account becomes an admin, since it is created through Payload's
+ * create-first-user screen, where no one is logged in to choose a role. A role given explicitly
+ * (by an admin, or through the Local API) always wins.
  */
-export const firstUserIsAdmin: CollectionBeforeChangeHook = async ({ data, operation, req }) => {
-  if (operation !== 'create') return data
+export const defaultRole = async ({ req }: { req: PayloadRequest }): Promise<User['role']> => {
   const { totalDocs } = await req.payload.count({ collection: 'users', req })
-  return totalDocs === 0 ? { ...data, role: 'admin' } : data
+  return totalDocs === 0 ? 'admin' : 'commercial'
 }
 
 export const Users: CollectionConfig = {
@@ -29,9 +31,6 @@ export const Users: CollectionConfig = {
     update: isAdminOrSelf,
     delete: isAdmin,
   },
-  hooks: {
-    beforeChange: [firstUserIsAdmin],
-  },
   fields: [
     // Email added by default
     {
@@ -42,7 +41,7 @@ export const Users: CollectionConfig = {
       name: 'role',
       type: 'select',
       required: true,
-      defaultValue: 'commercial',
+      defaultValue: defaultRole,
       options: roles.map((value) => ({ label: value === 'admin' ? 'Admin' : 'Commercial', value })),
       saveToJWT: true,
       // Only admins grant roles; a commercial user can still edit their own name and password.
