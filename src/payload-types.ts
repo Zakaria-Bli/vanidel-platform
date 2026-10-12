@@ -236,6 +236,8 @@ export interface Contest {
 export interface Media {
   id: number;
   alt: string;
+  prefix?: string | null;
+  _objectKey?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -395,6 +397,8 @@ export interface Ticket {
   contest: number | Contest;
   hash: string;
   uploadedAt: string;
+  prefix?: string | null;
+  _objectKey?: string | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -650,6 +654,8 @@ export interface TicketsSelect<T extends boolean = true> {
   contest?: T;
   hash?: T;
   uploadedAt?: T;
+  prefix?: T;
+  _objectKey?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -696,6 +702,8 @@ export interface ConsentRecordsSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
+  prefix?: T;
+  _objectKey?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;

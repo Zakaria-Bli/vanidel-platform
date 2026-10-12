@@ -10,6 +10,7 @@ import sharp from 'sharp'
 
 import { defaultLocale, localeMetadata, locales } from './i18n/config'
 import { env } from './lib/env'
+import { storagePlugins } from './lib/storage'
 import { migrations } from './migrations'
 import { ConsentRecords } from './payload/collections/ConsentRecords'
 import { Contacts } from './payload/collections/Contacts'
@@ -78,5 +79,5 @@ export default buildConfig({
     prodMigrations: migrations,
   }),
   sharp,
-  plugins: [],
+  plugins: [...storagePlugins()],
 })

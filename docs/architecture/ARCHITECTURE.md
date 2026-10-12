@@ -195,6 +195,8 @@ Private ticket files must require authorization and must not be published throug
 - Two buckets: a public bucket for campaign/editorial media, and a private bucket for tickets with no anonymous read.
 - Tickets are served only through Payload access control or short-lived signed URLs, never through a direct bucket link.
 - The S3 gateway and SeaweedFS master/filer ports are bound to localhost or the private network. Only the reverse proxy is public.
+- Implementation: `src/lib/storage` registers one `s3Storage` instance per bucket (`media` → `S3_BUCKET_PUBLIC`, `tickets` → `S3_BUCKET_PRIVATE`). Payload keeps serving downloads at `/api/{collection}/file/*`, so collection read access (staff only for tickets) applies to every file. Without `S3_*` settings (development, tests, CI) uploads use local disk; production refuses to start without them. The adapter's `prefix` field is always in the schema, so migrations do not depend on the environment.
+- Receipt photos are normalized before storage by `storeTicket` (`src/modules/contests/services`): EXIF orientation applied, all metadata (including GPS) removed, longest side capped at 2400 px, re-encoded as JPEG. The SHA-256 of the stored bytes is the duplicate-receipt key, unique per contest.
 
 ## 10. Participation write path
 

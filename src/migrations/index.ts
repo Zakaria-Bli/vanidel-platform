@@ -3,6 +3,7 @@ import * as migration_20261011_145932_i18n_localization from './20261011_145932_
 import * as migration_20261012_070755_roles from './20261012_070755_roles';
 import * as migration_20261012_072037_contests_media_settings from './20261012_072037_contests_media_settings';
 import * as migration_20261012_072855_participation_schema from './20261012_072855_participation_schema';
+import * as migration_20261012_073545_storage_prefix from './20261012_073545_storage_prefix';
 
 export const migrations = [
   {
@@ -28,6 +29,11 @@ export const migrations = [
   {
     up: migration_20261012_072855_participation_schema.up,
     down: migration_20261012_072855_participation_schema.down,
-    name: '20261012_072855_participation_schema'
+    name: '20261012_072855_participation_schema',
+  },
+  {
+    up: migration_20261012_073545_storage_prefix.up,
+    down: migration_20261012_073545_storage_prefix.down,
+    name: '20261012_073545_storage_prefix'
   },
 ];

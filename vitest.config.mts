@@ -16,7 +16,7 @@ export default defineConfig({
     // next-intl's ESM build imports `next/server` without an extension, which Node cannot resolve.
     server: { deps: { inline: ['next-intl'] } },
     setupFiles: ['./vitest.setup.ts'],
-    include: ['src/tests/int/**/*.int.spec.ts', 'src/modules/**/*.spec.ts'],
+    include: ['src/tests/int/**/*.int.spec.ts', 'src/{lib,modules}/**/*.spec.ts'],
     // Integration test files share one PostgreSQL database and apply migrations on start.
     fileParallelism: false,
     clearMocks: true,
