@@ -3,6 +3,7 @@ import type { GlobalConfig } from 'payload'
 import { anyone, isAdmin, isStaffField } from '../access'
 import { integer } from '../fields/integer'
 import { groups, label } from '../fields/label'
+import { revalidateSettingsAfterChange } from '../hooks/revalidate'
 
 export const Settings: GlobalConfig = {
   slug: 'settings',
@@ -13,6 +14,9 @@ export const Settings: GlobalConfig = {
   access: {
     read: anyone,
     update: isAdmin,
+  },
+  hooks: {
+    afterChange: [revalidateSettingsAfterChange],
   },
   fields: [
     {

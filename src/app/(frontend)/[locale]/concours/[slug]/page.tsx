@@ -2,26 +2,26 @@ import { RichText } from '@payloadcms/richtext-lexical/react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
-import { getPayload } from 'payload'
-import { cache } from 'react'
 
 import { ContestDates } from '@/components/contests/ContestDates'
 import { Container } from '@/components/shared/Container'
 import { locales, type Locale } from '@/i18n/config'
 import { getPathname, Link } from '@/i18n/navigation'
-import { getPublicContest } from '@/modules/contests/queries/publicContests'
+import { getCachedPublicContest } from '@/modules/contests/queries/cached'
 import type { Media } from '@/payload-types'
-import config from '@/payload.config'
 
-export const dynamic = 'force-dynamic'
+// Generated on the first visit, then served from cache: edits revalidate it immediately, and it
+// rebuilds every minute so a contest opening or closing shows without an edit. Nothing is built
+// ahead of time, so builds need no database.
+export const revalidate = 60
+
+export function generateStaticParams() {
+  return []
+}
 
 type Props = PageProps<'/[locale]/concours/[slug]'>
 
-// Shared by generateMetadata and the page within one request.
-const loadContest = cache(async (slug: string, locale: Locale) => {
-  const payload = await getPayload({ config })
-  return getPublicContest(payload, slug, locale)
-})
+const loadContest = getCachedPublicContest
 
 const media = (value: unknown): Media | null =>
   typeof value === 'object' && value !== null ? (value as Media) : null

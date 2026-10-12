@@ -8,6 +8,7 @@ import { missingTranslations, valueAt } from '@/modules/contests/domain/translat
 import { hasRole, isAdmin, isStaff } from '../access'
 import { integer } from '../fields/integer'
 import { groups, label } from '../fields/label'
+import { revalidateContestAfterChange, revalidateContestAfterDelete } from '../hooks/revalidate'
 import { consentTypes } from './ConsentRecords'
 
 export const reservedSlugs = ['archives']
@@ -132,6 +133,8 @@ export const Contests: CollectionConfig = {
   },
   hooks: {
     beforeChange: [requireTranslationsWhenPublic],
+    afterChange: [revalidateContestAfterChange],
+    afterDelete: [revalidateContestAfterDelete],
   },
   fields: [
     {
