@@ -37,4 +37,20 @@ describe('missingTranslations', () => {
   it('reports a field missing entirely in every locale', () => {
     expect(missingTranslations({}, ['title'], locales)).toEqual(['title (fr)', 'title (ar)'])
   })
+
+  it('checks every row of an array', () => {
+    const doc = {
+      prizes: [
+        { id: 'a', title: { fr: 'Panier', ar: 'سلة' } },
+        { id: 'b', title: { fr: 'Bon d’achat' } },
+      ],
+    }
+
+    expect(missingTranslations(doc, ['prizes.*.title'], locales)).toEqual(['prizes.1.title (ar)'])
+  })
+
+  it('has nothing to check in an empty or missing array', () => {
+    expect(missingTranslations({ prizes: [] }, ['prizes.*.title'], locales)).toEqual([])
+    expect(missingTranslations({}, ['prizes.*.title'], locales)).toEqual([])
+  })
 })

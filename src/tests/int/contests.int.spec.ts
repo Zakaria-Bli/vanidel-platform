@@ -102,6 +102,89 @@ describe('publishing', () => {
   })
 })
 
+describe('translated rows', () => {
+  // The publication error, listing every given field (in any order).
+  const escape = (text: string) => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const missing = (...fields: string[]) => ({
+    data: {
+      errors: [
+        {
+          path: 'status',
+          message: expect.stringMatching(
+            new RegExp(fields.map((field) => `(?=.*${escape(field)})`).join('')),
+          ),
+        },
+      ],
+    },
+  })
+
+  /** A contest whose texts are translated but whose prize and consent are French only. */
+  async function withFrenchOnlyRows() {
+    const draft = await track(createDraftContest(payload))
+    await translateToArabic(payload, draft.id)
+    return payload.update({
+      collection: 'contests',
+      id: draft.id,
+      locale: 'fr',
+      data: {
+        prizes: [{ title: 'Panier', quantity: 2 }],
+        consents: [
+          {
+            type: 'regulation',
+            required: true,
+            label: 'J’accepte le règlement.',
+            textVersion: 'v1',
+          },
+        ],
+      },
+    })
+  }
+
+  it('refuses to publish with French-only prizes and consent texts', async () => {
+    const draft = await withFrenchOnlyRows()
+
+    await expect(
+      payload.update({ collection: 'contests', id: draft.id, data: { status: 'published' } }),
+    ).rejects.toMatchObject(missing('prizes.0.title (ar)', 'consents.0.label (ar)'))
+  })
+
+  it('publishes once every row is translated', async () => {
+    const draft = await withFrenchOnlyRows()
+    // Array rows keep their IDs across locales.
+    const [prize] = draft.prizes ?? []
+    const [consent] = draft.consents ?? []
+    await payload.update({
+      collection: 'contests',
+      id: draft.id,
+      locale: 'ar',
+      data: {
+        prizes: [{ ...prize, title: 'سلة' }],
+        consents: [{ ...consent, label: 'أوافق على النظام.' }],
+      },
+    })
+
+    const published = await payload.update({
+      collection: 'contests',
+      id: draft.id,
+      data: { status: 'published' },
+    })
+    expect(published.status).toBe('published')
+  })
+
+  it('refuses a French-only prize added to a published contest', async () => {
+    const published = await track(createPublishedContest(payload))
+
+    await expect(
+      payload.update({
+        collection: 'contests',
+        id: published.id,
+        locale: 'fr',
+        data: { prizes: [{ title: 'Nouveau lot' }] },
+      }),
+    ).rejects.toMatchObject(missing('prizes.0.title (ar)'))
+  })
+})
+
 describe('whole numbers', () => {
   it.each([
     ['period length', { draw: { periodDays: 1.5, winnersPerDraw: 1 } }],

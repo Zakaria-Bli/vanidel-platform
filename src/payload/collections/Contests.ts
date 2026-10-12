@@ -19,6 +19,14 @@ export const requiredTranslations = [
   'seo.title',
 ] as const
 
+/** The same for array rows: every prize title and consent text is shown to participants. */
+export const requiredRowTranslations = {
+  prizes: ['title'],
+  consents: ['label'],
+} as const
+
+type Row = Record<string, unknown> & { id?: unknown }
+
 /**
  * Refuses to publish or archive a contest while a required field is empty in some locale; with
  * `fallback: true`, Arabic pages would otherwise silently show the French text. The admin saves
@@ -44,18 +52,21 @@ const requireTranslationsWhenPublic: CollectionBeforeChangeHook = async ({
         })
       : {}
 
-  // Same shape as a `locale: 'all'` read: stored values, with the locale being saved replaced by
-  // the incoming one.
+  // Build the shape of a `locale: 'all'` read: stored values, with the locale being saved
+  // replaced by the incoming one.
   const editedLocale = req.locale && req.locale !== 'all' ? req.locale : null
-  const merged: Record<string, unknown> = {}
-  for (const path of requiredTranslations) {
-    const values = { ...(valueAt(stored, path) as Record<string, unknown> | undefined) }
-    const incoming = valueAt(data, path)
+  const mergeValue = (storedValues: unknown, incoming: unknown) => {
+    const values = { ...(storedValues as Record<string, unknown> | undefined) }
     if (editedLocale) {
       if (incoming !== undefined) values[editedLocale] = incoming
     } else if (incoming && typeof incoming === 'object') {
       Object.assign(values, incoming)
     }
+    return values
+  }
+
+  const merged: Record<string, unknown> = {}
+  for (const path of requiredTranslations) {
     const keys = path.split('.')
     const parent = keys
       .slice(0, -1)
@@ -63,10 +74,32 @@ const requireTranslationsWhenPublic: CollectionBeforeChangeHook = async ({
         (node, key) => (node[key] ??= {}) as Record<string, unknown>,
         merged,
       )
-    parent[keys[keys.length - 1]] = values
+    parent[keys[keys.length - 1]] = mergeValue(valueAt(stored, path), valueAt(data, path))
   }
 
-  const missing = missingTranslations(merged, requiredTranslations, locales)
+  // The saved rows decide which rows exist (rows can be added or removed in this save); stored
+  // rows, matched by ID, supply their other languages. A new row has only the edited language.
+  for (const [array, fields] of Object.entries(requiredRowTranslations)) {
+    const storedRows = (valueAt(stored, array) as Row[] | undefined) ?? []
+    const incomingRows = valueAt(data, array) as Row[] | undefined
+    merged[array] = (incomingRows ?? storedRows).map((row) => {
+      const storedRow = storedRows.find(({ id }) => id !== undefined && id === row.id)
+      return Object.fromEntries(
+        fields.map((field) => [
+          field,
+          incomingRows ? mergeValue(storedRow?.[field], row[field]) : row[field],
+        ]),
+      )
+    })
+  }
+
+  const paths = [
+    ...requiredTranslations,
+    ...Object.entries(requiredRowTranslations).flatMap(([array, fields]) =>
+      fields.map((field) => `${array}.*.${field}`),
+    ),
+  ]
+  const missing = missingTranslations(merged, paths, locales)
   if (missing.length > 0) {
     throw new ValidationError({
       collection: 'contests',

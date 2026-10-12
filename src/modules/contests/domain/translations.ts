@@ -26,19 +26,38 @@ export function valueAt(doc: unknown, path: string): unknown {
 }
 
 /**
+ * Concrete paths for `path`, where `*` stands for every row of an array: `prizes.*.title` becomes
+ * `prizes.0.title`, `prizes.1.title`… An empty or missing array yields no paths.
+ */
+function expandPath(doc: unknown, path: string): string[] {
+  const walk = (node: unknown, keys: string[], prefix: string[]): string[] => {
+    if (keys.length === 0) return [prefix.join('.')]
+    const [key, ...rest] = keys
+    if (key !== '*') return walk(valueAt(node, key), rest, [...prefix, key])
+    return Array.isArray(node)
+      ? node.flatMap((row, index) => walk(row, rest, [...prefix, String(index)]))
+      : []
+  }
+  return walk(doc, path.split('.'), [])
+}
+
+/**
  * Localized fields that are empty in some locale, as `path (locale)`. `doc` is a document read with
- * `locale: 'all'`, where each localized field holds `{ fr: …, ar: … }`. Used to stop a contest going
- * public half translated, which `fallback: true` would otherwise paper over with French.
+ * `locale: 'all'`, where each localized field holds `{ fr: …, ar: … }`; `*` in a path matches every
+ * array row. Used to stop a contest going public half translated, which `fallback: true` would
+ * otherwise paper over with French.
  */
 export function missingTranslations(
   doc: unknown,
   paths: readonly string[],
   locales: readonly string[],
 ): string[] {
-  return paths.flatMap((path) => {
-    const byLocale = valueAt(doc, path)
-    return locales
-      .filter((locale) => isBlank(valueAt(byLocale, locale)))
-      .map((locale) => `${path} (${locale})`)
-  })
+  return paths
+    .flatMap((path) => expandPath(doc, path))
+    .flatMap((path) => {
+      const byLocale = valueAt(doc, path)
+      return locales
+        .filter((locale) => isBlank(valueAt(byLocale, locale)))
+        .map((locale) => `${path} (${locale})`)
+    })
 }
