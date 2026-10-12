@@ -1,4 +1,6 @@
 import { createHash } from 'node:crypto'
+import { rm } from 'node:fs/promises'
+import path from 'node:path'
 import type { Payload, PayloadRequest } from 'payload'
 import sharp from 'sharp'
 
@@ -60,18 +62,34 @@ export function sha256(data: Buffer): string {
   return createHash('sha256').update(data).digest('hex')
 }
 
+export interface PreparedTicket {
+  /** Normalized JPEG bytes, as stored. */
+  image: Buffer
+  /** SHA-256 of `image`: the duplicate-receipt key within a contest. */
+  hash: string
+}
+
+/** Normalizes and hashes a receipt photo. CPU-bound; do it before opening a transaction. */
+export async function prepareTicket(data: Buffer): Promise<PreparedTicket> {
+  const image = await normalizeTicketImage(data)
+  return { image, hash: sha256(image) }
+}
+
 /**
  * Stores a participant's receipt photo for a contest and returns the ticket. The hash is taken
  * from the stored (normalized) bytes, so the same photo sent twice to a contest is refused with
- * `duplicate` (SPECIFICATION §8.1); the unique (contest, hash) index backs this up under
- * concurrent submissions. Pass the submission's `req` to keep it in the same transaction.
+ * `duplicate` (SPECIFICATION §8.1); the unique (contest, hash) index backs this up. Pass the
+ * submission's `req` to keep it in the same transaction.
  */
 export async function storeTicket(
   payload: Payload,
-  { contestId, data, req }: { contestId: number; data: Buffer; req?: Partial<PayloadRequest> },
+  {
+    contestId,
+    data,
+    req,
+  }: { contestId: number; data: Buffer | PreparedTicket; req?: Partial<PayloadRequest> },
 ): Promise<Ticket> {
-  const image = await normalizeTicketImage(data)
-  const hash = sha256(image)
+  const { image, hash } = Buffer.isBuffer(data) ? await prepareTicket(data) : data
 
   const { totalDocs } = await payload.count({
     collection: 'tickets',
@@ -87,4 +105,23 @@ export async function storeTicket(
     overrideAccess: true,
     req,
   })
+}
+
+/**
+ * Deletes a stored ticket's file when the transaction that created its record was rolled back:
+ * the record is gone, but the file was written to local disk or the bucket on create. Runs the
+ * same delete path as deleting the record (local disk, or the storage plugin's afterDelete hook).
+ */
+export async function removeTicketFiles(
+  payload: Payload,
+  ticket: Ticket,
+  req: PayloadRequest,
+): Promise<void> {
+  const { config } = payload.collections.tickets
+  if (!config.upload.disableLocalStorage && ticket.filename) {
+    await rm(path.resolve(config.upload.staticDir ?? 'tickets', ticket.filename), { force: true })
+  }
+  for (const hook of config.hooks.afterDelete ?? []) {
+    await hook({ collection: config, context: {}, doc: ticket, id: ticket.id, req })
+  }
 }

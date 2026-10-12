@@ -18,6 +18,21 @@ export function draftContestData(): RequiredDataFromCollectionSlug<'contests'> {
     title: 'Grand concours',
     description: paragraph('Gagnez des lots.'),
     steps: [{ text: 'Envoyez votre ticket.' }],
+    consents: [
+      { type: 'regulation', required: true, label: 'J’accepte le règlement.', textVersion: 'r1' },
+      {
+        type: 'dataProcessing',
+        required: true,
+        label: 'J’accepte le traitement de mes données.',
+        textVersion: 'd1',
+      },
+      {
+        type: 'marketing',
+        required: false,
+        label: 'J’accepte de recevoir des offres.',
+        textVersion: 'm1',
+      },
+    ],
     seo: { title: 'Grand concours' },
     startAt: new Date(Date.now() - day).toISOString(),
     endAt: new Date(Date.now() + 28 * day).toISOString(),
@@ -31,7 +46,12 @@ export async function createDraftContest(payload: Payload): Promise<Contest> {
 /** Adds the Arabic content a contest needs before it can be published. */
 export async function translateToArabic(payload: Payload, id: number): Promise<Contest> {
   // Array rows keep their IDs across locales; reuse them so the Arabic text lands on each row.
-  const { steps } = await payload.findByID({ collection: 'contests', id, locale: 'fr', depth: 0 })
+  const { steps, consents } = await payload.findByID({
+    collection: 'contests',
+    id,
+    locale: 'fr',
+    depth: 0,
+  })
   return payload.update({
     collection: 'contests',
     id,
@@ -40,6 +60,7 @@ export async function translateToArabic(payload: Payload, id: number): Promise<C
       title: 'المسابقة الكبرى',
       description: paragraph('اربحوا جوائز.'),
       steps: (steps ?? []).map((step) => ({ ...step, text: 'أرسلوا تذكرتكم.' })),
+      consents: (consents ?? []).map((consent) => ({ ...consent, label: 'أوافق.' })),
       seo: { title: 'المسابقة الكبرى' },
     },
   })
