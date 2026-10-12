@@ -148,6 +148,10 @@ describe('contest rules', () => {
       payload.update({ collection: 'contests', id: contest.id, data: { slug: 'Été 2026' } }),
     ).rejects.toThrow()
 
+    await expect(
+      payload.update({ collection: 'contests', id: contest.id, data: { slug: 'archives' } }),
+    ).rejects.toThrow()
+
     const other = await track(createDraftContest(payload))
     await expect(
       payload.update({ collection: 'contests', id: other.id, data: { slug: contest.slug } }),

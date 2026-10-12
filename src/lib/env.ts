@@ -23,6 +23,8 @@ function envSchema(source: Record<string, string | undefined>) {
           message: 'DATABASE_URL must be a PostgreSQL connection URL',
         }),
       PAYLOAD_SECRET: z.string().min(32, 'PAYLOAD_SECRET must contain at least 32 characters'),
+      // Public origin, for absolute URLs in share metadata. Required in production.
+      SITE_URL: z.url().default('http://localhost:3000'),
       // S3-compatible object storage (SeaweedFS). Unset in development and tests, where uploads
       // stay on local disk; required in production.
       S3_ENDPOINT: z.url().optional(),
@@ -33,6 +35,13 @@ function envSchema(source: Record<string, string | undefined>) {
       S3_BUCKET_PRIVATE: optional,
     })
     .superRefine((value, ctx) => {
+      if (isProductionRuntime && !source.SITE_URL?.trim()) {
+        ctx.addIssue({
+          code: 'custom',
+          path: ['SITE_URL'],
+          message: 'SITE_URL is required in production',
+        })
+      }
       const missing = s3Keys.filter((key) => !value[key])
       const partial = missing.length > 0 && missing.length < s3Keys.length
       if (partial || (isProductionRuntime && missing.length > 0)) {
@@ -55,6 +64,7 @@ export function parseEnv(source: Record<string, string | undefined>) {
   return envSchema(source).parse({
     DATABASE_URL: source.DATABASE_URL,
     PAYLOAD_SECRET: source.PAYLOAD_SECRET,
+    SITE_URL: source.SITE_URL?.trim() || undefined,
     // Blank values (e.g. `S3_ENDPOINT=` copied from .env.example) count as unset.
     ...Object.fromEntries(
       [...s3Keys, 'S3_REGION'].map((key) => [key, source[key]?.trim() || undefined]),

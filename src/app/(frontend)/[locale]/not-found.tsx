@@ -14,7 +14,7 @@ export default function NotFoundPage() {
     >
       <h1>{t('title')}</h1>
       <p>{t('description')}</p>
-      <Button nativeButton={false} render={<Link href="/" />} size="lg">
+      <Button nativeButton={false} render={<Link href="/concours" />} size="lg">
         {t('backHome')}
       </Button>
     </Container>

@@ -8,6 +8,8 @@ import { missingTranslations, valueAt } from '@/modules/contests/domain/translat
 import { hasRole, isAdmin, isStaff } from '../access'
 import { groups, label } from '../fields/label'
 
+export const reservedSlugs = ['archives']
+
 /** Localized fields that must be filled in every locale before a contest goes public. */
 export const requiredTranslations = [
   'title',
@@ -354,10 +356,13 @@ export const Contests: CollectionConfig = {
           'Used in /concours/{slug}, printed on QR codes: do not change it once printed.',
         ),
       },
-      validate: (value: unknown) =>
-        typeof value === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)
-          ? true
-          : 'Lowercase letters, digits and dashes only.',
+      validate: (value: unknown) => {
+        if (typeof value !== 'string' || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)) {
+          return 'Lowercase letters, digits and dashes only.'
+        }
+        // /concours/archives is the archive page, so no contest can use that slug.
+        return reservedSlugs.includes(value) ? `"${value}" is reserved.` : true
+      },
     },
     {
       name: 'status',

@@ -42,6 +42,16 @@ describe('parseEnv', () => {
     )
   })
 
+  it('requires the public site URL when the production server starts', () => {
+    expect(() => parseEnv({ ...base, ...s3, NODE_ENV: 'production' })).toThrow(
+      /SITE_URL is required in production/,
+    )
+    expect(
+      parseEnv({ ...base, ...s3, NODE_ENV: 'production', SITE_URL: 'https://vanidel.com' })
+        .SITE_URL,
+    ).toBe('https://vanidel.com')
+  })
+
   it('does not require S3 during the production build', () => {
     expect(() =>
       parseEnv({ ...base, NODE_ENV: 'production', NEXT_PHASE: 'phase-production-build' }),

@@ -3,9 +3,12 @@ import { NextIntlClientProvider } from 'next-intl'
 import { getLocale, getTranslations } from 'next-intl/server'
 import React from 'react'
 
+import { Container } from '@/components/shared/Container'
+import { LocaleSwitcher } from '@/components/shared/LocaleSwitcher'
 import { DirectionProvider } from '@/components/ui/direction'
 import { getDirection } from '@/i18n/config'
 import { routing } from '@/i18n/routing'
+import { env } from '@/lib/env'
 import { fontVariables } from '@/lib/fonts'
 import '../globals.css'
 
@@ -15,7 +18,12 @@ export function generateStaticParams() {
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('metadata')
-  return { title: t('title'), description: t('description') }
+  return {
+    // Resolves relative URLs such as share images into the absolute ones social networks need.
+    metadataBase: new URL(env.SITE_URL),
+    title: { default: t('title'), template: `%s · ${t('title')}` },
+    description: t('description'),
+  }
 }
 
 export default async function LocaleLayout({ children }: LayoutProps<'/[locale]'>) {
@@ -28,6 +36,11 @@ export default async function LocaleLayout({ children }: LayoutProps<'/[locale]'
       <body>
         <NextIntlClientProvider>
           <DirectionProvider direction={dir}>
+            <header>
+              <Container className="flex justify-end py-3">
+                <LocaleSwitcher />
+              </Container>
+            </header>
             <main>{children}</main>
           </DirectionProvider>
         </NextIntlClientProvider>
