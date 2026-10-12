@@ -21,8 +21,7 @@ export const alexandria = Alexandria({
   subsets: ['arabic'],
   variable: '--font-alexandria',
   display: 'swap',
-  // Only used on Arabic pages; avoid preloading it on French ones.
-  // TODO(i18n): preload on Arabic pages once locale routing exists (see montserratArabic).
+  // Only used on Arabic pages; avoid preloading it on French ones (see montserratArabic).
   preload: false,
 })
 
@@ -36,9 +35,9 @@ export const montserratArabic = localFont({
   ],
   variable: '--font-montserrat-arabic',
   display: 'swap',
-  // TODO(i18n): Arabic pages currently swap in these fonts after first paint. When locale
-  // routing lands, preload them on Arabic pages only, e.g. by declaring Arabic-specific
-  // instances with `preload: true` and applying their variables from the `ar` layout.
+  // Arabic pages swap these fonts in after first paint. next/font preload lists are static per
+  // route entry and both locales share the `[locale]` layout, so `preload: true` would also
+  // fetch them on French pages. Revisit if Arabic first paint matters more than that cost.
   preload: false,
 })
 
