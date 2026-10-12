@@ -33,7 +33,12 @@ export const Contacts: CollectionConfig = {
     },
     { name: 'name', label: label('Nom', 'Name'), type: 'text', required: true },
     { name: 'emailNormalized', label: label('E-mail', 'Email'), type: 'text' },
-    { name: 'wilaya', label: label('Wilaya', 'Wilaya'), type: 'text' },
+    {
+      name: 'wilaya',
+      label: label('Wilaya', 'Wilaya'),
+      type: 'text',
+      admin: { components: { Cell: '/payload/components/WilayaCell#WilayaCell' } },
+    },
     {
       name: 'firstContest',
       label: label('Premier concours', 'First contest'),

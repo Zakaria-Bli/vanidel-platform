@@ -20,7 +20,7 @@ export const Participations: CollectionConfig = {
   admin: {
     group: groups.participations,
     useAsTitle: 'name',
-    defaultColumns: ['submittedAt', 'name', 'phone', 'wilaya', 'source', 'contest'],
+    defaultColumns: ['submittedAt', 'ticket', 'name', 'phone', 'wilaya', 'source', 'contest'],
     listSearchableFields: ['name', 'phone', 'phoneNormalized', 'email'],
   },
   access: {
@@ -85,13 +85,19 @@ export const Participations: CollectionConfig = {
       required: true,
     },
     { name: 'email', label: label('E-mail', 'Email'), type: 'text' },
-    { name: 'wilaya', label: label('Wilaya', 'Wilaya'), type: 'text' },
+    {
+      name: 'wilaya',
+      label: label('Wilaya', 'Wilaya'),
+      type: 'text',
+      admin: { components: { Cell: '/payload/components/WilayaCell#WilayaCell' } },
+    },
     {
       name: 'ticket',
       label: label('Ticket', 'Ticket'),
       type: 'upload',
       relationTo: 'tickets',
       required: true,
+      admin: { components: { Cell: '/payload/components/TicketCell#TicketCell' } },
     },
     {
       name: 'locale',
