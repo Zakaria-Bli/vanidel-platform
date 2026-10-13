@@ -15,7 +15,7 @@
 ## Operations
 
 - [`operations/DEPENDENCIES.md`](operations/DEPENDENCIES.md) — dependency exceptions, overrides, ownership, and review policy.
-- [`operations/DEPLOYMENT.md`](operations/DEPLOYMENT.md) — test server on Dokploy, production on the Algerian VPS, staging check.
+- [`operations/DEPLOYMENT.md`](operations/DEPLOYMENT.md) — setting up the Algerian VPS, deploying updates, backups, staging check.
 
 ## Later
 
