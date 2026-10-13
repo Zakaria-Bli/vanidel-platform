@@ -15,11 +15,11 @@
 ## Operations
 
 - [`operations/DEPENDENCIES.md`](operations/DEPENDENCIES.md) — dependency exceptions, overrides, ownership, and review policy.
+- [`operations/DEPLOYMENT.md`](operations/DEPLOYMENT.md) — setting up the Algerian VPS, deploying updates, backups, staging check.
 
 ## Later
 
 Before production, add:
 
 - `architecture/DATA_AND_PRIVACY.md`
-- `operations/DEPLOYMENT.md`
 - `operations/BACKUP_AND_RECOVERY.md`
