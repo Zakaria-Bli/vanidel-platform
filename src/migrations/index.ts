@@ -6,6 +6,7 @@ import * as migration_20261012_072855_participation_schema from './20261012_0728
 import * as migration_20261012_073545_storage_prefix from './20261012_073545_storage_prefix';
 import * as migration_20261012_124811_role_default from './20261012_124811_role_default';
 import * as migration_20261012_171830_participation_steps from './20261012_171830_participation_steps';
+import * as migration_20261013_092146_ticket_thumbnails from './20261013_092146_ticket_thumbnails';
 
 export const migrations = [
   {
@@ -46,6 +47,11 @@ export const migrations = [
   {
     up: migration_20261012_171830_participation_steps.up,
     down: migration_20261012_171830_participation_steps.down,
-    name: '20261012_171830_participation_steps'
+    name: '20261012_171830_participation_steps',
+  },
+  {
+    up: migration_20261013_092146_ticket_thumbnails.up,
+    down: migration_20261013_092146_ticket_thumbnails.down,
+    name: '20261013_092146_ticket_thumbnails'
   },
 ];

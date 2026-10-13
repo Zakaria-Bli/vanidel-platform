@@ -5,7 +5,12 @@ import type { CollectionSlug, Payload } from 'payload'
 import sharp from 'sharp'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
-import { sha256, storeTicket, TicketRejectedError } from '@/modules/contests/services/storeTicket'
+import {
+  removeTicketFiles,
+  sha256,
+  storeTicket,
+  TicketRejectedError,
+} from '@/modules/contests/services/storeTicket'
 import type { Contact, Contest, Participation, Ticket, User } from '@/payload-types'
 
 import { createDraftContest } from './helpers/contests'
@@ -148,6 +153,26 @@ describe('storeTicket', () => {
     // 60×40 rotated by its orientation flag.
     expect([metadata.width, metadata.height]).toEqual([40, 60])
     expect(ticket.hash).toBe(sha256(stored))
+  })
+
+  it('stores a small thumbnail for the admin list', async () => {
+    const thumbnail = ticket.sizes?.thumbnail
+    expect(thumbnail?.filename).toBe(`${path.parse(ticket.filename!).name}-160x160.webp`)
+    const metadata = await sharp(await readFile(ticketPath(thumbnail!.filename!))).metadata()
+    expect([metadata.format, metadata.width, metadata.height]).toEqual(['webp', 160, 160])
+  })
+
+  it('removes the photo and its thumbnail when a record was never created', async () => {
+    const other = await createDraftContest(payload)
+    try {
+      const copy = await storeTicket(payload, { contestId: other.id, data: await phonePhoto(2) })
+      await removeTicketFiles(payload, { filename: copy.filename })
+      await expect(readFile(ticketPath(copy.filename!))).rejects.toThrow()
+      await expect(readFile(ticketPath(copy.sizes!.thumbnail!.filename!))).rejects.toThrow()
+    } finally {
+      await payload.delete({ collection: 'tickets', where: { contest: { equals: other.id } } })
+      await payload.delete({ collection: 'contests', id: other.id })
+    }
   })
 
   it('refuses the same photo twice in a contest', async () => {

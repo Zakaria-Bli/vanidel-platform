@@ -5,6 +5,13 @@ import { groups, label } from '../fields/label'
 import { readOnly } from '../fields/readOnly'
 
 /**
+ * Small square preview for the participations list, so the admin does not load every full receipt
+ * photo. Always generated (`withoutEnlargement: false`), so its file name is predictable:
+ * `{name}-160x160.webp` (see removeTicketFiles).
+ */
+export const ticketThumbnail = { name: 'thumbnail', size: 160, extension: 'webp' } as const
+
+/**
  * Proof-of-purchase photos. Private: files are served only through /api/tickets/file/* to staff,
  * and created only by the participation service, which re-encodes and hashes them first.
  */
@@ -30,6 +37,17 @@ export const Tickets: CollectionConfig = {
     mimeTypes: ['image/jpeg', 'image/png', 'image/webp'],
     displayPreview: true,
     hideRemoveFile: true,
+    adminThumbnail: ticketThumbnail.name,
+    imageSizes: [
+      {
+        name: ticketThumbnail.name,
+        width: ticketThumbnail.size,
+        height: ticketThumbnail.size,
+        position: 'centre',
+        withoutEnlargement: false,
+        formatOptions: { format: ticketThumbnail.extension, options: { quality: 70 } },
+      },
+    ],
   },
   fields: readOnly([
     {

@@ -5,6 +5,7 @@ import { createLocalReq, type Payload, type PayloadRequest } from 'payload'
 import sharp from 'sharp'
 
 import type { Ticket } from '@/payload-types'
+import { ticketThumbnail } from '@/payload/collections/Tickets'
 
 export const ticketLimits = {
   /** Upload size accepted from the phone, before re-encoding. */
@@ -121,7 +122,7 @@ export async function storeTicket(
 }
 
 /**
- * Deletes a ticket's stored file whose record does not exist: its creation failed, or the
+ * Deletes a ticket's stored files (photo and thumbnail) whose record does not exist: its creation failed, or the
  * transaction that created it was rolled back. Runs the same delete path as deleting a record:
  * local disk, or the storage plugin's afterDelete hook for the bucket.
  */
@@ -132,11 +133,21 @@ export async function removeTicketFiles(
 ): Promise<void> {
   if (!ticket.filename) return
   const { config } = payload.collections.tickets
+  // A failed create leaves no record to read the thumbnail's name from, so derive it the way
+  // Payload names image sizes: `{name}-{width}x{height}.{extension}`.
+  const { size, extension } = ticketThumbnail
+  const thumbnail = `${path.parse(ticket.filename).name}-${size}x${size}.${extension}`
+  const doc = {
+    ...ticket,
+    sizes: ticket.sizes ?? { [ticketThumbnail.name]: { filename: thumbnail } },
+  }
   if (!config.upload.disableLocalStorage) {
-    await rm(path.resolve(config.upload.staticDir ?? 'tickets', ticket.filename), { force: true })
+    const dir = config.upload.staticDir ?? 'tickets'
+    await rm(path.resolve(dir, ticket.filename), { force: true })
+    await rm(path.resolve(dir, thumbnail), { force: true })
   }
   const request = (req?.payload ? req : await createLocalReq({}, payload)) as PayloadRequest
   for (const hook of config.hooks.afterDelete ?? []) {
-    await hook({ collection: config, context: {}, doc: ticket, id: ticket.id ?? 0, req: request })
+    await hook({ collection: config, context: {}, doc, id: ticket.id ?? 0, req: request })
   }
 }
