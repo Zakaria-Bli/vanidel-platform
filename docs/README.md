@@ -15,11 +15,11 @@
 ## Operations
 
 - [`operations/DEPENDENCIES.md`](operations/DEPENDENCIES.md) — dependency exceptions, overrides, ownership, and review policy.
+- [`operations/DEPLOYMENT.md`](operations/DEPLOYMENT.md) — test server on Dokploy, production on the Algerian VPS, staging check.
 
 ## Later
 
 Before production, add:
 
 - `architecture/DATA_AND_PRIVACY.md`
-- `operations/DEPLOYMENT.md`
 - `operations/BACKUP_AND_RECOVERY.md`
