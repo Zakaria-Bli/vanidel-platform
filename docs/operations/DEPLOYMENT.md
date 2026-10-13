@@ -140,26 +140,29 @@ The `vanidel` user needs to be in the `docker` group (`usermod -aG docker vanide
 
 ## 3. The app
 
-The provider blocks outgoing SSH (to GitHub on port 22 and on 443), so the server does not pull from GitHub. Code is pushed to a bare repository on the server instead, over the same SSH access used to administer it; the server holds no GitHub credentials.
-
-On the server, as `vanidel`:
+The server pulls from GitHub with a read-only deploy key. As `vanidel`:
 
 ```sh
-git init --bare /opt/vanidel/repo.git
-git -C /opt/vanidel/repo.git symbolic-ref HEAD refs/heads/main
+ssh-keygen -t ed25519 -N "" -C "vanidel-vps deploy" -f ~/.ssh/github_deploy
+printf 'Host github.com\n  IdentityFile ~/.ssh/github_deploy\n  IdentitiesOnly yes\n' > ~/.ssh/config
+chmod 600 ~/.ssh/config
+# GitHub's published ed25519 host key (fingerprint SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU)
+echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" >> ~/.ssh/known_hosts
 ```
 
-On a machine with the repository (`vanidel-vps` being the SSH host alias for the server):
+Add `~/.ssh/github_deploy.pub` under the repository's **Settings → Deploy keys**, without write access. Then:
+
+```sh
+git clone git@github.com:Zakaria-Bli/vanidel-platform.git /opt/vanidel/app
+```
+
+**The provider's international link drops connections at random**: to GitHub, over both SSH and HTTPS, between a few and most attempts fail with a connection timeout (measured on 13–14 October). Retry until one gets through; `deploy.sh` (section 5) does this on its own.
+
+Fallback when GitHub stays unreachable: the server also has a bare repository, `/opt/vanidel/repo.git`, registered in the checkout as the remote `local`. Push to it over the SSH access used to administer the server (`vanidel-vps` being the SSH host alias):
 
 ```sh
 git remote add vps vanidel-vps:/opt/vanidel/repo.git
 git fetch origin main && git push vps origin/main:refs/heads/main
-```
-
-Back on the server:
-
-```sh
-git clone /opt/vanidel/repo.git /opt/vanidel/app
 ```
 
 Environment, in `/opt/vanidel/app.env` (mode `600`, outside the checkout):
@@ -304,20 +307,38 @@ The certificate is requested on the first start, once the DNS record points at t
 
 ```sh
 #!/usr/bin/env bash
-# Deploys what was last pushed to /opt/vanidel/repo.git.
+# Deploys the latest main from GitHub. The provider's international link drops connections at
+# random, so the fetch is retried. Fallback when GitHub stays unreachable: push to
+# /opt/vanidel/repo.git from another machine, then run this script with --local.
 set -euo pipefail
 cd /opt/vanidel/app
-git pull --ff-only -q origin main
+
+remote=origin
+[ "${1:-}" = "--local" ] && remote=local
+
+for attempt in $(seq 1 10); do
+  if timeout 60 git fetch -q "$remote" main; then break; fi
+  [ "$attempt" = 10 ] && { echo "Could not fetch from $remote after 10 attempts" >&2; exit 1; }
+  sleep 5
+done
+
+git reset -q --hard "$remote/main"
 git log --oneline -1
 /opt/vanidel/build.sh
 sudo systemctl restart vanidel
 ```
 
-To deploy `main`, from a machine with the repository:
+To deploy the latest `main`:
+
+```sh
+ssh vanidel-vps /opt/vanidel/deploy.sh
+```
+
+If the fetch keeps failing, push from a machine with the repository and deploy from the server's copy:
 
 ```sh
 git fetch origin main && git push vps origin/main:refs/heads/main
-ssh vanidel-vps /opt/vanidel/deploy.sh
+ssh vanidel-vps /opt/vanidel/deploy.sh --local
 ```
 
 The build replaces `.next` while the old process still runs, so pages can fail for the minute it takes: deploy outside participation peaks.
