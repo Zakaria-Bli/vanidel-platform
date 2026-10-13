@@ -140,13 +140,27 @@ The `vanidel` user needs to be in the `docker` group (`usermod -aG docker vanide
 
 ## 3. The app
 
-As `vanidel`:
+The provider blocks outgoing SSH (to GitHub on port 22 and on 443), so the server does not pull from GitHub. Code is pushed to a bare repository on the server instead, over the same SSH access used to administer it; the server holds no GitHub credentials.
+
+On the server, as `vanidel`:
 
 ```sh
-git clone https://github.com/Zakaria-Bli/vanidel-platform.git /opt/vanidel/app
+git init --bare /opt/vanidel/repo.git
+git -C /opt/vanidel/repo.git symbolic-ref HEAD refs/heads/main
 ```
 
-The repository is private: add a read-only deploy key (`ssh-keygen -t ed25519`, then the public key under the repository's **Settings → Deploy keys**) and clone with the SSH URL instead.
+On a machine with the repository (`vanidel-vps` being the SSH host alias for the server):
+
+```sh
+git remote add vps vanidel-vps:/opt/vanidel/repo.git
+git fetch origin main && git push vps origin/main:refs/heads/main
+```
+
+Back on the server:
+
+```sh
+git clone /opt/vanidel/repo.git /opt/vanidel/app
+```
 
 Environment, in `/opt/vanidel/app.env` (mode `600`, outside the checkout):
 
@@ -166,14 +180,20 @@ S3_BUCKET_PRIVATE=vanidel-private
 
 All six `S3_*` values are required in production; the app refuses to start without them (`src/lib/env.ts`).
 
-Build once:
+`/opt/vanidel/build.sh`, used now and by every deploy:
 
 ```sh
+#!/usr/bin/env bash
+set -euo pipefail
 cd /opt/vanidel/app
-set -a && . /opt/vanidel/app.env && set +a
+export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+# Before loading app.env: NODE_ENV=production would skip the dev dependencies the build needs.
 pnpm install --frozen-lockfile
+set -a && . /opt/vanidel/app.env && set +a
 pnpm build
 ```
+
+Run it once (`chmod +x`, then `/opt/vanidel/build.sh`). On the 4 GB server the build takes a few minutes and dips into swap.
 
 systemd unit, `/etc/systemd/system/vanidel.service` (as root):
 
@@ -274,22 +294,30 @@ docker compose up -d traefik
 docker compose logs -f traefik
 ```
 
-The certificate is requested on the first start, once the DNS record points at the server and ports 80 and 443 are open. Open `https://vanidel.izakcodes.com/admin`: the first request runs the migrations, and the admin offers to create the first user. Use a strong password.
+The certificate is requested on the first start, once the DNS record points at the server and ports 80 and 443 are open.
+
+**Known issue on the current provider:** Let's Encrypt validates from several regions, and the provider's network drops connections from some of them (from probes: France, Austria, Portugal, Romania and Hong Kong time out; Germany, the UK, the Netherlands, Turkey and Singapore connect). Both the HTTP challenge (port 80) and the TLS challenge (port 443) then fail with `During secondary validation: … Timeout during connect`, and Traefik serves its default self-signed certificate. The fix is either for the provider to stop filtering international traffic on ports 80 and 443, or a DNS challenge, which needs no inbound connection (Traefik `dnsChallenge` with the DNS host's API credentials). Open `https://vanidel.izakcodes.com/admin`: the first request runs the migrations, and the admin offers to create the first user. Use a strong password.
 
 ## 5. Deploying an update
 
-`/opt/vanidel/deploy.sh` (as `vanidel`; allow it to restart the service with a sudoers line `vanidel ALL=NOPASSWD: /usr/bin/systemctl restart vanidel`):
+`/opt/vanidel/deploy.sh` (as `vanidel`; it may restart the service through `/etc/sudoers.d/91-vanidel-restart`, mode `440`, containing `vanidel ALL=(root) NOPASSWD: /usr/bin/systemctl restart vanidel`):
 
 ```sh
 #!/usr/bin/env bash
+# Deploys what was last pushed to /opt/vanidel/repo.git.
 set -euo pipefail
 cd /opt/vanidel/app
-set -a && . /opt/vanidel/app.env && set +a
-git fetch origin main
-git reset --hard origin/main
-pnpm install --frozen-lockfile
-pnpm build
+git pull --ff-only -q origin main
+git log --oneline -1
+/opt/vanidel/build.sh
 sudo systemctl restart vanidel
+```
+
+To deploy `main`, from a machine with the repository:
+
+```sh
+git fetch origin main && git push vps origin/main:refs/heads/main
+ssh vanidel-vps /opt/vanidel/deploy.sh
 ```
 
 The build replaces `.next` while the old process still runs, so pages can fail for the minute it takes: deploy outside participation peaks.
