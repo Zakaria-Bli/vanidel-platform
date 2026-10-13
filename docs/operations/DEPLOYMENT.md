@@ -1,22 +1,22 @@
 # Deployment
 
-Vanidel runs on one VPS hosted in Algeria (ARCHITECTURE §17): the app as a single Node.js process under systemd, PostgreSQL 17 and a single-node SeaweedFS (S3 API) in Docker containers, and Nginx in front. Real participant data and receipt photos stay on this server (Law 18-07, and the commitment to Algerian hosting).
+Vanidel runs on one VPS hosted in Algeria (ARCHITECTURE §17): the app as a single Node.js process under systemd, PostgreSQL 17 and a single-node SeaweedFS (S3 API) in Docker containers, and Traefik in front (also in Docker) for HTTPS. Real participant data and receipt photos stay on this server (Law 18-07, and the commitment to Algerian hosting).
 
-The repository has no Docker files: the Compose file for PostgreSQL and SeaweedFS lives on the server, and is given in full below.
+The repository has no Docker files: the Compose file for PostgreSQL, SeaweedFS and Traefik lives on the server, and is given in full below.
 
-Placeholders used below:
+Names used below:
 
-- `vanidel.example.com`: the public (sub)domain. Its DNS `A` record points at the VPS.
-- `/opt/vanidel`: everything Vanidel owns on the server, run by the `vanidel` system user.
+- `vanidel.izakcodes.com`: the public address. Its DNS `A` record points at the VPS (`102.206.41.58`).
+- `/opt/vanidel`: everything Vanidel owns on the server, owned and run by the `vanidel` user.
 
 ## Constraints
 
 - **One app process.** The participation rate limit (10 attempts per IP per 10 minutes, `src/lib/rateLimit.ts`) is kept in memory. A second process or a Node cluster would keep its own count.
-- **Nginx must overwrite `X-Forwarded-For` with the client address.** The rate limit reads the first address in that header. Appending (`$proxy_add_x_forwarded_for`) would let a client pick its own IP. A proxying CDN in front (Cloudflare orange cloud) would make every visitor share the CDN's IP: keep the DNS record unproxied.
+- **The proxy must set `X-Forwarded-For` to the client address.** The rate limit reads the first address in that header. Traefik does this as long as it does not trust incoming forwarded headers, its default: never set `forwardedHeaders.insecure` or `trustedIPs` on the entry points, or a client could pick its own IP. A proxying CDN in front (Cloudflare orange cloud) would make every visitor share the CDN's IP: keep the DNS record unproxied.
 - **Uploads up to 11 MB.** A receipt photo the browser cannot shrink (HEIC outside Safari) is sent as is, up to 10 MB plus multipart overhead (`next.config.ts`).
 - **Migrations run on start.** With `NODE_ENV=production`, Payload applies pending migrations from `src/migrations` when it initializes, on the first request after a restart.
 - **The seed refuses to run in production.** Create the first admin user and contests in the admin interface.
-- **Only Nginx is public.** The app, PostgreSQL and SeaweedFS listen on `127.0.0.1`. Files are downloaded through Payload (`/api/media/file/*`, `/api/tickets/file/*`), so receipt photos are only served to logged-in staff.
+- **Only Traefik is public.** The app, PostgreSQL and SeaweedFS listen on `127.0.0.1`. Files are downloaded through Payload (`/api/media/file/*`, `/api/tickets/file/*`), so receipt photos are only served to logged-in staff.
 - **The printed QR code's address is permanent.** Whatever domain is printed must keep answering (or redirecting) for as long as the material is in circulation.
 
 ## 1. Server preparation
@@ -25,7 +25,7 @@ On Ubuntu 24.04, as root:
 
 ```sh
 apt update && apt upgrade -y
-apt install -y git nginx certbot python3-certbot-nginx ufw ca-certificates curl
+apt install -y git ufw ca-certificates curl
 
 # Docker Engine with the Compose plugin
 curl -fsSL https://get.docker.com | sh
@@ -36,14 +36,34 @@ apt install -y nodejs
 corepack enable
 
 # Only SSH and HTTP(S) are reachable from outside
-ufw allow OpenSSH && ufw allow 'Nginx Full' && ufw --force enable
+# (Traefik uses the host network, so these rules apply to it.)
+ufw allow OpenSSH && ufw allow 80/tcp && ufw allow 443/tcp && ufw --force enable
 
-useradd --system --create-home --home-dir /opt/vanidel --shell /bin/bash vanidel
+# The vanidel user (create it with `adduser vanidel` if it does not exist yet)
+usermod -aG docker vanidel
+mkdir -p /opt/vanidel && chown vanidel:vanidel /opt/vanidel
 ```
 
-The build needs about 4 GB of memory (`pnpm build` sets `--max-old-space-size=4096`). On a smaller server, add swap (`fallocate -l 4G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile`, plus an `/etc/fstab` line).
+### Swap
 
-## 2. PostgreSQL and SeaweedFS
+`pnpm build` lets Node use up to 4 GB (`--max-old-space-size=4096`), and it runs while the app, PostgreSQL and SeaweedFS are already using memory. On a 4 GB server, give it 4 GB of swap so a build never gets killed for lack of memory. Ubuntu images often ship a small `/swapfile` (check with `swapon --show`); this replaces it:
+
+```sh
+swapoff /swapfile 2>/dev/null; rm -f /swapfile
+fallocate -l 4G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+grep -q '^/swapfile ' /etc/fstab || echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
+# Use swap only under memory pressure (builds), not for the running app.
+echo 'vm.swappiness=10' > /etc/sysctl.d/99-vanidel-swap.conf
+sysctl --system
+```
+
+Check with `free -h`: `Swap` shows `4.0Gi`. During a build, `free -h` may show swap in use; it drops again once the build ends. If a build still fails with `JavaScript heap out of memory` or `Killed`, run it while traffic is low, or build on another machine and copy `.next` over.
+
+## 2. PostgreSQL, SeaweedFS and Traefik
 
 As `vanidel`, in `/opt/vanidel/services`:
 
@@ -94,12 +114,22 @@ services:
       - ./s3.json:/etc/seaweedfs/s3.json:ro
     ports:
       - '127.0.0.1:8333:8333'
+
+  # HTTPS entry point (section 4). On the host network so it reaches the app on 127.0.0.1:3000
+  # and sees the real client address.
+  traefik:
+    image: traefik:v3.7.14
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - ./traefik:/etc/traefik:ro
+      - ./data/letsencrypt:/letsencrypt
 ```
 
-Start them, then create the two buckets once:
+Start the database and storage (Traefik comes in section 4), then create the two buckets once:
 
 ```sh
-docker compose up -d
+docker compose up -d postgres seaweedfs
 # Wait for the S3 gateway (docker compose logs -f seaweedfs), then:
 for bucket in vanidel-public vanidel-private; do
   docker compose exec seaweedfs sh -c "echo 's3.bucket.create -name $bucket' | weed shell"
@@ -125,7 +155,7 @@ NODE_ENV=production
 DATABASE_URL=postgresql://vanidel:<POSTGRES_PASSWORD>@127.0.0.1:5432/vanidel
 # Unique to this server: openssl rand -base64 32
 PAYLOAD_SECRET=...
-SITE_URL=https://vanidel.example.com
+SITE_URL=https://vanidel.izakcodes.com
 S3_ENDPOINT=http://127.0.0.1:8333
 S3_REGION=us-east-1
 S3_ACCESS_KEY_ID=vanidel-app
@@ -170,39 +200,81 @@ systemctl daemon-reload && systemctl enable --now vanidel
 journalctl -u vanidel -f
 ```
 
-## 4. Nginx and HTTPS
+## 4. Traefik and HTTPS
 
-`/etc/nginx/sites-available/vanidel`:
+Traefik terminates HTTPS, gets and renews the Let's Encrypt certificate, and forwards to the app on `127.0.0.1:3000`. It reads two files from `/opt/vanidel/services/traefik`; it does not watch Docker, so it needs no access to the Docker socket.
 
-```nginx
-server {
-    listen 80;
-    server_name vanidel.example.com;
+`traefik.yml` (static configuration):
 
-    client_max_body_size 11m;
+```yaml
+entryPoints:
+  web:
+    address: ':80'
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
+  websecure:
+    address: ':443'
+    # Receipt photos (up to 11 MB) can be slow to upload on a mobile connection; the default
+    # read timeout is 60 s. Traefik sets no request body limit by default.
+    transport:
+      respondingTimeouts:
+        readTimeout: 300s
+    http:
+      tls:
+        certResolver: letsencrypt
+    # No forwardedHeaders settings: Traefik then replaces any client-sent X-Forwarded-For with
+    # the real client address, which the rate limit relies on.
 
-    location / {
-        proxy_pass http://127.0.0.1:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        # Overwrite, never append: the rate limit trusts the first address.
-        proxy_set_header X-Forwarded-For $remote_addr;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_read_timeout 60s;
-    }
-}
+providers:
+  file:
+    filename: /etc/traefik/dynamic.yml
+    watch: true
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      storage: /letsencrypt/acme.json
+      httpChallenge:
+        entryPoint: web
+
+log:
+  level: INFO
+accessLog: {}
+```
+
+`dynamic.yml` (routing):
+
+```yaml
+http:
+  routers:
+    vanidel:
+      rule: Host(`vanidel.izakcodes.com`)
+      entryPoints: [websecure]
+      service: vanidel
+      middlewares: [hsts]
+
+  middlewares:
+    hsts:
+      headers:
+        stsSeconds: 31536000
+
+  services:
+    vanidel:
+      loadBalancer:
+        servers:
+          - url: http://127.0.0.1:3000
 ```
 
 ```sh
-ln -s /etc/nginx/sites-available/vanidel /etc/nginx/sites-enabled/
-rm -f /etc/nginx/sites-enabled/default
-nginx -t && systemctl reload nginx
-certbot --nginx -d vanidel.example.com --redirect
+mkdir -p data/letsencrypt
+docker compose up -d traefik
+docker compose logs -f traefik
 ```
 
-Certbot adds the HTTPS server block and renews the certificate on its own.
-
-Open `https://vanidel.example.com/admin`: the first request runs the migrations, and the admin offers to create the first user. Use a strong password.
+The certificate is requested on the first start, once the DNS record points at the server and ports 80 and 443 are open. Open `https://vanidel.izakcodes.com/admin`: the first request runs the migrations, and the admin offers to create the first user. Use a strong password.
 
 ## 5. Deploying an update
 
