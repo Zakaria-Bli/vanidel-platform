@@ -14,3 +14,19 @@ export function imageSize(media: Media, size: keyof NonNullable<Media['sizes']>)
       ? { url: media.url, width: media.width, height: media.height }
       : null
 }
+
+/**
+ * The image a contest is shared with: its share image, else its hero, at the Open Graph size
+ * (1200×630). Null when it has neither.
+ */
+export function contestVisual(contest: {
+  slug: string
+  shareMedia?: unknown
+  heroMedia?: unknown
+}): { url: string; width: number; height: number; filename: string } | null {
+  const media = populated(contest.shareMedia) ?? populated(contest.heroMedia)
+  const image = media && imageSize(media, 'og')
+  if (!image) return null
+  const extension = image.url.split('?')[0].split('.').pop() || 'jpg'
+  return { ...image, filename: `${contest.slug}.${extension}` }
+}
