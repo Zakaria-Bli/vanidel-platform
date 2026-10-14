@@ -1,14 +1,41 @@
-import type { CollectionConfig, Field } from 'payload'
+import {
+  ValidationError,
+  type CollectionBeforeChangeHook,
+  type CollectionConfig,
+  type Field,
+} from 'payload'
 
 import { isStaff, nobody, nobodyField } from '../access'
 import { groups, label } from '../fields/label'
 import { readOnly } from '../fields/readOnly'
+import { redrawWinner } from '../endpoints/draws'
 
 /** Fields recording what the draw selected, or its voiding; only services write them. */
 function serviceOnly(fields: Field[]): Field[] {
   return readOnly(fields).map((field) =>
     'name' in field ? ({ ...field, access: { update: nobodyField } } as Field) : field,
   )
+}
+
+/**
+ * A voided winner is never published again, whoever saves it: staff, or a form opened before the
+ * re-draw voided it. Checked against the stored record, since staff cannot change `voided`.
+ */
+const neverPublishVoided: CollectionBeforeChangeHook = ({ data, originalDoc, req }) => {
+  if (originalDoc?.voided && data.published === true) {
+    throw new ValidationError({
+      collection: 'winners',
+      errors: [
+        {
+          path: 'published',
+          message:
+            'Un gagnant annulé ne peut pas être publié. / A voided winner cannot be published.',
+        },
+      ],
+      req,
+    })
+  }
+  return data
 }
 
 /**
@@ -26,6 +53,8 @@ export const Winners: CollectionConfig = {
     useAsTitle: 'publicDisplayName',
     defaultColumns: ['publicDisplayName', 'draw', 'published', 'voided'],
   },
+  endpoints: [redrawWinner],
+  hooks: { beforeChange: [neverPublishVoided] },
   access: {
     read: isStaff,
     create: nobody,
@@ -92,27 +121,35 @@ export const Winners: CollectionConfig = {
     {
       type: 'collapsible',
       label: label('Annulation', 'Voiding', 'الإلغاء'),
-      fields: serviceOnly([
+      fields: [
         {
-          name: 'voided',
-          label: label('Annulé', 'Voided', 'ملغى'),
-          type: 'checkbox',
-          defaultValue: false,
+          name: 'redraw',
+          label: label('Annuler et retirer au sort', 'Void and re-draw', 'إلغاء وإعادة السحب'),
+          type: 'ui',
+          admin: { components: { Field: '/payload/components/RedrawField#RedrawField' } },
         },
-        { name: 'voidReason', label: label('Motif', 'Reason', 'السبب'), type: 'textarea' },
-        {
-          name: 'voidedBy',
-          label: label('Annulé par', 'Voided by', 'أُلغي من طرف'),
-          type: 'relationship',
-          relationTo: 'users',
-        },
-        {
-          name: 'voidedAt',
-          label: label('Annulé le', 'Voided at', 'أُلغي في'),
-          type: 'date',
-          admin: { date: { pickerAppearance: 'dayAndTime' } },
-        },
-      ]),
+        ...serviceOnly([
+          {
+            name: 'voided',
+            label: label('Annulé', 'Voided', 'ملغى'),
+            type: 'checkbox',
+            defaultValue: false,
+          },
+          { name: 'voidReason', label: label('Motif', 'Reason', 'السبب'), type: 'textarea' },
+          {
+            name: 'voidedBy',
+            label: label('Annulé par', 'Voided by', 'أُلغي من طرف'),
+            type: 'relationship',
+            relationTo: 'users',
+          },
+          {
+            name: 'voidedAt',
+            label: label('Annulé le', 'Voided at', 'أُلغي في'),
+            type: 'date',
+            admin: { date: { pickerAppearance: 'dayAndTime' } },
+          },
+        ]),
+      ],
     },
   ],
 }

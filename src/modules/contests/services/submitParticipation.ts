@@ -1,12 +1,9 @@
-import type { PostgresAdapter } from '@payloadcms/db-postgres'
-import { sql } from '@payloadcms/db-postgres'
 import {
   commitTransaction,
   createLocalReq,
   initTransaction,
   killTransaction,
   type Payload,
-  type PayloadRequest,
 } from 'payload'
 
 import type { Locale } from '@/i18n/config'
@@ -17,6 +14,7 @@ import type { Contest, Ticket } from '@/payload-types'
 
 import { drawPeriodFor } from '../domain/drawPeriod'
 import { contestPhase } from '../domain/phase'
+import { advisoryLock, contestDrawLock } from './advisoryLock'
 import {
   prepareTicket,
   removeTicketFiles,
@@ -41,6 +39,7 @@ export const participationErrorCodes = [
   'ticket-unsupported',
   'duplicate-ticket',
   'entry-limit',
+  'period-drawn',
 ] as const
 
 export type ParticipationErrorCode = (typeof participationErrorCodes)[number]
@@ -141,13 +140,6 @@ function validate(contest: Contest, input: ParticipationInput) {
   return { name, phone, phoneNormalized, email, wilaya, consents }
 }
 
-/** Serializes this transaction with any other holding the same key until it ends. */
-async function lock(payload: Payload, req: PayloadRequest, key: string) {
-  const adapter = payload.db as unknown as PostgresAdapter
-  const db = adapter.sessions[await req.transactionID!]?.db ?? adapter.drizzle
-  await db.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${key}))`)
-}
-
 async function prepare(data: Buffer): Promise<PreparedTicket> {
   try {
     return await prepareTicket(data)
@@ -201,9 +193,23 @@ export async function submitParticipation(
   await initTransaction(req)
   let ticket: Ticket | undefined
   try {
-    // Phone first, then receipt: a fixed order, so two submissions cannot deadlock.
-    await lock(payload, req, `participation:phone:${fields.phoneNormalized}`)
-    await lock(payload, req, `participation:ticket:${contest.id}:${prepared.hash}`)
+    // Contest, then phone, then receipt: a fixed order, so two submissions cannot deadlock.
+    await advisoryLock(payload, req, contestDrawLock(contest.id), { shared: true })
+    await advisoryLock(payload, req, `participation:phone:${fields.phoneNormalized}`)
+    await advisoryLock(payload, req, `participation:ticket:${contest.id}:${prepared.hash}`)
+
+    // A draw that ran while this submission waited for the lock already read its pool: saving now
+    // would add an entry the completed draw never saw.
+    const { totalDocs: drawn } = await payload.count({
+      collection: 'draws',
+      where: {
+        contest: { equals: contest.id },
+        periodStart: { less_than_equal: now.toISOString() },
+        periodEnd: { greater_than: now.toISOString() },
+      },
+      req,
+    })
+    if (drawn > 0) throw new ParticipationError('period-drawn')
 
     const { totalDocs: entries } = await payload.count({
       collection: 'participations',

@@ -3,6 +3,7 @@ import type { CollectionConfig } from 'payload'
 import { isStaff, nobody } from '../access'
 import { groups, label } from '../fields/label'
 import { readOnly } from '../fields/readOnly'
+import { runDraw } from '../endpoints/draws'
 
 /**
  * Audit record of one draw (SPECIFICATION §10.2). Written once by the draw service and never
@@ -17,7 +18,11 @@ export const Draws: CollectionConfig = {
   admin: {
     group: groups.contests,
     defaultColumns: ['contest', 'periodStart', 'periodEnd', 'eligibleCount', 'executedAt'],
+    components: {
+      beforeListTable: ['/payload/components/DrawPanel#DrawPanel'],
+    },
   },
+  endpoints: [runDraw],
   access: {
     read: isStaff,
     create: nobody,

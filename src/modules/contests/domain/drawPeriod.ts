@@ -64,15 +64,14 @@ export interface DrawPeriod {
   end: Date
 }
 
+type DrawnContest = Pick<ContestSchedule, 'startAt' | 'endAt'> & { draw: DrawSettings }
+
 /**
  * The draw period containing `instant`, or null outside the contest. Periods start at 00:00 Algiers
  * time on `periodStartDay`, last `periodDays`, and the first and last are clipped to the contest's
  * start and end.
  */
-export function drawPeriodFor(
-  contest: Pick<ContestSchedule, 'startAt' | 'endAt'> & { draw: DrawSettings },
-  instant: Date,
-): DrawPeriod | null {
+export function drawPeriodFor(contest: DrawnContest, instant: Date): DrawPeriod | null {
   const startAt = new Date(contest.startAt).getTime()
   const endAt = new Date(contest.endAt).getTime()
   const time = instant.getTime()
@@ -101,6 +100,17 @@ export function drawPeriodFor(
     start: new Date(Math.max(periodStart, startAt)),
     end: new Date(Math.min(periodStart + length, endAt)),
   }
+}
+
+/** Every draw period of the contest, first to last. */
+export function drawPeriodsOf(contest: DrawnContest): DrawPeriod[] {
+  const periods: DrawPeriod[] = []
+  let period = drawPeriodFor(contest, new Date(contest.startAt))
+  while (period) {
+    periods.push(period)
+    period = drawPeriodFor(contest, period.end)
+  }
+  return periods
 }
 
 /**

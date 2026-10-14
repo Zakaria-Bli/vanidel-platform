@@ -21,6 +21,8 @@ import { StrikethroughFeatureClient as StrikethroughFeatureClient_e70f5e05f09f93
 import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
+import { DrawPanel as DrawPanel_ee020c419aa33e36b7f240ffdf82f2d9 } from '../../../payload/components/DrawPanel'
+import { RedrawField as RedrawField_6c7e9d9cc1999f6349f5f5795b14d513 } from '../../../payload/components/RedrawField'
 import { WilayaCell as WilayaCell_fe09ceaebe8e5274113055b257b54647 } from '../../../payload/components/WilayaCell'
 import { TicketCell as TicketCell_375c690b9a649001ded3ae4da69f0151 } from '../../../payload/components/TicketCell'
 import { ParticipationExport as ParticipationExport_404ec85c3f080188c4629ddc107439a9 } from '../../../payload/components/ExportPanel'
@@ -53,6 +55,8 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#UnderlineFeatureClient": UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  "/payload/components/DrawPanel#DrawPanel": DrawPanel_ee020c419aa33e36b7f240ffdf82f2d9,
+  "/payload/components/RedrawField#RedrawField": RedrawField_6c7e9d9cc1999f6349f5f5795b14d513,
   "/payload/components/WilayaCell#WilayaCell": WilayaCell_fe09ceaebe8e5274113055b257b54647,
   "/payload/components/TicketCell#TicketCell": TicketCell_375c690b9a649001ded3ae4da69f0151,
   "/payload/components/ExportPanel#ParticipationExport": ParticipationExport_404ec85c3f080188c4629ddc107439a9,
