@@ -4,8 +4,8 @@ import type { Ticket } from '@/payload-types'
 
 /**
  * Receipt thumbnail in the participations list: the small `thumbnail` size, not the full photo.
- * Served by Payload at /api/tickets/file/*, which only answers logged-in staff, so it never
- * becomes a public URL.
+ * Clicking it opens the full photo in a new tab. Both are served by Payload at /api/tickets/file/*,
+ * which only answers logged-in staff, so neither becomes a public URL.
  */
 export async function TicketCell({ cellData, payload }: DefaultServerCellComponentProps) {
   const ticket: Ticket | null =
@@ -18,10 +18,15 @@ export async function TicketCell({ cellData, payload }: DefaultServerCellCompone
         : null
   // Tickets stored before thumbnails existed fall back to the full photo.
   const src = ticket?.sizes?.thumbnail?.url ?? ticket?.url
-  if (!ticket || !src) return null
+  if (!ticket?.url || !src) return null
 
   return (
-    <a href={`/admin/collections/tickets/${ticket.id}`} title={ticket.filename ?? undefined}>
+    <a
+      href={ticket.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      title={ticket.filename ?? undefined}
+    >
       {/* eslint-disable-next-line @next/next/no-img-element -- authenticated admin file, not optimizable */}
       <img
         src={src}
