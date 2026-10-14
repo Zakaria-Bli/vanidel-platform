@@ -414,7 +414,7 @@ These stay on the same disk. Before launch, copy `/var/backups/vanidel` and `/op
 
 On the production server, with fake data, before the first real contest:
 
-1. In the admin, create a test contest (placeholder title, regulation PDF and visuals) and publish it. Generate the QR code from its participation URL with its UTM parameters, and print it.
+1. In the admin, create a test contest (placeholder title, regulation PDF and visuals) and publish it. In Liens de campagne, add a link with the channel « QR code emballage » for it, download its QR code, and print it.
 2. Scan it with a real iPhone (Safari) and a real Android phone (Chrome). On each, submit an entry with a photo taken by the camera.
 3. In **Participations**, check both entries appear with their receipt thumbnail, the right wilaya and the UTM source.
 4. Open a receipt photo from the admin. Sign out and request the same `/api/tickets/file/…` URL: it must be refused.
