@@ -1,4 +1,9 @@
-import type { CollectionConfig, Field } from 'payload'
+import {
+  ValidationError,
+  type CollectionBeforeChangeHook,
+  type CollectionConfig,
+  type Field,
+} from 'payload'
 
 import { isStaff, nobody, nobodyField } from '../access'
 import { groups, label } from '../fields/label'
@@ -10,6 +15,27 @@ function serviceOnly(fields: Field[]): Field[] {
   return readOnly(fields).map((field) =>
     'name' in field ? ({ ...field, access: { update: nobodyField } } as Field) : field,
   )
+}
+
+/**
+ * A voided winner is never published again, whoever saves it: staff, or a form opened before the
+ * re-draw voided it. Checked against the stored record, since staff cannot change `voided`.
+ */
+const neverPublishVoided: CollectionBeforeChangeHook = ({ data, originalDoc, req }) => {
+  if (originalDoc?.voided && data.published === true) {
+    throw new ValidationError({
+      collection: 'winners',
+      errors: [
+        {
+          path: 'published',
+          message:
+            'Un gagnant annulé ne peut pas être publié. / A voided winner cannot be published.',
+        },
+      ],
+      req,
+    })
+  }
+  return data
 }
 
 /**
@@ -28,6 +54,7 @@ export const Winners: CollectionConfig = {
     defaultColumns: ['publicDisplayName', 'draw', 'published', 'voided'],
   },
   endpoints: [redrawWinner],
+  hooks: { beforeChange: [neverPublishVoided] },
   access: {
     read: isStaff,
     create: nobody,

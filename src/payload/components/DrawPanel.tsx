@@ -29,14 +29,16 @@ async function endedPeriods(payload: Payload, t: DrawMessages): Promise<PeriodOp
     where: { contest: { in: contests.map(({ id }) => id) } },
     pagination: false,
     depth: 0,
-    select: { contest: true, periodStart: true },
+    select: { contest: true, periodStart: true, periodEnd: true },
   })
-  const drawn = new Set(
-    draws.map(({ contest, periodStart }) => {
-      const id = typeof contest === 'object' ? contest.id : contest
-      return `${id}|${new Date(periodStart).toISOString()}`
-    }),
-  )
+  // A period overlapping any draw cannot be drawn, even if the period settings changed since.
+  const overlapsDraw = (contestId: number, start: Date, end: Date) =>
+    draws.some(
+      (draw) =>
+        (typeof draw.contest === 'object' ? draw.contest.id : draw.contest) === contestId &&
+        new Date(draw.periodStart) < end &&
+        new Date(draw.periodEnd) > start,
+    )
 
   return contests.flatMap((contest) =>
     drawPeriodsOf(contest)
@@ -48,7 +50,7 @@ async function endedPeriods(payload: Payload, t: DrawMessages): Promise<PeriodOp
         return {
           value,
           label: `${contest.title} · ${t.week} ${index + 1} (${dayMonth.format(start)} – ${lastDay})`,
-          drawn: drawn.has(value),
+          drawn: overlapsDraw(contest.id, start, end),
         }
       }),
   )

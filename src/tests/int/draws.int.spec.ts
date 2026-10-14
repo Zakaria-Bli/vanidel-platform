@@ -179,6 +179,90 @@ describe('executeDraw', () => {
   })
 })
 
+describe('a draw and the period settings', () => {
+  it('never draws time already covered by a draw, even after the period length changes', async () => {
+    const contest = await pastContest()
+    await participate(contest, atStartOf(contest, 0))
+    const weekly = periods(contest)
+    await executeDraw(payload, {
+      contestId: contest.id,
+      periodStart: weekly[0].start,
+      user: operator,
+    })
+
+    const daily = await payload.update({
+      collection: 'contests',
+      id: contest.id,
+      data: { draw: { periodDays: 1, winnersPerDraw: 1 } },
+    })
+    const days = periods(daily)
+    const inDrawnWeek = days.filter(({ end }) => end <= weekly[0].end)
+    const afterIt = days.find(({ start }) => start >= weekly[0].end)!
+    await participate(daily, new Date(afterIt.start.getTime() + hour))
+
+    for (const day of [inDrawnWeek[0], inDrawnWeek.at(-1)!]) {
+      await expect(
+        executeDraw(payload, { contestId: contest.id, periodStart: day.start, user: operator }),
+      ).rejects.toEqual(refused('already-drawn'))
+    }
+    await expect(
+      executeDraw(payload, { contestId: contest.id, periodStart: afterIt.start, user: operator }),
+    ).resolves.toMatchObject({ winnerIds: [expect.any(Number)] })
+  })
+})
+
+describe('a draw and submissions being saved', () => {
+  it('refuses a submission for a period drawn while it was being saved', async () => {
+    const contest = await pastContest()
+    await participate(contest, atStartOf(contest, 0))
+    await executeDraw(payload, {
+      contestId: contest.id,
+      periodStart: periods(contest)[0].start,
+      user: operator,
+    })
+
+    await expect(participate(contest, atStartOf(contest, 0, 5 * hour))).rejects.toEqual(
+      expect.objectContaining({ name: 'ParticipationError', code: 'period-drawn' }),
+    )
+  })
+
+  it('either includes a concurrent submission in the pool or refuses it', async () => {
+    const contest = await pastContest()
+    await participate(contest, atStartOf(contest, 0))
+    const period = periods(contest)[0]
+
+    const [submitted, drawn] = await Promise.allSettled([
+      participate(contest, atStartOf(contest, 0, 2 * hour)),
+      executeDraw(payload, { contestId: contest.id, periodStart: period.start, user: operator }),
+    ])
+    expect(drawn.status).toBe('fulfilled')
+    const draw = await payload.findByID({
+      collection: 'draws',
+      id: (drawn as PromiseFulfilledResult<{ drawId: number }>).value.drawId,
+      depth: 0,
+    })
+    const { docs: pool } = await payload.find({
+      collection: 'participations',
+      where: {
+        contest: { equals: contest.id },
+        submittedAt: {
+          greater_than_equal: period.start.toISOString(),
+          less_than: period.end.toISOString(),
+        },
+      },
+      sort: 'id',
+      pagination: false,
+      depth: 0,
+    })
+
+    if (submitted.status === 'rejected') {
+      expect(submitted.reason).toMatchObject({ code: 'period-drawn' })
+    }
+    expect(draw.eligibleCount).toBe(pool.length)
+    expect(draw.poolHash).toBe(hashPool(pool.map(({ id }) => id)))
+  })
+})
+
 describe('voidAndRedraw', () => {
   it('voids the winner and excludes every earlier winner of the chain', async () => {
     const contest = await pastContest()
@@ -248,6 +332,43 @@ describe('voidAndRedraw', () => {
       depth: 0,
     })
     expect(last.voided).toBe(false)
+  })
+
+  it('keeps a voided winner unpublished, whatever staff save', async () => {
+    const contest = await pastContest()
+    await participate(contest, atStartOf(contest, 0))
+    await participate(contest, atStartOf(contest, 0, 2 * hour))
+    const {
+      winnerIds: [winnerId],
+    } = await executeDraw(payload, {
+      contestId: contest.id,
+      periodStart: periods(contest)[0].start,
+      user: operator,
+    })
+    await payload.update({ collection: 'winners', id: winnerId, data: { published: true } })
+    await voidAndRedraw(payload, { winnerId, reason: 'Ticket illisible', user: operator })
+
+    // As a stale admin form would send it.
+    await expect(
+      payload.update({
+        collection: 'winners',
+        id: winnerId,
+        data: { published: true, voided: false },
+        user: operator,
+        overrideAccess: false,
+      }),
+    ).rejects.toMatchObject({
+      data: { errors: [expect.objectContaining({ path: 'published' })] },
+    })
+
+    const edited = await payload.update({
+      collection: 'winners',
+      id: winnerId,
+      data: { publicDisplayName: 'Amine' },
+      user: operator,
+      overrideAccess: false,
+    })
+    expect(edited).toMatchObject({ publicDisplayName: 'Amine', published: false, voided: true })
   })
 
   it('refuses a missing reason, a voided winner and an unknown winner', async () => {

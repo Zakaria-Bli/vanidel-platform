@@ -18,7 +18,7 @@ import {
   selectFromPool,
   type RandomIndex,
 } from '../domain/selection'
-import { advisoryLock } from './advisoryLock'
+import { advisoryLock, contestDrawLock } from './advisoryLock'
 
 /** Why a draw or re-draw was refused; the admin panel translates each code. */
 export const drawErrorCodes = [
@@ -68,10 +68,6 @@ export interface RedrawInput extends Options {
 }
 
 const idOf = (value: number | { id: number }) => (typeof value === 'object' ? value.id : value)
-
-/** Every draw of one contest period shares this lock, so a period's chain is drawn one at a time. */
-const periodLock = (contestId: number, periodStart: string) =>
-  `draw:${contestId}:${new Date(periodStart).toISOString()}`
 
 /** Runs `work` in one transaction, rolled back if it throws. */
 async function inTransaction<T>(
@@ -179,7 +175,8 @@ async function drawFromPool(
 /**
  * Runs the draw of one ended contest period (SPECIFICATION §10.2): every participation submitted
  * in the period is eligible, and the contest's `winnersPerDraw` are picked with
- * `crypto.randomInt`. A period is drawn once; replacing a winner goes through `voidAndRedraw`.
+ * `crypto.randomInt`. Time already covered by a draw is never drawn again, even if the period
+ * settings changed since; replacing a winner goes through `voidAndRedraw`.
  * Throws `DrawError` for anything the operator can act on.
  */
 export async function executeDraw(payload: Payload, input: ExecuteDrawInput): Promise<DrawResult> {
@@ -197,13 +194,15 @@ export async function executeDraw(payload: Payload, input: ExecuteDrawInput): Pr
   if (period.end > now) throw new DrawError('period-not-ended')
 
   return inTransaction(payload, async (req) => {
-    await advisoryLock(payload, req, periodLock(contest.id, period.start.toISOString()))
+    await advisoryLock(payload, req, contestDrawLock(contest.id))
 
+    // Any overlap, not only the same start: the period settings may have changed since a draw.
     const { totalDocs: drawn } = await payload.count({
       collection: 'draws',
       where: {
         contest: { equals: contest.id },
-        periodStart: { equals: period.start.toISOString() },
+        periodStart: { less_than: period.end.toISOString() },
+        periodEnd: { greater_than: period.start.toISOString() },
       },
       req,
     })
@@ -240,7 +239,7 @@ export async function voidAndRedraw(payload: Payload, input: RedrawInput): Promi
   const contestId = idOf(found.draw.contest)
 
   return inTransaction(payload, async (req) => {
-    await advisoryLock(payload, req, periodLock(contestId, periodStart))
+    await advisoryLock(payload, req, contestDrawLock(contestId))
 
     // Re-read under the lock: a concurrent re-draw may have voided this winner already.
     const winner = await payload.findByID({
@@ -259,10 +258,15 @@ export async function voidAndRedraw(payload: Payload, input: RedrawInput): Promi
       req,
     })
 
-    // Only one original draw exists per period, so the period's draws are exactly its chain.
+    // Draws never overlap except within a chain, which keeps its original period, so the draws of
+    // exactly this period are the chain.
     const { docs: chain } = await payload.find({
       collection: 'draws',
-      where: { contest: { equals: contestId }, periodStart: { equals: periodStart } },
+      where: {
+        contest: { equals: contestId },
+        periodStart: { equals: periodStart },
+        periodEnd: { equals: periodEnd },
+      },
       select: {},
       pagination: false,
       depth: 0,

@@ -64,6 +64,7 @@
       "entry-limit": "Ce numéro a déjà atteint le nombre de participations autorisé pour cette période. Réessayez à la prochaine période.",
       "rate-limited": "Trop de tentatives. Réessayez dans quelques minutes.",
       "unexpected": "Une erreur est survenue. Rechargez la page et réessayez.",
+      "period-drawn": "La période de tirage vient de se terminer. Renvoyez votre participation.",
       "consents-changed": "Les conditions de participation ont été mises à jour depuis l’ouverture de la page. Rechargez la page pour les relire, puis envoyez de nouveau votre participation."
     },
     "reload": "Recharger la page"

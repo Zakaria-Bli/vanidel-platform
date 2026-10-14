@@ -28,7 +28,7 @@ const messages = {
       'period-not-found':
         'Cette période n’existe plus : les réglages du concours ont changé. Rechargez la page.',
       'period-not-ended': 'Cette période n’est pas encore terminée.',
-      'already-drawn': 'Cette période a déjà été tirée.',
+      'already-drawn': 'Cette période, ou une partie, a déjà été tirée.',
       'empty-pool': 'Aucune participation éligible pour cette période.',
       'winner-not-found': 'Gagnant introuvable.',
       'winner-voided': 'Ce gagnant est déjà annulé.',
@@ -58,7 +58,7 @@ const messages = {
       'period-not-found':
         'This period no longer exists: the contest settings changed. Reload the page.',
       'period-not-ended': 'This period has not ended yet.',
-      'already-drawn': 'This period has already been drawn.',
+      'already-drawn': 'This period, or part of it, has already been drawn.',
       'empty-pool': 'No eligible participation for this period.',
       'winner-not-found': 'Winner not found.',
       'winner-voided': 'This winner is already voided.',
@@ -87,7 +87,7 @@ const messages = {
       'contest-not-found': 'المسابقة غير موجودة.',
       'period-not-found': 'هذه الفترة لم تعد موجودة: تغيّرت إعدادات المسابقة. أعد تحميل الصفحة.',
       'period-not-ended': 'هذه الفترة لم تنته بعد.',
-      'already-drawn': 'تم السحب على هذه الفترة من قبل.',
+      'already-drawn': 'تم السحب على هذه الفترة أو على جزء منها من قبل.',
       'empty-pool': 'لا توجد مشاركات مؤهلة في هذه الفترة.',
       'winner-not-found': 'الفائز غير موجود.',
       'winner-voided': 'هذا الفائز ملغى من قبل.',
