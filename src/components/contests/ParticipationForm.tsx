@@ -2,7 +2,15 @@
 
 import { CircleCheck } from 'lucide-react'
 import { useTranslations } from 'next-intl'
-import { startTransition, useActionState, useEffect, useId, useState, type FormEvent } from 'react'
+import {
+  startTransition,
+  useActionState,
+  useEffect,
+  useId,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from 'react'
 
 import { trackParticipation } from '@/components/analytics/Tracking'
 import { Button } from '@/components/ui/button'
@@ -27,6 +35,8 @@ export interface ParticipationFormProps {
   wilayaRequired: boolean
   consents: { type: string; required: boolean; label: string; textVersion: string }[]
   regulationUrl?: string
+  /** Share buttons shown with the confirmation, so participants pass the contest on. */
+  share?: ReactNode
   action: (state: ParticipationState, formData: FormData) => Promise<ParticipationState>
 }
 
@@ -40,9 +50,11 @@ export function ParticipationForm({
   wilayaRequired,
   consents,
   regulationUrl,
+  share,
   action,
 }: ParticipationFormProps) {
   const t = useTranslations('participation')
+  const tShare = useTranslations('share')
   const id = useId()
   // A failed call (network loss, or a page left open across a deploy) shows a message rather
   // than the error page.
@@ -97,6 +109,12 @@ export function ParticipationForm({
         <CircleCheck aria-hidden className="size-8 text-success" />
         <h3>{t('success.title')}</h3>
         <p>{t('success.body')}</p>
+        {share && (
+          <div className="mt-2 flex flex-col gap-2">
+            <p className="font-medium">{tShare('afterParticipation')}</p>
+            {share}
+          </div>
+        )}
       </div>
     )
   }

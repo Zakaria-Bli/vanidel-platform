@@ -6,13 +6,14 @@ import { ContestHero } from '@/components/contests/ContestHero'
 import { ContestParticipationSection } from '@/components/contests/ContestParticipationSection'
 import { ContestPrizes } from '@/components/contests/ContestPrizes'
 import { ContestRules } from '@/components/contests/ContestRules'
+import { ContestShare, ContestShareButtons } from '@/components/contests/ContestShare'
 import { ContestSteps } from '@/components/contests/ContestSteps'
 import { ContestWinners } from '@/components/contests/ContestWinners'
 import { ParticipationForm } from '@/components/contests/ParticipationForm'
 import { Container } from '@/components/shared/Container'
 import { locales, type Locale } from '@/i18n/config'
 import { getPathname, Link } from '@/i18n/navigation'
-import { imageSize, populated } from '@/lib/media'
+import { contestVisual, populated } from '@/lib/media'
 import { contestPhase } from '@/modules/contests/domain/phase'
 import { getCachedPublicContest, getCachedPublicWinners } from '@/modules/contests/queries/cached'
 
@@ -40,8 +41,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = contest.seo?.title || contest.title
   const description = contest.seo?.description ?? undefined
-  const share = populated(contest.shareMedia)
-  const image = share && imageSize(share, 'og')
+  // The share image, else the hero: a link preview without a picture is easily scrolled past.
+  const visual = contestVisual(contest)
+  const images = visual
+    ? [{ url: visual.url, width: visual.width, height: visual.height, alt: title }]
+    : undefined
 
   return {
     title,
@@ -55,10 +59,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      locale,
+      // Open Graph wants language_TERRITORY.
+      locale: `${locale}_DZ`,
       type: 'website',
-      images: image ? [image] : undefined,
+      url: getPathname({ href: `/concours/${slug}`, locale }),
+      siteName: 'Vanidel',
+      images,
     },
+    twitter: { card: images ? 'summary_large_image' : 'summary', title, description, images },
   }
 }
 
@@ -95,9 +103,11 @@ export default async function ContestPage({ params }: Props) {
             textVersion,
           }))}
           regulationUrl={populated(contest.regulation)?.url ?? undefined}
+          share={<ContestShareButtons contest={contest} />}
           action={participate}
         />
       </ContestParticipationSection>
+      <ContestShare contest={contest} />
       <Link href="/concours" className="text-primary-hover underline-offset-4 hover:underline">
         {t('backToContests')}
       </Link>

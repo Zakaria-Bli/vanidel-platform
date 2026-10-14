@@ -84,5 +84,15 @@
     "privacy": "Politique de confidentialité",
     "cookies": "Gérer les cookies",
     "notYetAvailable": "Ce texte sera bientôt disponible."
+  },
+  "share": {
+    "title": "Partagez le concours",
+    "share": "Partager",
+    "text": "Participez à « {title} » et tentez de gagner !",
+    "copy": "Copier le lien",
+    "copied": "Lien copié",
+    "visualShare": "Partager le visuel",
+    "visualSave": "Enregistrer le visuel",
+    "afterParticipation": "Invitez vos proches à participer :"
   }
 }
