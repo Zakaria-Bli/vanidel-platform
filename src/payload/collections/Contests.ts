@@ -8,6 +8,7 @@ import {
 import { locales } from '@/i18n/config'
 import { weekdays } from '@/modules/contests/domain/drawPeriod'
 import { duplicateSlug, duplicateSlugPrefix } from '@/modules/contests/domain/duplicate'
+import { advisoryLock, contestSlugLock } from '@/modules/contests/services/advisoryLock'
 import { contestStatuses } from '@/modules/contests/domain/phase'
 import { missingTranslations, valueAt } from '@/modules/contests/domain/translations'
 
@@ -133,9 +134,13 @@ const requireTranslationsWhenPublic: CollectionBeforeChangeHook = async ({
   return data
 }
 
-/** A duplicated contest gets a free slug (the original's is unique and printed on QR codes). */
+/**
+ * A duplicated contest gets a free slug (the original's is unique and printed on QR codes).
+ * Copies are serialized until their transaction ends, so two made at once cannot pick the same.
+ */
 const copySlug: FieldHook = async ({ value, req }) => {
   if (typeof value !== 'string') return value
+  await advisoryLock(req.payload, req, contestSlugLock)
   const { docs } = await req.payload.find({
     collection: 'contests',
     where: { slug: { like: duplicateSlugPrefix(value) } },

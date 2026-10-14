@@ -45,6 +45,21 @@ describe('duplicating a contest', () => {
   })
 })
 
+describe('duplicating a contest twice at the same time', () => {
+  it('gives each copy its own slug', async () => {
+    const original = track(await createPublishedContest(payload))
+    const results = await Promise.allSettled(
+      [1, 2, 3, 4, 5].map(() => payload.duplicate({ collection: 'contests', id: original.id })),
+    )
+    const copies = results.flatMap((result) =>
+      result.status === 'fulfilled' ? [result.value] : [],
+    )
+    copies.forEach(track)
+    expect(results.map(({ status }) => status)).toEqual(Array(5).fill('fulfilled'))
+    expect(new Set(copies.map(({ slug }) => slug)).size).toBe(5)
+  })
+})
+
 describe('the publish checklist', () => {
   const call = async (id: number, user: User | null) => {
     const req = { payload, user, routeParams: { id: String(id) } }
