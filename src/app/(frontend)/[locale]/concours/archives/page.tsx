@@ -5,7 +5,7 @@ import { ContestList } from '@/components/contests/ContestList'
 import { Container } from '@/components/shared/Container'
 import type { Locale } from '@/i18n/config'
 import { Link } from '@/i18n/navigation'
-import { getCachedPastContests } from '@/modules/contests/queries/cached'
+import { getCachedPastContests, getCachedPublicWinners } from '@/modules/contests/queries/cached'
 
 export const dynamic = 'force-dynamic'
 
@@ -20,11 +20,19 @@ export default async function ContestArchivePage({
   const { locale } = await params
   const t = await getTranslations('contests')
   const contests = await getCachedPastContests(locale as Locale)
+  const winners = await getCachedPublicWinners(
+    contests.map(({ id }) => id),
+    locale as Locale,
+  )
 
   return (
     <Container size="narrow" className="flex flex-col gap-6 py-10">
       <h1>{t('archiveTitle')}</h1>
-      {contests.length > 0 ? <ContestList contests={contests} /> : <p>{t('noArchive')}</p>}
+      {contests.length > 0 ? (
+        <ContestList contests={contests} winners={winners} />
+      ) : (
+        <p>{t('noArchive')}</p>
+      )}
       <Link href="/concours">{t('backToContests')}</Link>
     </Container>
   )

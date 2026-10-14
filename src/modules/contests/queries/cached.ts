@@ -6,6 +6,7 @@ import config from '@/payload.config'
 
 import { cacheTags } from './cacheTags'
 import { getPublicContest, listCurrentContests, listPastContests } from './publicContests'
+import { listPublicWinners } from './publicWinners'
 
 // Public pages read contests through these, so the database is hit once per change rather than
 // once per visitor. Edits invalidate the tags (src/payload/hooks/revalidate.ts); lists also expire
@@ -34,6 +35,20 @@ export function getCachedPastContests(locale: Locale) {
     async () => listPastContests(await getPayload({ config }), locale),
     ['past-contests', locale],
     { tags: [cacheTags.contests], revalidate: listLifetime },
+  )()
+}
+
+/**
+ * Winners of contests the visitor can already see; media edits also refresh them. They also expire
+ * after a minute, since a re-draw voids a winner inside a transaction that commits after the
+ * revalidation fires.
+ */
+export function getCachedPublicWinners(contestIds: number[], locale: Locale) {
+  const ids = [...contestIds].sort((a, b) => a - b)
+  return unstable_cache(
+    async () => listPublicWinners(await getPayload({ config }), ids, locale),
+    ['public-winners', ids.join(','), locale],
+    { tags: [cacheTags.winners, cacheTags.contests], revalidate: listLifetime },
   )()
 }
 

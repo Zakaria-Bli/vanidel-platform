@@ -8,6 +8,7 @@ import {
   revalidateContestAfterChange,
   revalidateMediaAfterChange,
   revalidateSettingsAfterChange,
+  revalidateWinnersAfterChange,
 } from './revalidate'
 
 const req = { payload: { logger: { debug: vi.fn() } } } as unknown as PayloadRequest
@@ -37,6 +38,13 @@ describe('revalidation hooks', () => {
       typeof revalidateMediaAfterChange
     >)
     expect(tagsRevalidated()).toEqual([['contests', 'now']])
+  })
+
+  it('revalidates published winners when a winner changes', () => {
+    revalidateWinnersAfterChange({ doc: {}, req, context: {} } as unknown as Args<
+      typeof revalidateWinnersAfterChange
+    >)
+    expect(tagsRevalidated()).toEqual([['winners', 'now']])
   })
 
   it('revalidates settings', () => {

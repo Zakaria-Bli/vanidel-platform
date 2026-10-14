@@ -335,6 +335,9 @@ export interface Winner {
    * For example "Amine B.".
    */
   publicDisplayName: string;
+  /**
+   * Only with the winner’s consent. Video: MP4 or WebM, 10 MB at most.
+   */
   publicMedia?: (number | null) | Media;
   published?: boolean | null;
   voided?: boolean | null;

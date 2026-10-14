@@ -8,6 +8,7 @@ import {
 import { isStaff, nobody, nobodyField } from '../access'
 import { groups, label } from '../fields/label'
 import { readOnly } from '../fields/readOnly'
+import { revalidateWinnersAfterChange } from '../hooks/revalidate'
 import { redrawWinner } from '../endpoints/draws'
 
 /** Fields recording what the draw selected, or its voiding; only services write them. */
@@ -54,7 +55,7 @@ export const Winners: CollectionConfig = {
     defaultColumns: ['publicDisplayName', 'draw', 'published', 'voided'],
   },
   endpoints: [redrawWinner],
-  hooks: { beforeChange: [neverPublishVoided] },
+  hooks: { beforeChange: [neverPublishVoided], afterChange: [revalidateWinnersAfterChange] },
   access: {
     read: isStaff,
     create: nobody,
@@ -109,6 +110,16 @@ export const Winners: CollectionConfig = {
           label: label('Photo ou vidéo', 'Photo or video', 'صورة أو فيديو'),
           type: 'upload',
           relationTo: 'media',
+          filterOptions: {
+            or: [{ mimeType: { like: 'image/' } }, { mimeType: { like: 'video/' } }],
+          },
+          admin: {
+            description: label(
+              'Seulement avec l’accord du gagnant. Vidéo : MP4 ou WebM, 10 Mo au plus.',
+              'Only with the winner’s consent. Video: MP4 or WebM, 10 MB at most.',
+              'فقط بموافقة الفائز. الفيديو: MP4 أو WebM، بحد أقصى 10 ميغابايت.',
+            ),
+          },
         },
         {
           name: 'published',
