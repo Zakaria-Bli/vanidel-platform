@@ -94,5 +94,12 @@
     "visualShare": "Partager le visuel",
     "visualSave": "Enregistrer le visuel",
     "afterParticipation": "Invitez vos proches à participer :"
+  },
+  "preview": {
+    "title": "Aperçu",
+    "draft": "Ce concours est un brouillon : seule l’équipe le voit, tel qu’il apparaîtra une fois publié. Les participations y sont refusées.",
+    "published": "Vous voyez la dernière version enregistrée de ce concours.",
+    "archived": "Vous voyez la dernière version enregistrée de ce concours.",
+    "exit": "Quitter l’aperçu"
   }
 }

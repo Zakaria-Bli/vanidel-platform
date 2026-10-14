@@ -67,3 +67,23 @@ export async function listPastContests(
   })
   return docs
 }
+
+/**
+ * A contest by slug whatever its status, for staff previewing a draft (never cached, never
+ * reached by visitors: see src/lib/preview.ts).
+ */
+export async function getContestForPreview(
+  payload: Payload,
+  slug: string,
+  locale: Locale,
+): Promise<Contest | null> {
+  const { docs } = await payload.find({
+    collection: 'contests',
+    where: { slug: { equals: slug } },
+    locale,
+    limit: 1,
+    depth: 1,
+    overrideAccess: true,
+  })
+  return docs[0] ?? null
+}

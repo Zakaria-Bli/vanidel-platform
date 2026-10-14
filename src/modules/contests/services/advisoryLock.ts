@@ -26,3 +26,6 @@ export async function advisoryLock(
  * submissions already being saved are committed, and none is saved while it runs.
  */
 export const contestDrawLock = (contestId: number) => `draw:contest:${contestId}`
+
+/** Held while a duplicated contest picks its slug, until the copy is saved. */
+export const contestSlugLock = 'contests:slug'

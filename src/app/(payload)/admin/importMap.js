@@ -22,6 +22,7 @@ import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997e
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ContestReportField as ContestReportField_5c59038aa20cbd189f73898f8a0d959f } from '../../../payload/components/ContestReportField'
+import { ContestChecklistField as ContestChecklistField_5489a4a9e46588e58bc69ab8686542ed } from '../../../payload/components/ContestChecklistField'
 import { CampaignLinkField as CampaignLinkField_abe7d0042cee56c8f0f600b81bbc8cd1 } from '../../../payload/components/CampaignLinkField'
 import { DrawPanel as DrawPanel_ee020c419aa33e36b7f240ffdf82f2d9 } from '../../../payload/components/DrawPanel'
 import { RedrawField as RedrawField_6c7e9d9cc1999f6349f5f5795b14d513 } from '../../../payload/components/RedrawField'
@@ -58,6 +59,7 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "/payload/components/ContestReportField#ContestReportField": ContestReportField_5c59038aa20cbd189f73898f8a0d959f,
+  "/payload/components/ContestChecklistField#ContestChecklistField": ContestChecklistField_5489a4a9e46588e58bc69ab8686542ed,
   "/payload/components/CampaignLinkField#CampaignLinkField": CampaignLinkField_abe7d0042cee56c8f0f600b81bbc8cd1,
   "/payload/components/DrawPanel#DrawPanel": DrawPanel_ee020c419aa33e36b7f240ffdf82f2d9,
   "/payload/components/RedrawField#RedrawField": RedrawField_6c7e9d9cc1999f6349f5f5795b14d513,
