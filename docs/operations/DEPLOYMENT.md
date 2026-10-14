@@ -119,6 +119,9 @@ services:
   # and sees the real client address.
   traefik:
     image: traefik:v3.7.14
+    # cPanel API credentials for the DNS challenge (section 4).
+    env_file:
+      - ./traefik-dns.env
     restart: unless-stopped
     network_mode: host
     volumes:
@@ -140,13 +143,30 @@ The `vanidel` user needs to be in the `docker` group (`usermod -aG docker vanide
 
 ## 3. The app
 
-As `vanidel`:
+The server pulls from GitHub with a read-only deploy key. As `vanidel`:
 
 ```sh
-git clone https://github.com/Zakaria-Bli/vanidel-platform.git /opt/vanidel/app
+ssh-keygen -t ed25519 -N "" -C "vanidel-vps deploy" -f ~/.ssh/github_deploy
+printf 'Host github.com\n  IdentityFile ~/.ssh/github_deploy\n  IdentitiesOnly yes\n' > ~/.ssh/config
+chmod 600 ~/.ssh/config
+# GitHub's published ed25519 host key (fingerprint SHA256:+DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU)
+echo "github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl" >> ~/.ssh/known_hosts
 ```
 
-The repository is private: add a read-only deploy key (`ssh-keygen -t ed25519`, then the public key under the repository's **Settings → Deploy keys**) and clone with the SSH URL instead.
+Add `~/.ssh/github_deploy.pub` under the repository's **Settings → Deploy keys**, without write access. Then:
+
+```sh
+git clone git@github.com:Zakaria-Bli/vanidel-platform.git /opt/vanidel/app
+```
+
+**The provider's international link drops connections at random**: to GitHub, over both SSH and HTTPS, between a few and most attempts fail with a connection timeout (measured on 13–14 October). Retry until one gets through; `deploy.sh` (section 5) does this on its own.
+
+Fallback when GitHub stays unreachable: the server also has a bare repository, `/opt/vanidel/repo.git`, registered in the checkout as the remote `local`. Push to it over the SSH access used to administer the server (`vanidel-vps` being the SSH host alias):
+
+```sh
+git remote add vps vanidel-vps:/opt/vanidel/repo.git
+git fetch origin main && git push vps origin/main:refs/heads/main
+```
 
 Environment, in `/opt/vanidel/app.env` (mode `600`, outside the checkout):
 
@@ -166,14 +186,20 @@ S3_BUCKET_PRIVATE=vanidel-private
 
 All six `S3_*` values are required in production; the app refuses to start without them (`src/lib/env.ts`).
 
-Build once:
+`/opt/vanidel/build.sh`, used now and by every deploy:
 
 ```sh
+#!/usr/bin/env bash
+set -euo pipefail
 cd /opt/vanidel/app
-set -a && . /opt/vanidel/app.env && set +a
+export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+# Before loading app.env: NODE_ENV=production would skip the dev dependencies the build needs.
 pnpm install --frozen-lockfile
+set -a && . /opt/vanidel/app.env && set +a
 pnpm build
 ```
+
+Run it once (`chmod +x`, then `/opt/vanidel/build.sh`). On the 4 GB server the build takes a few minutes and dips into swap.
 
 systemd unit, `/etc/systemd/system/vanidel.service` (as root):
 
@@ -203,6 +229,8 @@ journalctl -u vanidel -f
 ## 4. Traefik and HTTPS
 
 Traefik terminates HTTPS, gets and renews the Let's Encrypt certificate, and forwards to the app on `127.0.0.1:3000`. It reads two files from `/opt/vanidel/services/traefik`; it does not watch Docker, so it needs no access to the Docker socket.
+
+The certificate is validated through DNS, not HTTP. The provider's network drops inbound connections from some of the regions Let's Encrypt validates from (from probes: France, Austria, Portugal, Romania and Hong Kong time out; Germany, the UK, the Netherlands, Turkey and Singapore connect), so the HTTP and TLS challenges fail with `During secondary validation: … Timeout during connect`. The DNS challenge needs no inbound connection: Traefik publishes a TXT record `_acme-challenge.vanidel.izakcodes.com` through the cPanel API of the DNS host (nvme-servers.com), and Let's Encrypt reads it from DNS.
 
 `traefik.yml` (static configuration):
 
@@ -237,8 +265,8 @@ certificatesResolvers:
   letsencrypt:
     acme:
       storage: /letsencrypt/acme.json
-      httpChallenge:
-        entryPoint: web
+      dnsChallenge:
+        provider: cpanel
 
 log:
   level: INFO
@@ -268,33 +296,106 @@ http:
           - url: http://127.0.0.1:3000
 ```
 
+`/opt/vanidel/services/traefik-dns.env` (mode `600`, owned by `vanidel`):
+
+```sh
+CPANEL_BASE_URL=https://srv-de-2.nvme-servers.com:2083
+CPANEL_USERNAME=...
+# cPanel → Security → Manage API Tokens. Without an expiry date, or renewals stop when it expires.
+CPANEL_TOKEN=...
+```
+
+The token is a cPanel user token: as far as cPanel allows, it acts with the whole account's rights, not only on DNS. Keep it in this file only, never in the repository, and revoke and replace it in cPanel if the server is rebuilt, handed over or possibly compromised.
+
 ```sh
 mkdir -p data/letsencrypt
 docker compose up -d traefik
 docker compose logs -f traefik
 ```
 
-The certificate is requested on the first start, once the DNS record points at the server and ports 80 and 443 are open. Open `https://vanidel.izakcodes.com/admin`: the first request runs the migrations, and the admin offers to create the first user. Use a strong password.
+The certificate is requested on the first start: the log shows `Validations succeeded; requesting certificates` then `Server responded with a certificate`. Traefik renews it about 30 days before expiry, retrying every day until it succeeds.
+
+Open `https://vanidel.izakcodes.com/admin`: the first request runs the migrations, and the admin offers to create the first user. Use a strong password.
+
+**Known issue: the cPanel API is reachable only intermittently.** It runs in Germany, behind the same unreliable international link as GitHub (section 3); 7 of 10 connections got through when measured on 14 October. Two consequences:
+
+- A renewal attempt can fail; the daily retry over the 30-day window makes an expired certificate unlikely. Check the expiry around 12 December 2026 (the first certificate expires 11 January 2027), from any machine:
+
+  ```sh
+  echo | openssl s_client -connect vanidel.izakcodes.com:443 -servername vanidel.izakcodes.com 2>/dev/null | openssl x509 -noout -enddate
+  ```
+
+- The cleanup after validation can time out (`Cleaning up failed … parse_zone … i/o timeout` in the log), leaving the TXT record behind. It is harmless, since each validation uses a new value, but delete leftover `_acme-challenge.vanidel` records in cPanel's **Zone Editor**.
 
 ## 5. Deploying an update
 
-`/opt/vanidel/deploy.sh` (as `vanidel`; allow it to restart the service with a sudoers line `vanidel ALL=NOPASSWD: /usr/bin/systemctl restart vanidel`):
+`/opt/vanidel/deploy.sh` (as `vanidel`; it may restart the service through `/etc/sudoers.d/91-vanidel-restart`, mode `440`, containing `vanidel ALL=(root) NOPASSWD: /usr/bin/systemctl restart vanidel`):
 
 ```sh
 #!/usr/bin/env bash
+# Deploys the latest main from GitHub. The provider's international link drops connections at
+# random, so the fetch is retried. Fallback when GitHub stays unreachable: push to
+# /opt/vanidel/repo.git from another machine, then run this script with --local.
 set -euo pipefail
 cd /opt/vanidel/app
-set -a && . /opt/vanidel/app.env && set +a
-git fetch origin main
-git reset --hard origin/main
-pnpm install --frozen-lockfile
-pnpm build
+
+remote=origin
+[ "${1:-}" = "--local" ] && remote=local
+
+for attempt in $(seq 1 10); do
+  if timeout 60 git fetch -q "$remote" main; then break; fi
+  [ "$attempt" = 10 ] && { echo "Could not fetch from $remote after 10 attempts" >&2; exit 1; }
+  sleep 5
+done
+
+git reset -q --hard "$remote/main"
+git log --oneline -1
+/opt/vanidel/build.sh
 sudo systemctl restart vanidel
+```
+
+To deploy the latest `main`:
+
+```sh
+ssh vanidel-vps /opt/vanidel/deploy.sh
+```
+
+If the fetch keeps failing, push from a machine with the repository and deploy from the server's copy:
+
+```sh
+git fetch origin main && git push vps origin/main:refs/heads/main
+ssh vanidel-vps /opt/vanidel/deploy.sh --local
 ```
 
 The build replaces `.next` while the old process still runs, so pages can fail for the minute it takes: deploy outside participation peaks.
 
 ## 6. Backups
+
+### Server configuration
+
+`/opt/vanidel/backup-config.sh` archives everything needed to rebuild the server's setup: `compose.yaml`, the Traefik files, the environment and identity files (`.env`, `s3.json`, `traefik-dns.env`, `app.env`) and the scripts. The archives contain secrets, so their directory is mode `700`:
+
+```sh
+#!/usr/bin/env bash
+set -euo pipefail
+umask 077
+dest=/opt/vanidel/config-backups
+mkdir -p "$dest"
+tar -czf "$dest/config-$(date +%F-%H%M%S).tar.gz" -C /opt/vanidel \
+  services/compose.yaml services/.env services/s3.json services/traefik-dns.env services/traefik \
+  app.env build.sh deploy.sh backup-config.sh
+find "$dest" -name 'config-*.tar.gz' -mtime +30 -delete
+```
+
+Run it before changing any of these files, and nightly from `vanidel`'s crontab (`crontab -e` as `vanidel`):
+
+```cron
+15 2 * * * /opt/vanidel/backup-config.sh
+```
+
+`acme.json` is not included: it is root-only, and Traefik obtains a new certificate if it is lost.
+
+### Data
 
 Nightly, from root's crontab (`crontab -e`):
 
@@ -307,7 +408,7 @@ Nightly, from root's crontab (`crontab -e`):
 
 (`mkdir -p /var/backups/vanidel && chmod 700 /var/backups/vanidel` first.)
 
-These stay on the same disk. Before launch, copy `/var/backups/vanidel` nightly to a second location **in Algeria** (ARCHITECTURE §18), for example `rsync` to another Algerian server. Restore test: `pg_restore -U vanidel -d vanidel --clean` from a dump into the container, and untar the storage archive with SeaweedFS stopped.
+These stay on the same disk. Before launch, copy `/var/backups/vanidel` and `/opt/vanidel/config-backups` nightly to a second location **in Algeria** (ARCHITECTURE §18), for example `rsync` to another Algerian server. Restore test: `pg_restore -U vanidel -d vanidel --clean` from a dump into the container, and untar the storage archive with SeaweedFS stopped.
 
 ## 7. Staging check
 
