@@ -4,7 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { env } from '@/lib/env'
 import { attributionFromSearch } from '@/modules/analytics/domain/attribution'
-import { campaignLinkUrl } from '@/modules/analytics/domain/campaignLinks'
+import { campaignCodeMaxLength, campaignLinkUrl } from '@/modules/analytics/domain/campaignLinks'
 import { contestReport } from '@/modules/analytics/queries/contestReport'
 import { submitParticipation } from '@/modules/contests/services/submitParticipation'
 import type { Contest, User } from '@/payload-types'
@@ -131,6 +131,26 @@ describe('contestReport', () => {
     const csv = reportCsv(report!)
     expect(csv).toContain('channel,qr,packaging,Emballage 1 kg,3,2')
     expect(csv).toContain('wilaya,31,Oran,,2,')
+  })
+
+  it('counts a code of the maximum length under its link, and refuses a longer one', async () => {
+    const longest = 'a'.repeat(campaignCodeMaxLength)
+    const link = await payload.create({
+      collection: 'campaign-links',
+      data: { name: 'Longest code', contest: contest.id, channel: 'influencer', code: longest },
+    })
+    await expect(
+      payload.create({
+        collection: 'campaign-links',
+        data: { name: 'Too long', contest: contest.id, channel: 'influencer', code: `${longest}b` },
+      }),
+    ).rejects.toThrow()
+
+    await enter(link.url!)
+    const row = (await contestReport(payload, contest.id))?.channels.find(({ links }) =>
+      links.includes('Longest code'),
+    )
+    expect(row).toMatchObject({ content: longest, participations: 1 })
   })
 
   it('reports nothing for an unknown contest', async () => {

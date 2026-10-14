@@ -23,12 +23,12 @@ export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
 }
 
 export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
+  // The locked-documents reference goes first: dropping the table with CASCADE would already
+  // remove its foreign key, and dropping that constraint afterwards fails.
   await db.execute(sql`
-   ALTER TABLE "campaign_links" DISABLE ROW LEVEL SECURITY;
-  DROP TABLE "campaign_links" CASCADE;
-  ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT "payload_locked_documents_rels_campaign_links_fk";
-  
+   ALTER TABLE "payload_locked_documents_rels" DROP CONSTRAINT "payload_locked_documents_rels_campaign_links_fk";
   DROP INDEX "payload_locked_documents_rels_campaign_links_id_idx";
   ALTER TABLE "payload_locked_documents_rels" DROP COLUMN "campaign_links_id";
+  DROP TABLE "campaign_links" CASCADE;
   DROP TYPE "public"."enum_campaign_links_channel";`)
 }

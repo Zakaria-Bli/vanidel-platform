@@ -279,7 +279,7 @@ export interface CampaignLink {
   contest: number | Contest;
   channel: 'qr' | 'poster' | 'facebook' | 'instagram' | 'tiktok' | 'influencer' | 'other';
   /**
-   * Tells links of one channel apart: influencer name, poster location… Lowercase letters, digits and dashes. Required for "Influencer" and "Other".
+   * Tells links of one channel apart: influencer name, poster location… Lowercase letters, digits and dashes, 100 characters at most. Required for "Influencer" and "Other".
    */
   code?: string | null;
   url?: string | null;

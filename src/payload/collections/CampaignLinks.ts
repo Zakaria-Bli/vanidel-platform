@@ -3,10 +3,11 @@ import type { CollectionConfig, FieldHook } from 'payload'
 import { env } from '@/lib/env'
 import {
   campaignChannels,
-  campaignCodePattern,
+  campaignCodeMaxLength,
+  campaignCodeProblem,
   campaignLinkUrl,
-  channelsWithRequiredCode,
   type CampaignChannel,
+  type CampaignCodeProblem,
 } from '@/modules/analytics/domain/campaignLinks'
 
 import { isStaff } from '../access'
@@ -20,6 +21,12 @@ const channelLabels: Record<CampaignChannel, Record<'fr' | 'en' | 'ar', string>>
   tiktok: label('TikTok', 'TikTok', 'تيك توك'),
   influencer: label('Influenceur', 'Influencer', 'مؤثر'),
   other: label('Autre', 'Other', 'أخرى'),
+}
+
+const codeMessages: Record<CampaignCodeProblem, string> = {
+  required: 'Code requis pour ce canal. / A code is required for this channel.',
+  format: 'Lettres minuscules, chiffres et tirets. / Lowercase letters, digits and dashes only.',
+  'too-long': `${campaignCodeMaxLength} caractères au plus. / ${campaignCodeMaxLength} characters at most.`,
 }
 
 /** The link, rebuilt on every read from the contest's current slug. */
@@ -109,24 +116,21 @@ export const CampaignLinks: CollectionConfig = {
       type: 'text',
       admin: {
         description: label(
-          'Distingue les liens d’un même canal : nom de l’influenceur, lieu de l’affiche… Lettres minuscules, chiffres et tirets. Obligatoire pour « Influenceur » et « Autre ».',
-          'Tells links of one channel apart: influencer name, poster location… Lowercase letters, digits and dashes. Required for "Influencer" and "Other".',
-          'يميّز روابط القناة نفسها: اسم المؤثر، مكان الملصق… أحرف لاتينية صغيرة وأرقام وشرطات. إلزامي لـ«مؤثر» و«أخرى».',
+          'Distingue les liens d’un même canal : nom de l’influenceur, lieu de l’affiche… Lettres minuscules, chiffres et tirets, 100 caractères au plus. Obligatoire pour « Influenceur » et « Autre ».',
+          'Tells links of one channel apart: influencer name, poster location… Lowercase letters, digits and dashes, 100 characters at most. Required for "Influencer" and "Other".',
+          'يميّز روابط القناة نفسها: اسم المؤثر، مكان الملصق… أحرف لاتينية صغيرة وأرقام وشرطات، 100 حرف على الأكثر. إلزامي لـ«مؤثر» و«أخرى».',
         ),
       },
+      maxLength: campaignCodeMaxLength,
       validate: (
         value: unknown,
         { siblingData }: { siblingData: { channel?: CampaignChannel } },
       ) => {
-        const code = typeof value === 'string' ? value.trim() : ''
-        if (!code) {
-          return siblingData.channel && channelsWithRequiredCode.includes(siblingData.channel)
-            ? 'Code requis pour ce canal. / A code is required for this channel.'
-            : true
-        }
-        return campaignCodePattern.test(code)
-          ? true
-          : 'Lettres minuscules, chiffres et tirets. / Lowercase letters, digits and dashes only.'
+        const problem = campaignCodeProblem(
+          typeof value === 'string' ? value : null,
+          siblingData.channel,
+        )
+        return problem ? codeMessages[problem] : true
       },
     },
     {

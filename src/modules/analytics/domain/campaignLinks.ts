@@ -1,3 +1,5 @@
+import { attributionValueMaxLength } from './attribution'
+
 /**
  * Tracked links per channel (SPECIFICATION §13.1): each points at the contest's
  * locale-independent entry URL with UTM tags, which the proxy records as the visitor's
@@ -30,6 +32,25 @@ export const channelsWithRequiredCode: readonly CampaignChannel[] = ['influencer
 
 /** Lowercase letters, digits and dashes: safe in URLs and readable on a report. */
 export const campaignCodePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
+
+/**
+ * Attribution records at most this many characters per tag, so a longer code would be recorded
+ * cut short: its entries would not match its link, and codes sharing a prefix would merge.
+ */
+export const campaignCodeMaxLength = attributionValueMaxLength
+
+export type CampaignCodeProblem = 'required' | 'format' | 'too-long'
+
+/** Why a link's code cannot be used, or null when it can (or may be left empty). */
+export function campaignCodeProblem(
+  code: string | null | undefined,
+  channel: CampaignChannel | undefined,
+): CampaignCodeProblem | null {
+  const trimmed = code?.trim() ?? ''
+  if (!trimmed) return channel && channelsWithRequiredCode.includes(channel) ? 'required' : null
+  if (trimmed.length > campaignCodeMaxLength) return 'too-long'
+  return campaignCodePattern.test(trimmed) ? null : 'format'
+}
 
 export interface CampaignLinkTags {
   source: string
