@@ -424,16 +424,27 @@ On the production server, with fake data, before the first real contest:
 
 ## 8. Wiping test data before launch
 
-Test entries must not mix with real ones. Once the staging check passes:
+Test entries must not mix with real ones. Once the staging check passes, as `vanidel`:
 
 ```sh
-systemctl stop vanidel
+/opt/vanidel/backup-config.sh
 cd /opt/vanidel/services
-docker compose down
-rm -rf data/postgres data/seaweedfs
-docker compose up -d
-# Recreate the two buckets (step 2), then:
-systemctl start vanidel
+
+# Only the database and storage: Traefik keeps running, and data/letsencrypt (the certificate) stays.
+docker compose stop postgres seaweedfs
+# The data folders belong to the containers' root user; delete them through a container.
+docker run --rm -v /opt/vanidel/services/data:/d alpine:3.22 rm -rf /d/postgres /d/seaweedfs
+docker compose up -d postgres seaweedfs
+# Wait for the S3 gateway, then recreate the two buckets (section 2).
+
+# Backups taken during testing contain the test entries.
+docker run --rm -v /var/backups/vanidel:/b alpine:3.22 sh -c 'rm -f /b/*'
+
+# Clear the page cache and rebuild, then restart (migrations run on the first request).
+rm -rf /opt/vanidel/app/.next/cache/fetch-cache /opt/vanidel/app/.next/cache/images
+/opt/vanidel/deploy.sh
 ```
 
-Open `/admin` again to recreate the admin user, then set up the real contest. Delete any backups taken during testing.
+**Why the rebuild:** public pages such as `/fr/concours` are prerendered during the build and served from Next.js's cache. Pages built while the test contest existed keep listing it after the database is emptied, because the wipe bypasses the app and the revalidation hooks never run. Rebuilding against the empty database regenerates them.
+
+Check that `/fr/concours` and `/ar/concours` list no contests and that the test contest's address returns 404. Then open `/admin` to recreate the admin user, and set up the real contest.
