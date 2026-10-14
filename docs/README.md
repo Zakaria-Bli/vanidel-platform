@@ -16,6 +16,7 @@
 
 - [`operations/DEPENDENCIES.md`](operations/DEPENDENCIES.md) — dependency exceptions, overrides, ownership, and review policy.
 - [`operations/DEPLOYMENT.md`](operations/DEPLOYMENT.md) — setting up the Algerian VPS, deploying updates, backups, staging check.
+- [`operations/GUIDE_EQUIPE_COMMERCIALE.md`](operations/GUIDE_EQUIPE_COMMERCIALE.md) — handover guide for Vanidel's commercial team, in French: creating, publishing, tracking, drawing and closing a contest.
 
 ## Later
 
