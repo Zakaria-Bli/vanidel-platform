@@ -34,8 +34,8 @@ export const Media: CollectionConfig = {
     },
   ],
   upload: {
-    // Images for visuals, PDF for contest regulations.
-    mimeTypes: ['image/*', 'application/pdf'],
+    // Images for visuals, PDF for contest regulations, short videos for winners.
+    mimeTypes: ['image/*', 'application/pdf', 'video/mp4', 'video/webm'],
     imageSizes: [
       { name: 'hero', width: 1600, formatOptions: { format: 'webp', options: { quality: 80 } } },
       // Open Graph / social preview size.

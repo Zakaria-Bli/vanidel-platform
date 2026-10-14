@@ -60,6 +60,12 @@ export const revalidateMediaAfterDelete: CollectionAfterDeleteHook = ({ doc, req
   return doc
 }
 
+/** Publishing, unpublishing, voiding or renaming a winner changes contest pages and the archive. */
+export const revalidateWinnersAfterChange: CollectionAfterChangeHook = ({ doc, req, context }) => {
+  revalidate([cacheTags.winners], req, context)
+  return doc
+}
+
 export const revalidateSettingsAfterChange: GlobalAfterChangeHook = ({ doc, req, context }) => {
   revalidate([cacheTags.settings], req, context)
   return doc

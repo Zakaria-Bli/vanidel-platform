@@ -7,12 +7,14 @@ import { ContestParticipationSection } from '@/components/contests/ContestPartic
 import { ContestPrizes } from '@/components/contests/ContestPrizes'
 import { ContestRules } from '@/components/contests/ContestRules'
 import { ContestSteps } from '@/components/contests/ContestSteps'
+import { ContestWinners } from '@/components/contests/ContestWinners'
 import { ParticipationForm } from '@/components/contests/ParticipationForm'
 import { Container } from '@/components/shared/Container'
 import { locales, type Locale } from '@/i18n/config'
 import { getPathname, Link } from '@/i18n/navigation'
 import { imageSize, populated } from '@/lib/media'
-import { getCachedPublicContest } from '@/modules/contests/queries/cached'
+import { contestPhase } from '@/modules/contests/domain/phase'
+import { getCachedPublicContest, getCachedPublicWinners } from '@/modules/contests/queries/cached'
 
 import { participate } from './actions'
 
@@ -68,12 +70,17 @@ export default async function ContestPage({ params }: Props) {
   if (!contest) notFound()
 
   const t = await getTranslations('contests')
+  const winners = <ContestWinners winners={await getCachedPublicWinners([contest.id], locale)} />
+  // Once a contest has ended, its winners are what visitors come for.
+  const ended = ['closed', 'archived'].includes(contestPhase(contest))
 
   return (
     <Container size="narrow" className="flex flex-col gap-10 pt-2 pb-16">
       <ContestHero contest={contest} />
+      {ended && winners}
       <ContestSteps steps={contest.steps ?? []} />
       <ContestPrizes prizes={contest.prizes ?? []} />
+      {!ended && winners}
       <ContestRules contest={contest} />
       <ContestParticipationSection contest={contest}>
         <ParticipationForm

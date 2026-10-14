@@ -4,6 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { drawPeriodsOf } from '@/modules/contests/domain/drawPeriod'
 import { drawAlgorithmVersion, hashPool } from '@/modules/contests/domain/selection'
+import { listPublicWinners } from '@/modules/contests/queries/publicWinners'
 import { executeDraw, voidAndRedraw } from '@/modules/contests/services/draws'
 import { submitParticipation } from '@/modules/contests/services/submitParticipation'
 import type { Contest, User } from '@/payload-types'
@@ -432,5 +433,67 @@ describe('the admin endpoints', () => {
     const redrawn = await call(redrawWinner, { reason: 'Injoignable' }, operator, { id })
     expect(redrawn.status).toBe(201)
     expect(await redrawn.json()).toMatchObject({ winnerIds: [expect.any(Number)] })
+  })
+})
+
+describe('listPublicWinners', () => {
+  const publish = (id: number) =>
+    payload.update({ collection: 'winners', id, data: { published: true }, depth: 0 })
+
+  it('shows only published, non-voided winners of the given contests, without their entry', async () => {
+    const contest = await pastContest(2)
+    const other = await pastContest()
+    for (const offset of [hour, 2 * hour, 3 * hour]) {
+      await participate(contest, atStartOf(contest, 0, offset), 'Amine Benali')
+    }
+    await participate(other, atStartOf(other, 0))
+    const period = periods(contest)[0]
+    const draw = await executeDraw(payload, {
+      contestId: contest.id,
+      periodStart: period.start,
+      user: operator,
+    })
+    const [first, second] = draw.winnerIds
+    await publish(first)
+    const otherDraw = await executeDraw(payload, {
+      contestId: other.id,
+      periodStart: periods(other)[0].start,
+      user: operator,
+    })
+    await publish(otherDraw.winnerIds[0])
+
+    const shown = await listPublicWinners(payload, [contest.id], 'fr')
+    expect(shown).toEqual([
+      {
+        id: first,
+        contestId: contest.id,
+        name: 'Amine B.',
+        rank: 1,
+        periodStart: period.start.toISOString(),
+        periodEnd: period.end.toISOString(),
+        media: null,
+      },
+    ])
+    expect(shown.map(({ id }) => id)).not.toContain(second)
+
+    // Voiding unpublishes; the published replacement takes its place in the same period.
+    const redraw = await voidAndRedraw(payload, {
+      winnerId: first,
+      reason: 'Ticket illisible',
+      user: operator,
+    })
+    expect(await listPublicWinners(payload, [contest.id], 'fr')).toEqual([])
+    await publish(redraw.winnerIds[0])
+    const replaced = await listPublicWinners(payload, [contest.id, other.id], 'fr')
+    expect(replaced.map(({ id }) => id).sort()).toEqual(
+      [redraw.winnerIds[0], otherDraw.winnerIds[0]].sort(),
+    )
+    expect(replaced.find(({ contestId }) => contestId === contest.id)?.periodStart).toBe(
+      period.start.toISOString(),
+    )
+  })
+
+  it('returns nothing without contests', async () => {
+    expect(await listPublicWinners(payload, [], 'fr')).toEqual([])
   })
 })
