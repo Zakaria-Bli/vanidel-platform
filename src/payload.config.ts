@@ -14,6 +14,7 @@ import { storagePlugins } from './lib/storage'
 import { migrations } from './migrations'
 import { ConsentRecords } from './payload/collections/ConsentRecords'
 import { Contacts } from './payload/collections/Contacts'
+import { CampaignLinks } from './payload/collections/CampaignLinks'
 import { Contests } from './payload/collections/Contests'
 import { Draws } from './payload/collections/Draws'
 import { Media } from './payload/collections/Media'
@@ -35,6 +36,7 @@ export default buildConfig({
   },
   collections: [
     Contests,
+    CampaignLinks,
     Draws,
     Winners,
     Participations,

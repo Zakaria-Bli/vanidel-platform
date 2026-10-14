@@ -25,11 +25,12 @@ const params = {
   utmContent: 'utm_content',
 } as const
 
-const maxLength = 100
+/** Longer tag values are cut to this many characters when recorded. */
+export const attributionValueMaxLength = 100
 
 function clean(value: unknown): string | undefined {
   if (typeof value !== 'string') return undefined
-  const trimmed = value.trim().slice(0, maxLength)
+  const trimmed = value.trim().slice(0, attributionValueMaxLength)
   return trimmed === '' ? undefined : trimmed
 }
 

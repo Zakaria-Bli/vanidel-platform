@@ -8,6 +8,7 @@ import { missingTranslations, valueAt } from '@/modules/contests/domain/translat
 import { hasRole, isAdmin, isStaff } from '../access'
 import { integer } from '../fields/integer'
 import { groups, label } from '../fields/label'
+import { contestReportEndpoint } from '../endpoints/reports'
 import { revalidateContestAfterChange, revalidateContestAfterDelete } from '../hooks/revalidate'
 import { consentTypeLabels, consentTypes } from './ConsentRecords'
 
@@ -136,6 +137,7 @@ export const Contests: CollectionConfig = {
     defaultColumns: ['title', 'slug', 'status', 'startAt', 'endAt'],
     group: groups.contests,
   },
+  endpoints: [contestReportEndpoint],
   access: {
     // The public sees published and archived contests; drafts stay in the back office.
     read: ({ req }) =>
@@ -425,6 +427,19 @@ export const Contests: CollectionConfig = {
               type: 'upload',
               relationTo: 'media',
               filterOptions: { mimeType: { contains: 'image' } },
+            },
+          ],
+        },
+        {
+          label: label('Rapport', 'Report', 'التقرير'),
+          fields: [
+            {
+              name: 'report',
+              type: 'ui',
+              label: label('Rapport', 'Report', 'التقرير'),
+              admin: {
+                components: { Field: '/payload/components/ContestReportField#ContestReportField' },
+              },
             },
           ],
         },

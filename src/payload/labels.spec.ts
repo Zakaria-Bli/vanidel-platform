@@ -1,6 +1,7 @@
 import type { CollectionConfig, Field, GlobalConfig } from 'payload'
 import { describe, expect, it } from 'vitest'
 
+import { CampaignLinks } from './collections/CampaignLinks'
 import { ConsentRecords } from './collections/ConsentRecords'
 import { Contacts } from './collections/Contacts'
 import { Contests } from './collections/Contests'
@@ -58,6 +59,7 @@ function texts(config: CollectionConfig | GlobalConfig): [string, unknown][] {
 describe('admin labels', () => {
   const configs = [
     Contests,
+    CampaignLinks,
     Draws,
     Winners,
     Participations,

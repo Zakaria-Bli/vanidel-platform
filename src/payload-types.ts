@@ -68,6 +68,7 @@ export interface Config {
   blocks: {};
   collections: {
     contests: Contest;
+    'campaign-links': CampaignLink;
     draws: Draw;
     winners: Winner;
     participations: Participation;
@@ -84,6 +85,7 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     contests: ContestsSelect<false> | ContestsSelect<true>;
+    'campaign-links': CampaignLinksSelect<false> | CampaignLinksSelect<true>;
     draws: DrawsSelect<false> | DrawsSelect<true>;
     winners: WinnersSelect<false> | WinnersSelect<true>;
     participations: ParticipationsSelect<false> | ParticipationsSelect<true>;
@@ -261,6 +263,28 @@ export interface Media {
       filename?: string | null;
     };
   };
+}
+/**
+ * One link per channel to print or share: the entries it brings are counted in the contest report.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "campaign-links".
+ */
+export interface CampaignLink {
+  id: number;
+  /**
+   * For your reference, for example "1 kg packaging" or "Instagram @sarah".
+   */
+  name: string;
+  contest: number | Contest;
+  channel: 'qr' | 'poster' | 'facebook' | 'instagram' | 'tiktok' | 'influencer' | 'other';
+  /**
+   * Tells links of one channel apart: influencer name, poster location… Lowercase letters, digits and dashes, 100 characters at most. Required for "Influencer" and "Other".
+   */
+  code?: string | null;
+  url?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -467,6 +491,10 @@ export interface PayloadLockedDocument {
         value: number | Contest;
       } | null)
     | ({
+        relationTo: 'campaign-links';
+        value: number | CampaignLink;
+      } | null)
+    | ({
         relationTo: 'draws';
         value: number | Draw;
       } | null)
@@ -598,6 +626,19 @@ export interface ContestsSelect<T extends boolean = true> {
   status?: T;
   startAt?: T;
   endAt?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "campaign-links_select".
+ */
+export interface CampaignLinksSelect<T extends boolean = true> {
+  name?: T;
+  contest?: T;
+  channel?: T;
+  code?: T;
+  url?: T;
   updatedAt?: T;
   createdAt?: T;
 }

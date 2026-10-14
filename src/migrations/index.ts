@@ -7,6 +7,7 @@ import * as migration_20261012_073545_storage_prefix from './20261012_073545_sto
 import * as migration_20261012_124811_role_default from './20261012_124811_role_default';
 import * as migration_20261012_171830_participation_steps from './20261012_171830_participation_steps';
 import * as migration_20261013_092146_ticket_thumbnails from './20261013_092146_ticket_thumbnails';
+import * as migration_20261014_110120_campaign_links from './20261014_110120_campaign_links';
 
 export const migrations = [
   {
@@ -52,6 +53,11 @@ export const migrations = [
   {
     up: migration_20261013_092146_ticket_thumbnails.up,
     down: migration_20261013_092146_ticket_thumbnails.down,
-    name: '20261013_092146_ticket_thumbnails'
+    name: '20261013_092146_ticket_thumbnails',
+  },
+  {
+    up: migration_20261014_110120_campaign_links.up,
+    down: migration_20261014_110120_campaign_links.down,
+    name: '20261014_110120_campaign_links'
   },
 ];
