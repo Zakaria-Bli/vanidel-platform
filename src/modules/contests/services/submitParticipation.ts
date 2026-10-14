@@ -1,12 +1,9 @@
-import type { PostgresAdapter } from '@payloadcms/db-postgres'
-import { sql } from '@payloadcms/db-postgres'
 import {
   commitTransaction,
   createLocalReq,
   initTransaction,
   killTransaction,
   type Payload,
-  type PayloadRequest,
 } from 'payload'
 
 import type { Locale } from '@/i18n/config'
@@ -17,6 +14,7 @@ import type { Contest, Ticket } from '@/payload-types'
 
 import { drawPeriodFor } from '../domain/drawPeriod'
 import { contestPhase } from '../domain/phase'
+import { advisoryLock } from './advisoryLock'
 import {
   prepareTicket,
   removeTicketFiles,
@@ -141,13 +139,6 @@ function validate(contest: Contest, input: ParticipationInput) {
   return { name, phone, phoneNormalized, email, wilaya, consents }
 }
 
-/** Serializes this transaction with any other holding the same key until it ends. */
-async function lock(payload: Payload, req: PayloadRequest, key: string) {
-  const adapter = payload.db as unknown as PostgresAdapter
-  const db = adapter.sessions[await req.transactionID!]?.db ?? adapter.drizzle
-  await db.execute(sql`SELECT pg_advisory_xact_lock(hashtext(${key}))`)
-}
-
 async function prepare(data: Buffer): Promise<PreparedTicket> {
   try {
     return await prepareTicket(data)
@@ -202,8 +193,8 @@ export async function submitParticipation(
   let ticket: Ticket | undefined
   try {
     // Phone first, then receipt: a fixed order, so two submissions cannot deadlock.
-    await lock(payload, req, `participation:phone:${fields.phoneNormalized}`)
-    await lock(payload, req, `participation:ticket:${contest.id}:${prepared.hash}`)
+    await advisoryLock(payload, req, `participation:phone:${fields.phoneNormalized}`)
+    await advisoryLock(payload, req, `participation:ticket:${contest.id}:${prepared.hash}`)
 
     const { totalDocs: entries } = await payload.count({
       collection: 'participations',
