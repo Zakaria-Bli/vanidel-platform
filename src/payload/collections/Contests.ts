@@ -1,13 +1,20 @@
-import { ValidationError, type CollectionBeforeChangeHook, type CollectionConfig } from 'payload'
+import {
+  ValidationError,
+  type CollectionBeforeChangeHook,
+  type CollectionConfig,
+  type FieldHook,
+} from 'payload'
 
 import { locales } from '@/i18n/config'
 import { weekdays } from '@/modules/contests/domain/drawPeriod'
+import { duplicateSlug, duplicateSlugPrefix } from '@/modules/contests/domain/duplicate'
 import { contestStatuses } from '@/modules/contests/domain/phase'
 import { missingTranslations, valueAt } from '@/modules/contests/domain/translations'
 
 import { hasRole, isAdmin, isStaff } from '../access'
 import { integer } from '../fields/integer'
 import { groups, label } from '../fields/label'
+import { contestChecklistEndpoint } from '../endpoints/checklist'
 import { contestReportEndpoint } from '../endpoints/reports'
 import { revalidateContestAfterChange, revalidateContestAfterDelete } from '../hooks/revalidate'
 import { consentTypeLabels, consentTypes } from './ConsentRecords'
@@ -126,6 +133,20 @@ const requireTranslationsWhenPublic: CollectionBeforeChangeHook = async ({
   return data
 }
 
+/** A duplicated contest gets a free slug (the original's is unique and printed on QR codes). */
+const copySlug: FieldHook = async ({ value, req }) => {
+  if (typeof value !== 'string') return value
+  const { docs } = await req.payload.find({
+    collection: 'contests',
+    where: { slug: { like: duplicateSlugPrefix(value) } },
+    select: { slug: true },
+    pagination: false,
+    depth: 0,
+    req,
+  })
+  return duplicateSlug(value, new Set(docs.map(({ slug }) => slug)))
+}
+
 export const Contests: CollectionConfig = {
   slug: 'contests',
   labels: {
@@ -136,8 +157,11 @@ export const Contests: CollectionConfig = {
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'status', 'startAt', 'endAt'],
     group: groups.contests,
+    // The Preview button: the contest page in the language being edited, drafts included.
+    preview: (doc, { locale }) =>
+      typeof doc.id === 'number' ? `/api/preview?contest=${doc.id}&locale=${locale}` : null,
   },
-  endpoints: [contestReportEndpoint],
+  endpoints: [contestReportEndpoint, contestChecklistEndpoint],
   access: {
     // The public sees published and archived contests; drafts stay in the back office.
     read: ({ req }) =>
@@ -446,12 +470,22 @@ export const Contests: CollectionConfig = {
       ],
     },
     {
+      name: 'checklist',
+      type: 'ui',
+      label: label('Avant de publier', 'Before publishing', 'قبل النشر'),
+      admin: {
+        position: 'sidebar',
+        components: { Field: '/payload/components/ContestChecklistField#ContestChecklistField' },
+      },
+    },
+    {
       name: 'slug',
       label: label('Identifiant URL', 'URL slug', 'معرّف الرابط'),
       type: 'text',
       required: true,
       unique: true,
       index: true,
+      hooks: { beforeDuplicate: [copySlug] },
       admin: {
         position: 'sidebar',
         description: label(
@@ -474,6 +508,8 @@ export const Contests: CollectionConfig = {
       type: 'select',
       required: true,
       defaultValue: 'draft',
+      // A copy starts hidden, whatever the original's status.
+      hooks: { beforeDuplicate: [() => 'draft'] },
       options: contestStatuses.map((value) => ({
         value,
         label: {

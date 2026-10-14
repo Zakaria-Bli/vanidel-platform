@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
+import { getPayload } from 'payload'
 
 import { ContestHero } from '@/components/contests/ContestHero'
 import { ContestParticipationSection } from '@/components/contests/ContestParticipationSection'
@@ -10,12 +11,17 @@ import { ContestShare, ContestShareButtons } from '@/components/contests/Contest
 import { ContestSteps } from '@/components/contests/ContestSteps'
 import { ContestWinners } from '@/components/contests/ContestWinners'
 import { ParticipationForm } from '@/components/contests/ParticipationForm'
+import { PreviewBanner } from '@/components/contests/PreviewBanner'
 import { Container } from '@/components/shared/Container'
 import { locales, type Locale } from '@/i18n/config'
 import { getPathname, Link } from '@/i18n/navigation'
 import { contestVisual, populated } from '@/lib/media'
+import { isStaffPreview } from '@/lib/preview'
 import { contestPhase } from '@/modules/contests/domain/phase'
 import { getCachedPublicContest, getCachedPublicWinners } from '@/modules/contests/queries/cached'
+import { getContestForPreview } from '@/modules/contests/queries/publicContests'
+import type { Contest } from '@/payload-types'
+import config from '@/payload.config'
 
 import { participate } from './actions'
 
@@ -30,13 +36,29 @@ export function generateStaticParams() {
 
 type Props = PageProps<'/[locale]/concours/[slug]'>
 
-const loadContest = getCachedPublicContest
+/**
+ * The contest visitors see, or for staff previewing (SPECIFICATION §5, USER_FLOWS §6) the latest
+ * saved version whatever its status, shown as it will look once published.
+ */
+async function loadContest(
+  slug: string,
+  locale: Locale,
+): Promise<{ contest: Contest | null; preview: Contest['status'] | null }> {
+  if (await isStaffPreview()) {
+    const contest = await getContestForPreview(await getPayload({ config }), slug, locale)
+    return {
+      contest: contest && { ...contest, status: 'published' },
+      preview: contest?.status ?? null,
+    }
+  }
+  return { contest: await getCachedPublicContest(slug, locale), preview: null }
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, locale: segment } = await params
   // Already checked against the supported locales in src/i18n/request.ts.
   const locale = segment as Locale
-  const contest = await loadContest(slug, locale)
+  const { contest } = await loadContest(slug, locale)
   if (!contest) return {}
 
   const title = contest.seo?.title || contest.title
@@ -74,7 +96,7 @@ export default async function ContestPage({ params }: Props) {
   const { slug, locale: segment } = await params
   // Already checked against the supported locales in src/i18n/request.ts.
   const locale = segment as Locale
-  const contest = await loadContest(slug, locale)
+  const { contest, preview } = await loadContest(slug, locale)
   if (!contest) notFound()
 
   const t = await getTranslations('contests')
@@ -84,6 +106,7 @@ export default async function ContestPage({ params }: Props) {
 
   return (
     <Container size="narrow" className="flex flex-col gap-10 pt-2 pb-16">
+      {preview && <PreviewBanner status={preview} />}
       <ContestHero contest={contest} />
       {ended && winners}
       <ContestSteps steps={contest.steps ?? []} />
