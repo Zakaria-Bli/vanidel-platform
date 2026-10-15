@@ -1,6 +1,6 @@
 'use client'
 
-import { CircleCheck } from 'lucide-react'
+import { Camera, CircleCheck } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 import {
   startTransition,
@@ -8,12 +8,13 @@ import {
   useEffect,
   useId,
   useState,
+  type ChangeEvent,
   type FormEvent,
   type ReactNode,
 } from 'react'
 
 import { trackParticipation } from '@/components/analytics/Tracking'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import type { Locale } from '@/i18n/config'
 import { resizeForUpload } from '@/lib/images/resizeForUpload'
 import { wilayaLabel, wilayas } from '@/modules/audience/domain/wilayas'
@@ -40,8 +41,9 @@ export interface ParticipationFormProps {
   action: (state: ParticipationState, formData: FormData) => Promise<ParticipationState>
 }
 
+// Focus shows the site-wide outline (globals.css); fields stay 48 px tall for thumbs.
 const inputClass =
-  'h-12 w-full rounded-lg border border-input bg-background px-3 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive'
+  'h-12 w-full rounded-control border border-input bg-background px-4 text-body focus-visible:border-ring aria-invalid:border-destructive'
 
 export function ParticipationForm({
   contestSlug,
@@ -105,13 +107,13 @@ export function ParticipationForm({
 
   if (shown.status === 'success') {
     return (
-      <div role="status" className="flex flex-col items-start gap-3 rounded-xl bg-secondary p-5">
-        <CircleCheck aria-hidden className="size-8 text-success" />
+      <div role="status" className="flex flex-col items-start gap-3">
+        <CircleCheck aria-hidden className="size-10 text-success" />
         <h3>{t('success.title')}</h3>
         <p>{t('success.body')}</p>
         {share && (
-          <div className="mt-2 flex flex-col gap-2">
-            <p className="font-medium">{tShare('afterParticipation')}</p>
+          <div className="mt-2 flex flex-col gap-3">
+            <p className="text-label">{tShare('afterParticipation')}</p>
             {share}
           </div>
         )}
@@ -127,12 +129,12 @@ export function ParticipationForm({
   })
   const error = (name: string) =>
     errorFor(name) && (
-      <p id={`${id}-${name}-error`} className="text-sm font-medium text-destructive">
+      <p id={`${id}-${name}-error`} className="text-small font-medium text-destructive">
         {errorFor(name)}
       </p>
     )
   const label = (name: string, text: string, optional = false) => (
-    <label htmlFor={`${id}-${name}`} className="font-medium">
+    <label htmlFor={`${id}-${name}`} className="text-label">
       {text}
       {optional && <span className="font-normal text-muted-foreground"> {t('optional')}</span>}
     </label>
@@ -169,7 +171,7 @@ export function ParticipationForm({
         {label(fields.phone, t('fields.phone'))}
         <input
           {...field(fields.phone)}
-          className={cn(inputClass, 'text-start')}
+          className={cn(inputClass, 'text-left rtl:text-right')}
           type="tel"
           inputMode="tel"
           autoComplete="tel"
@@ -185,7 +187,7 @@ export function ParticipationForm({
           {label(fields.email, t('fields.email'), email === 'optional')}
           <input
             {...field(fields.email)}
-            className={cn(inputClass, 'text-start')}
+            className={cn(inputClass, 'text-left rtl:text-right')}
             type="email"
             inputMode="email"
             autoComplete="email"
@@ -217,19 +219,12 @@ export function ParticipationForm({
 
       <div className="flex flex-col gap-2">
         {label(fields.ticket, t('fields.ticket'))}
-        <p id={`${id}-ticket-hint`} className="text-sm text-muted-foreground">
+        <p id={`${id}-ticket-hint`} className="text-small text-muted-foreground">
           {t('fields.ticketHint')}
         </p>
-        <input
+        <TicketPicker
           {...field(fields.ticket)}
-          aria-describedby={cn(
-            `${id}-ticket-hint`,
-            errorFor(fields.ticket) && `${id}-ticket-error`,
-          )}
-          type="file"
-          accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-          required
-          className="w-full rounded-lg border border-dashed border-input p-3 text-sm file:me-3 file:rounded-md file:border-0 file:bg-secondary file:px-3 file:py-2 file:font-medium"
+          describedBy={cn(`${id}-ticket-hint`, errorFor(fields.ticket) && `${id}-ticket-error`)}
         />
         {error(fields.ticket)}
       </div>
@@ -254,7 +249,7 @@ export function ParticipationForm({
                     required={consent.required}
                     className="mt-1 size-5 shrink-0 accent-primary"
                   />
-                  <label htmlFor={`${id}-${name}`} className="text-sm leading-relaxed">
+                  <label htmlFor={`${id}-${name}`} className="text-small">
                     {consent.label}
                     {consent.type === 'regulation' && regulationUrl && (
                       <>
@@ -284,7 +279,7 @@ export function ParticipationForm({
       {generalError && (
         <div
           role="alert"
-          className="flex flex-col items-start gap-3 rounded-lg bg-destructive/10 p-3 font-medium text-destructive"
+          className="flex flex-col items-start gap-3 rounded-control bg-destructive/10 p-4 font-medium text-destructive"
         >
           <p>{generalError}</p>
           {shown.status === 'error' &&
@@ -296,9 +291,93 @@ export function ParticipationForm({
         </div>
       )}
 
-      <Button type="submit" size="lg" className="h-12 text-base" disabled={busy}>
+      <Button type="submit" size="lg" className="w-full" disabled={busy}>
         {busy ? t('sending') : t('submit')}
       </Button>
     </form>
+  )
+}
+
+/**
+ * The ticket photo field: the native input stays in the form, visually hidden but focusable, behind
+ * a translated "Choisir une photo" button, the file name and a thumbnail. Browsers that cannot show
+ * the photo (HEIC on most desktops) get a camera icon instead.
+ */
+function TicketPicker({
+  id,
+  name,
+  describedBy,
+  'aria-invalid': invalid,
+}: {
+  id: string
+  name: string
+  describedBy: string
+  'aria-invalid'?: boolean
+  'aria-describedby'?: string
+}) {
+  const t = useTranslations('participation.file')
+  const [photo, setPhoto] = useState<{ name: string; url: string } | null>(null)
+  const [previewFailed, setPreviewFailed] = useState(false)
+
+  // Each chosen photo's preview URL is released once replaced or when the form goes away.
+  useEffect(() => {
+    if (!photo) return
+    return () => URL.revokeObjectURL(photo.url)
+  }, [photo])
+
+  function onChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0]
+    setPreviewFailed(false)
+    setPhoto(file ? { name: file.name, url: URL.createObjectURL(file) } : null)
+  }
+
+  return (
+    <div
+      className={cn(
+        'flex items-center gap-4 rounded-card border-2 border-dashed border-input bg-background p-3',
+        'has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-offset-2 has-[input:focus-visible]:outline-ring',
+        invalid && 'border-destructive',
+      )}
+    >
+      <div className="flex-center size-16 shrink-0 overflow-hidden rounded-control bg-secondary text-primary-ink">
+        {photo && !previewFailed ? (
+          // eslint-disable-next-line @next/next/no-img-element -- a local file the visitor just chose
+          <img
+            src={photo.url}
+            alt={t('preview')}
+            className="size-full object-cover"
+            onError={() => setPreviewFailed(true)}
+          />
+        ) : (
+          <Camera aria-hidden className="size-7" />
+        )}
+      </div>
+      <div className="flex min-w-0 flex-col items-start gap-1">
+        <label
+          htmlFor={id}
+          className={buttonVariants({
+            variant: 'outline',
+            size: 'sm',
+            className: 'cursor-pointer',
+          })}
+        >
+          {photo ? t('change') : t('choose')}
+        </label>
+        <p className="max-w-full truncate text-small text-muted-foreground" aria-live="polite">
+          {photo?.name ?? t('none')}
+        </p>
+      </div>
+      <input
+        id={id}
+        name={name}
+        aria-invalid={invalid}
+        aria-describedby={describedBy}
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+        required
+        onChange={onChange}
+        className="sr-only"
+      />
+    </div>
   )
 }

@@ -60,6 +60,15 @@ export function Tracking() {
     return () => window.removeEventListener(cookieSettingsEvent, reopen)
   }, [])
 
+  // Lets bottom bars (the contest page's participate bar) step aside while the banner is up.
+  useEffect(() => {
+    if (!bannerOpen) return
+    document.documentElement.dataset.cookieBanner = 'open'
+    return () => {
+      delete document.documentElement.dataset.cookieBanner
+    }
+  }, [bannerOpen])
+
   const active = consent === 'granted' && hasTracking(ids)
 
   // Page views on client-side navigation; the first one is sent when the scripts load.
