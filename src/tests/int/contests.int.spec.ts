@@ -100,6 +100,31 @@ describe('publishing', () => {
       payload.update({ collection: 'contests', id: draft.id, data: { status: 'published' } }),
     ).rejects.toMatchObject(missing('seo.title (fr)'))
   })
+
+  it('saves edits to a published contest in the language being edited', async () => {
+    const contest = await track(createPublishedContest(payload))
+
+    for (const [locale, title] of [
+      ['fr', 'Nouveau titre'],
+      ['ar', 'عنوان جديد'],
+    ] as const) {
+      const updated = await payload.update({
+        collection: 'contests',
+        id: contest.id,
+        locale,
+        data: { title },
+      })
+      expect(updated.title).toBe(title)
+    }
+
+    const stored = await payload.findByID({
+      collection: 'contests',
+      id: contest.id,
+      locale: 'all',
+      depth: 0,
+    })
+    expect(stored.title).toEqual({ fr: 'Nouveau titre', ar: 'عنوان جديد' })
+  })
 })
 
 describe('translated rows', () => {

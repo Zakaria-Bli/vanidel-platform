@@ -58,20 +58,29 @@ const requireTranslationsWhenPublic: CollectionBeforeChangeHook = async ({
   const status = data.status ?? originalDoc?.status
   if (status === 'draft') return data
 
-  const stored =
-    operation === 'update' && originalDoc?.id
-      ? await req.payload.findByID({
-          collection: 'contests',
-          id: originalDoc.id,
-          locale: 'all',
-          depth: 0,
-          req,
-        })
-      : {}
+  // A Local API call given `req` switches `req.locale` to its own, and the rest of this save
+  // writes localized fields to `req.locale`: keep the locale being saved and restore it after the
+  // read, or the edit would be silently dropped.
+  const { locale, fallbackLocale } = req
+  const editedLocale = locale && locale !== 'all' ? locale : null
+  let stored = {}
+  if (operation === 'update' && originalDoc?.id) {
+    try {
+      stored = await req.payload.findByID({
+        collection: 'contests',
+        id: originalDoc.id,
+        locale: 'all',
+        depth: 0,
+        req,
+      })
+    } finally {
+      req.locale = locale
+      req.fallbackLocale = fallbackLocale
+    }
+  }
 
   // Build the shape of a `locale: 'all'` read: stored values, with the locale being saved
   // replaced by the incoming one.
-  const editedLocale = req.locale && req.locale !== 'all' ? req.locale : null
   const mergeValue = (storedValues: unknown, incoming: unknown) => {
     const values = { ...(storedValues as Record<string, unknown> | undefined) }
     if (editedLocale) {
