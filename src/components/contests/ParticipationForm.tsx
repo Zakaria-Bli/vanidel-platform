@@ -263,7 +263,7 @@ export function ParticipationForm({
                           href={regulationUrl}
                           target="_blank"
                           rel="noopener"
-                          className="font-medium text-primary-hover underline underline-offset-4"
+                          className="font-medium text-primary-ink underline underline-offset-4"
                         >
                           {t('readRules')}
                         </a>

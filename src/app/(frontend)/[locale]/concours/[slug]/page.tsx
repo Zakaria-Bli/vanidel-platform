@@ -104,7 +104,7 @@ export default async function ContestPage({ params }: Props) {
   const ended = ['closed', 'archived'].includes(contestPhase(contest))
 
   return (
-    <Container size="narrow" className="flex flex-col gap-10 pt-2 pb-16">
+    <Container size="narrow" className="flex flex-col gap-10 pt-block pb-section">
       {preview && <PreviewBanner status={preview} />}
       <ContestHero contest={contest} />
       {ended && winners}
@@ -130,7 +130,7 @@ export default async function ContestPage({ params }: Props) {
         />
       </ContestParticipationSection>
       <ContestShare contest={contest} />
-      <Link href="/concours" className="text-primary-hover underline-offset-4 hover:underline">
+      <Link href="/concours" className="text-primary-ink underline-offset-4 hover:underline">
         {t('backToContests')}
       </Link>
     </Container>

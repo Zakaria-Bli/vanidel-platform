@@ -1,7 +1,7 @@
-import { RichText } from '@payloadcms/richtext-lexical/react'
 import Image from 'next/image'
 import { getTranslations } from 'next-intl/server'
 
+import { RichText } from '@/components/shared/RichText'
 import { buttonVariants } from '@/components/ui/button'
 import { imageSize, populated } from '@/lib/media'
 import { contestPhase } from '@/modules/contests/domain/phase'
@@ -31,19 +31,15 @@ export async function ContestHero({ contest }: { contest: Contest }) {
       )}
       <div className="flex flex-col gap-3">
         <h1>{contest.title}</h1>
-        <div className="font-medium text-primary-hover">
+        <div className="font-medium text-primary-ink">
           <ContestDates contest={contest} />
         </div>
       </div>
-      {contest.description && (
-        <div className="text-lg leading-relaxed">
-          <RichText data={contest.description} />
-        </div>
-      )}
+      {contest.description && <RichText data={contest.description} className="text-body-lg" />}
       {contestPhase(contest) === 'open' && (
         <a
           href={`#${participationAnchor}`}
-          className={buttonVariants({ size: 'lg', className: 'h-12 self-start px-6 text-base' })}
+          className={buttonVariants({ size: 'lg', className: 'self-start' })}
         >
           {t('cta')}
         </a>

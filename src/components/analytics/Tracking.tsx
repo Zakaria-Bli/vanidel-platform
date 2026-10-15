@@ -112,11 +112,11 @@ export function Tracking() {
           role="dialog"
           aria-live="polite"
           aria-label={t('title')}
-          className="fixed inset-x-3 bottom-3 z-50 mx-auto flex max-w-xl flex-col gap-3 rounded-xl border bg-background p-4 shadow-lg"
+          className="fixed inset-x-3 bottom-[max(0.75rem,env(safe-area-inset-bottom))] z-50 mx-auto flex max-w-xl flex-col gap-3 rounded-card border bg-background p-5 shadow-raised"
         >
-          <p className="text-sm leading-relaxed">
+          <p className="text-small">
             {t('text')}{' '}
-            <Link href="/confidentialite" className="font-medium text-primary-hover underline">
+            <Link href="/confidentialite" className="font-medium text-primary-ink underline">
               {t('privacy')}
             </Link>
           </p>
@@ -133,11 +133,11 @@ export function Tracking() {
 }
 
 /** Footer button that reopens the cookie choice. */
-export function CookieSettingsButton({ label }: { label: string }) {
+export function CookieSettingsButton({ label, className }: { label: string; className?: string }) {
   return (
     <button
       type="button"
-      className="underline-offset-4 hover:underline"
+      className={className}
       onClick={() => window.dispatchEvent(new Event(cookieSettingsEvent))}
     >
       {label}

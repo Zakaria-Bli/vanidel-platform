@@ -129,6 +129,8 @@ Next.js handles:
 - Winners/archive pages.
 - Future corporate and commerce frontend routes.
 
+The brand (colours, fonts, logo) is applied through layered tokens: primitives in `src/styles/brand/tokens.css` and fonts in `src/lib/fonts/index.ts`, shared with the admin; colour roles and the per-locale type scale in `src/app/(frontend)/styles/`. Components use only the roles and type utilities. See [`brand/README.md`](../brand/README.md).
+
 ## 7. Administration
 
 The first administration should use Payload's standard admin capabilities as much as possible.
