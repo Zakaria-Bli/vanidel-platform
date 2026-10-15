@@ -2,9 +2,11 @@ import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 
 import { ContestList } from '@/components/contests/ContestList'
+import { NoPastContest } from '@/components/contests/ContestsEmpty'
+import { ContestsHero } from '@/components/contests/ContestsHero'
+import { ContestsTabs } from '@/components/contests/ContestsTabs'
 import { Container } from '@/components/shared/Container'
 import type { Locale } from '@/i18n/config'
-import { Link } from '@/i18n/navigation'
 import { getCachedPastContests, getCachedPublicWinners } from '@/modules/contests/queries/cached'
 
 export const dynamic = 'force-dynamic'
@@ -26,14 +28,19 @@ export default async function ContestArchivePage({
   )
 
   return (
-    <Container size="narrow" className="flex flex-col gap-6 py-section">
-      <h1>{t('archiveTitle')}</h1>
+    <Container className="flex flex-col gap-block pt-block pb-section">
+      <ContestsHero
+        tone="blue"
+        eyebrow={t('eyebrow')}
+        title={t('archiveHero.title')}
+        text={t('archiveHero.text')}
+      />
+      <ContestsTabs active="past" />
       {contests.length > 0 ? (
         <ContestList contests={contests} winners={winners} />
       ) : (
-        <p>{t('noArchive')}</p>
+        <NoPastContest />
       )}
-      <Link href="/concours">{t('backToContests')}</Link>
     </Container>
   )
 }

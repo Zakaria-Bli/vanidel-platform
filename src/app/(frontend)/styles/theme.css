@@ -30,7 +30,8 @@
    * at large sizes (24px, or 18.7px bold); smaller white text sits on blue 600 or 700.
    */
   --brand-blue: var(--brand-blue-500);
-  --brand-blue-strong: var(--brand-blue-700);
+  /* Blue bands that carry text of any size: white on it is 4.98:1 (AA). */
+  --brand-blue-strong: var(--brand-blue-600);
   /* Blue text and icons on white: 6.72:1. */
   --brand-blue-ink: var(--brand-blue-700);
 

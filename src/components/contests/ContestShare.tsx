@@ -18,12 +18,17 @@ export function ContestShareButtons({ contest }: { contest: Contest }) {
   )
 }
 
-/** The contest page's share section. */
+/** The contest page's share section, as a compact card. */
 export async function ContestShare({ contest }: { contest: Contest }) {
   const t = await getTranslations('share')
   return (
-    <section className="flex flex-col gap-3" aria-labelledby="share-title">
-      <h2 id="share-title">{t('title')}</h2>
+    <section
+      className="flex flex-col gap-4 rounded-card border bg-card p-5 sm:p-6 lg:flex-row lg:items-center lg:justify-between"
+      aria-labelledby="share-title"
+    >
+      <h2 id="share-title" className="text-h3">
+        {t('title')}
+      </h2>
       <ContestShareButtons contest={contest} />
     </section>
   )

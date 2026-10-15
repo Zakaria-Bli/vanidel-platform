@@ -1,24 +1,29 @@
+import { ArrowLeft } from 'lucide-react'
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { getPayload } from 'payload'
+import { Suspense } from 'react'
 
-import { ContestHero } from '@/components/contests/ContestHero'
+import { ContestHero, heroActionAttribute } from '@/components/contests/ContestHero'
+import { ContestKeyFacts } from '@/components/contests/ContestKeyFacts'
 import { ContestParticipationSection } from '@/components/contests/ContestParticipationSection'
 import { ContestPrizes } from '@/components/contests/ContestPrizes'
-import { ContestRules } from '@/components/contests/ContestRules'
 import { ContestShare, ContestShareButtons } from '@/components/contests/ContestShare'
 import { ContestSteps } from '@/components/contests/ContestSteps'
-import { ContestWinners } from '@/components/contests/ContestWinners'
+import { ContestWinners, WinnersSkeleton } from '@/components/contests/ContestWinners'
+import { ParticipateBar } from '@/components/contests/ParticipateBar'
 import { ParticipationForm } from '@/components/contests/ParticipationForm'
 import { PreviewBanner } from '@/components/contests/PreviewBanner'
 import { Container } from '@/components/shared/Container'
+import { RichText } from '@/components/shared/RichText'
 import { locales, type Locale } from '@/i18n/config'
 import { getPathname, Link } from '@/i18n/navigation'
 import { contestVisual, defaultShareImage, populated } from '@/lib/media'
 import { isStaffPreview } from '@/lib/preview'
+import { contestCountdown } from '@/modules/contests/domain/countdown'
 import { contestPhase } from '@/modules/contests/domain/phase'
-import { getCachedPublicContest, getCachedPublicWinners } from '@/modules/contests/queries/cached'
+import { getCachedPublicContest } from '@/modules/contests/queries/cached'
 import { getContestForPreview } from '@/modules/contests/queries/publicContests'
 import type { Contest } from '@/payload-types'
 import config from '@/payload.config'
@@ -96,22 +101,43 @@ export default async function ContestPage({ params }: Props) {
   // Already checked against the supported locales in src/i18n/request.ts.
   const locale = segment as Locale
   const { contest, preview } = await loadContest(slug, locale)
+  // Before any Suspense boundary, so an unknown contest still answers 404.
   if (!contest) notFound()
 
   const t = await getTranslations('contests')
-  const winners = <ContestWinners winners={await getCachedPublicWinners([contest.id], locale)} />
+  const phase = contestPhase(contest)
   // Once a contest has ended, its winners are what visitors come for.
-  const ended = ['closed', 'archived'].includes(contestPhase(contest))
+  const ended = phase === 'closed' || phase === 'archived'
+  // Streamed: the rest of the page does not wait for the winners. While the contest runs there may
+  // be none yet, so nothing holds their place.
+  const winners = (
+    <Suspense fallback={ended ? <WinnersSkeleton /> : null}>
+      <ContestWinners contestId={contest.id} locale={locale} ended={ended} />
+    </Suspense>
+  )
+  const countdown = contestCountdown(contest)
 
   return (
-    <Container size="narrow" className="flex flex-col gap-10 pt-block pb-section">
-      {preview && <PreviewBanner status={preview} />}
-      <ContestHero contest={contest} />
+    <Container className="flex flex-col gap-section pt-block pb-section">
+      <div className="flex flex-col gap-4 md:gap-6">
+        {preview && <PreviewBanner status={preview} />}
+        <Link
+          href="/concours"
+          className="-my-2 inline-flex items-center gap-2 self-start py-2 text-label text-primary-ink underline-offset-4 hover:underline"
+        >
+          <ArrowLeft aria-hidden className="size-4 rtl:rotate-180" />
+          {t('backToContests')}
+        </Link>
+        <ContestHero contest={contest} />
+        <ContestKeyFacts contest={contest} />
+      </div>
       {ended && winners}
+      {contest.description && (
+        <RichText data={contest.description} className="max-w-2xl text-body-lg" />
+      )}
       <ContestSteps steps={contest.steps ?? []} />
       <ContestPrizes prizes={contest.prizes ?? []} />
       {!ended && winners}
-      <ContestRules contest={contest} />
       <ContestParticipationSection contest={contest}>
         <ParticipationForm
           contestSlug={contest.slug}
@@ -130,9 +156,15 @@ export default async function ContestPage({ params }: Props) {
         />
       </ContestParticipationSection>
       <ContestShare contest={contest} />
-      <Link href="/concours" className="text-primary-ink underline-offset-4 hover:underline">
-        {t('backToContests')}
-      </Link>
+      {phase === 'open' && (
+        <ParticipateBar
+          countdown={
+            countdown ? t(`countdown.${countdown.kind}`, { days: countdown.days }) : undefined
+          }
+          label={t('participateBar')}
+          heroSelector={`[${heroActionAttribute}]`}
+        />
+      )}
     </Container>
   )
 }

@@ -16,9 +16,9 @@ Les textes se saisissent une langue à la fois : changez de langue avec **Param�
 
 **Onglet Contenu**
 
-- Titre et description.
+- Titre et description. En français, tapez une espace insécable avant « : », « ! » et « ? », et dans les montants (« 10 000 DA ») : sinon la ponctuation ou « DA » peut passer seule à la ligne. Sur Mac : Option + Espace ; sur Windows : Alt + 0160.
 - **Comment participer** : les étapes, affichées numérotées. Au moins une.
-- **Visuel principal** (image large, 16/9).
+- **Visuel principal** (image large, 16/9). Sur ordinateur, il s’affiche à côté du titre et peut être recadré : gardez l’essentiel au centre. Sans visuel, le haut de la page devient un bandeau rouge.
 - **Règlement (PDF)** : un fichier par langue.
 - **Lots** : titre, description, image et quantité.
 

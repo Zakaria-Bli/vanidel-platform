@@ -9,14 +9,14 @@ export async function PreviewBanner({ status }: { status: Contest['status'] }) {
   return (
     <div
       role="status"
-      className="flex flex-wrap items-center gap-3 rounded-xl border-2 border-dashed border-primary bg-secondary p-4"
+      className="flex flex-wrap items-center gap-3 rounded-card border-2 border-dashed border-primary bg-secondary p-4 text-small"
     >
       <Eye aria-hidden className="size-5 shrink-0 text-primary" />
       <p className="flex-1">
         <strong>{t('title')}.</strong> {t(status)}
       </p>
       <form method="post" action="/api/preview/exit">
-        <button type="submit" className="font-medium underline underline-offset-4">
+        <button type="submit" className="font-medium text-primary-ink underline underline-offset-4">
           {t('exit')}
         </button>
       </form>
