@@ -16,6 +16,16 @@ export function imageSize(media: Media, size: keyof NonNullable<Media['sizes']>)
 }
 
 /**
+ * The share image of pages that have none of their own: logo, slogan and packshots on red, made by
+ * `pnpm brand:assets` (docs/brand/README.md).
+ */
+export const defaultShareImage = {
+  url: '/brand/share/vanidel-share-default.png',
+  width: 1200,
+  height: 630,
+} as const
+
+/**
  * The image a contest is shared with: its share image, else its hero, at the Open Graph size
  * (1200×630). Null when it has neither.
  */

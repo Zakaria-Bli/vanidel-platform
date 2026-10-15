@@ -15,7 +15,7 @@ import { PreviewBanner } from '@/components/contests/PreviewBanner'
 import { Container } from '@/components/shared/Container'
 import { locales, type Locale } from '@/i18n/config'
 import { getPathname, Link } from '@/i18n/navigation'
-import { contestVisual, populated } from '@/lib/media'
+import { contestVisual, defaultShareImage, populated } from '@/lib/media'
 import { isStaffPreview } from '@/lib/preview'
 import { contestPhase } from '@/modules/contests/domain/phase'
 import { getCachedPublicContest, getCachedPublicWinners } from '@/modules/contests/queries/cached'
@@ -63,11 +63,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title = contest.seo?.title || contest.title
   const description = contest.seo?.description ?? undefined
-  // The share image, else the hero: a link preview without a picture is easily scrolled past.
-  const visual = contestVisual(contest)
-  const images = visual
-    ? [{ url: visual.url, width: visual.width, height: visual.height, alt: title }]
-    : undefined
+  // The share image, else the hero, else the brand's: a link preview without a picture is easily
+  // scrolled past.
+  const visual = contestVisual(contest) ?? defaultShareImage
+  const images = [{ url: visual.url, width: visual.width, height: visual.height, alt: title }]
 
   return {
     title,
@@ -88,7 +87,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       siteName: 'Vanidel',
       images,
     },
-    twitter: { card: images ? 'summary_large_image' : 'summary', title, description, images },
+    twitter: { card: 'summary_large_image', title, description, images },
   }
 }
 
