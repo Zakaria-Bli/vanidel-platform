@@ -30,6 +30,12 @@ import { WilayaCell as WilayaCell_fe09ceaebe8e5274113055b257b54647 } from '../..
 import { TicketCell as TicketCell_375c690b9a649001ded3ae4da69f0151 } from '../../../payload/components/TicketCell'
 import { ParticipationExport as ParticipationExport_404ec85c3f080188c4629ddc107439a9 } from '../../../payload/components/ExportPanel'
 import { MarketingContactsExport as MarketingContactsExport_404ec85c3f080188c4629ddc107439a9 } from '../../../payload/components/ExportPanel'
+import { AdminIcon as AdminIcon_7d2983beb49a88f2ddacd74f1aa4b705 } from '../../../payload/components/brand/AdminIcon'
+import { AdminLogo as AdminLogo_dd284dee9613d5c3664c4ef3d4370503 } from '../../../payload/components/brand/AdminLogo'
+import { LoginFooter as LoginFooter_7fb72c19608b34854b4c1c98720a35c0 } from '../../../payload/components/brand/LoginFooter'
+import { LoginIntro as LoginIntro_a5bb30ee82622f301900f622afb7ea4d } from '../../../payload/components/brand/LoginIntro'
+import { ViewSiteLink as ViewSiteLink_13792fd73b944226d8202291524a1c8e } from '../../../payload/components/brand/ViewSiteLink'
+import { AdminFonts as AdminFonts_bfbaba69f7c387a867e836c7ff31b12a } from '../../../payload/components/brand/AdminFonts'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 import { S3ClientUploadHandler as S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24 } from '@payloadcms/storage-s3/client'
 
@@ -67,6 +73,12 @@ export const importMap = {
   "/payload/components/TicketCell#TicketCell": TicketCell_375c690b9a649001ded3ae4da69f0151,
   "/payload/components/ExportPanel#ParticipationExport": ParticipationExport_404ec85c3f080188c4629ddc107439a9,
   "/payload/components/ExportPanel#MarketingContactsExport": MarketingContactsExport_404ec85c3f080188c4629ddc107439a9,
+  "/payload/components/brand/AdminIcon#AdminIcon": AdminIcon_7d2983beb49a88f2ddacd74f1aa4b705,
+  "/payload/components/brand/AdminLogo#AdminLogo": AdminLogo_dd284dee9613d5c3664c4ef3d4370503,
+  "/payload/components/brand/LoginFooter#LoginFooter": LoginFooter_7fb72c19608b34854b4c1c98720a35c0,
+  "/payload/components/brand/LoginIntro#LoginIntro": LoginIntro_a5bb30ee82622f301900f622afb7ea4d,
+  "/payload/components/brand/ViewSiteLink#ViewSiteLink": ViewSiteLink_13792fd73b944226d8202291524a1c8e,
+  "/payload/components/brand/AdminFonts#AdminFonts": AdminFonts_bfbaba69f7c387a867e836c7ff31b12a,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1,
   "@payloadcms/storage-s3/client#S3ClientUploadHandler": S3ClientUploadHandler_f97aa6c64367fa259c5bc0567239ef24
 }

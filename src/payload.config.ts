@@ -33,6 +33,34 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    // Each user picks light, dark or automatic in their account. Colours and fonts: custom.scss.
+    theme: 'all',
+    meta: {
+      // Payload adds the space before it.
+      titleSuffix: '· Vanidel',
+      // Admin pages are never shared; this also turns off Payload's /api/og image generator. The
+      // texts replace Payload's own ("Payload App") in case a link is pasted somewhere.
+      defaultOGImageType: 'off',
+      description: 'Espace équipe des concours Vanidel.',
+      openGraph: { siteName: 'Vanidel', description: 'Espace équipe des concours Vanidel.' },
+      icons: {
+        icon: [
+          { url: '/favicon.ico', sizes: '48x48' },
+          { url: '/brand/icons/favicon.svg', type: 'image/svg+xml' },
+        ],
+        apple: '/brand/icons/apple-touch-icon.png',
+      },
+    },
+    components: {
+      graphics: {
+        Logo: '/payload/components/brand/AdminLogo#AdminLogo',
+        Icon: '/payload/components/brand/AdminIcon#AdminIcon',
+      },
+      providers: ['/payload/components/brand/AdminFonts#AdminFonts'],
+      beforeLogin: ['/payload/components/brand/LoginIntro#LoginIntro'],
+      afterLogin: ['/payload/components/brand/LoginFooter#LoginFooter'],
+      beforeNavLinks: ['/payload/components/brand/ViewSiteLink#ViewSiteLink'],
+    },
   },
   collections: [
     Contests,

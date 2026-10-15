@@ -1,0 +1,159 @@
+/*
+ * The Vanidel brand in the Payload admin (docs/brand/README.md).
+ *
+ * Payload puts its own styles in the `payload-default` cascade layer and declares `payload` after
+ * it for projects, so everything here wins without raising specificity. The admin is themed through
+ * Payload's variables; the few rules on Payload's own classes are grouped at the end, to re-check on
+ * every Payload upgrade. The fonts' variables come from src/payload/components/brand/AdminFonts.tsx.
+ */
+
+// Without its extension, Sass inlines the plain CSS file; `tokens.css` would be left as an
+// `@import` for the browser to resolve instead.
+@use '../../styles/brand/tokens';
+
+@layer payload {
+  :root {
+    // Warm neutrals for Payload's grey scale. Payload maps it to `--theme-elevation-*` and reverses
+    // that mapping in dark mode, so both themes follow.
+    --color-base-0: var(--brand-neutral-0);
+    --color-base-50: var(--brand-neutral-50);
+    --color-base-100: var(--brand-neutral-100);
+    --color-base-150: var(--brand-neutral-150);
+    --color-base-200: var(--brand-neutral-200);
+    --color-base-250: var(--brand-neutral-250);
+    --color-base-300: var(--brand-neutral-300);
+    --color-base-350: var(--brand-neutral-350);
+    --color-base-400: var(--brand-neutral-400);
+    --color-base-450: var(--brand-neutral-450);
+    --color-base-500: var(--brand-neutral-500);
+    --color-base-550: var(--brand-neutral-550);
+    --color-base-600: var(--brand-neutral-600);
+    --color-base-650: var(--brand-neutral-650);
+    --color-base-700: var(--brand-neutral-700);
+    --color-base-750: var(--brand-neutral-750);
+    --color-base-800: var(--brand-neutral-800);
+    --color-base-850: var(--brand-neutral-850);
+    --color-base-900: var(--brand-neutral-900);
+    --color-base-950: var(--brand-neutral-950);
+    --color-base-1000: var(--brand-neutral-1000);
+
+    // Payload's "success" colour (published pills, confirmations, text selection) is already a blue:
+    // the brand blue replaces it. Payload's ramp has a step every 50, the brand's every 100, so the
+    // steps in between are mixed from their neighbours. Error and warning keep their meaning.
+    --color-success-50: var(--brand-blue-50);
+    --color-success-100: var(--brand-blue-100);
+    --color-success-150: color-mix(in oklch, var(--brand-blue-100), var(--brand-blue-200));
+    --color-success-200: var(--brand-blue-200);
+    --color-success-250: color-mix(in oklch, var(--brand-blue-200), var(--brand-blue-300));
+    --color-success-300: var(--brand-blue-300);
+    --color-success-350: color-mix(in oklch, var(--brand-blue-300), var(--brand-blue-400));
+    --color-success-400: var(--brand-blue-400);
+    --color-success-450: color-mix(in oklch, var(--brand-blue-400), var(--brand-blue-500));
+    --color-success-500: var(--brand-blue-500);
+    --color-success-550: color-mix(in oklch, var(--brand-blue-500), var(--brand-blue-600));
+    --color-success-600: var(--brand-blue-600);
+    --color-success-650: color-mix(in oklch, var(--brand-blue-600), var(--brand-blue-700));
+    --color-success-700: var(--brand-blue-700);
+    --color-success-750: color-mix(in oklch, var(--brand-blue-700), var(--brand-blue-800));
+    --color-success-800: var(--brand-blue-800);
+    --color-success-850: color-mix(in oklch, var(--brand-blue-800), var(--brand-blue-900));
+    --color-success-900: var(--brand-blue-900);
+    // Dark mode's pill background: the darkest blue, deepened toward the dark neutral.
+    --color-success-950: color-mix(in oklch, var(--brand-blue-900), var(--brand-neutral-950));
+
+    --style-radius-s: 6px;
+    --style-radius-m: 10px;
+    --style-radius-l: 16px;
+
+    // Focus is blue, so it never looks like an error or the brand red.
+    --accessibility-outline: 2px solid var(--brand-blue-600);
+
+    // Libre Franklin, with IBM Plex Sans Arabic for Arabic letters; Jost for headings. The rich-text
+    // editor uses Payload's serif; the site shows that text in the body font, so the editor does too
+    // (and Arabic content gets the Arabic font instead of whichever serif has Arabic letters).
+    --font-body: var(--vd-font-text, system-ui), sans-serif;
+    --font-serif: var(--font-body);
+    --vd-font-heading: var(--vd-font-title, system-ui), sans-serif;
+
+    // Brand roles for Vanidel's own admin components (sign-in, dashboard, navigation link).
+    --vd-red: var(--brand-red-500);
+    --vd-red-hover: var(--brand-red-600);
+    --vd-on-red: #fff;
+    // Small red text: red 700 on light backgrounds (7.5:1 on white).
+    --vd-red-text: var(--brand-red-700);
+  }
+
+  html[data-theme='dark'] {
+    // Red 400 on the dark background (6.7:1 on neutral 900). Buttons keep red 500 with white text.
+    --vd-red-text: var(--brand-red-400);
+  }
+
+  // When the admin language is Arabic, the Arabic fonts come first: IBM Plex Sans Arabic for text,
+  // Alexandria for headings.
+  html[lang='ar'] {
+    --font-body: var(--vd-font-text-ar, system-ui), sans-serif;
+    --vd-font-heading: var(--vd-font-title-ar, system-ui), sans-serif;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--vd-font-heading);
+    font-weight: 700;
+  }
+
+  /*
+   * The only rules on Payload's own classes:
+   * 1. Primary buttons in the brand red, through the button's own variables.
+   * 2. The current page's marker in the navigation, in red.
+   * 3. The navigation on cream in light mode, on neutral 900 in dark mode.
+   * 4. The sign-in screens (login, first user, forgotten and new password): a cream page, read by
+   *    the template from `--theme-bg-color`, with the form on a card.
+   * 5. Arabic admin: the root size goes from 13 to 14px (12 to 13px on narrow screens). IBM Plex
+   *    Sans Arabic's letters are about 30% smaller than Latin ones at the same size, and Payload's
+   *    spacing is in rem, so the whole layout scales evenly.
+   */
+  .btn--style-primary:not(.btn--disabled) {
+    --bg-color: var(--vd-red);
+    --hover-bg: var(--vd-red-hover);
+    --color: var(--vd-on-red);
+    --hover-color: var(--vd-on-red);
+  }
+
+  .nav__link-indicator {
+    background: var(--vd-red);
+  }
+
+  .nav {
+    background: var(--brand-cream-50);
+
+    html[data-theme='dark'] & {
+      background: var(--brand-neutral-900);
+    }
+  }
+
+  .template-minimal {
+    --theme-bg-color: var(--brand-cream-100);
+
+    html[data-theme='dark'] & {
+      --theme-bg-color: var(--brand-neutral-950);
+    }
+
+    &__wrap {
+      padding: calc(var(--base) * 1.6);
+      border: 1px solid var(--theme-elevation-100);
+      border-radius: 20px;
+      background: var(--theme-elevation-0);
+      box-shadow: var(--brand-shadow-card);
+    }
+  }
+
+  html[lang='ar'] {
+    font-size: 14px;
+
+    @media (max-width: 1024px) {
+      font-size: 13px;
+    }
+  }
+}
