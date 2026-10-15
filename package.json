@@ -32,6 +32,7 @@
     "seed": "cross-env NODE_OPTIONS=--no-deprecation payload run src/seed/index.ts",
     "audit:dependencies": "pnpm audit --audit-level moderate",
     "clean": "node src/lib/scripts/clean.mjs",
+    "brand:assets": "node src/lib/scripts/brand-assets.mjs",
     "prepare": "husky"
   },
   "lint-staged": {

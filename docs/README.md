@@ -12,6 +12,10 @@
 - [`architecture/DOMAIN_MODEL.md`](architecture/DOMAIN_MODEL.md) — domain boundaries and core entities.
 - [`architecture/adr/0001-use-payload-nextjs-postgresql.md`](architecture/adr/0001-use-payload-nextjs-postgresql.md) — architecture decision record.
 
+## Brand
+
+- [`brand/README.md`](brand/README.md) — the client's charter applied to the platform: colours, fonts, logo and slogan files, and where to use each.
+
 ## Operations
 
 - [`operations/DEPENDENCIES.md`](operations/DEPENDENCIES.md) — dependency exceptions, overrides, ownership, and review policy.

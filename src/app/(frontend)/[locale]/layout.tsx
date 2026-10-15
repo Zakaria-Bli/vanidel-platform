@@ -12,6 +12,7 @@ import { getDirection } from '@/i18n/config'
 import { routing } from '@/i18n/routing'
 import { env } from '@/lib/env'
 import { fontVariables } from '@/lib/fonts'
+import { defaultShareImage } from '@/lib/media'
 import '../globals.css'
 
 export function generateStaticParams() {
@@ -19,12 +20,25 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale()
   const t = await getTranslations('metadata')
+  // Pages that set their own openGraph or twitter replace these whole (metadata merges shallowly).
+  const images = [{ ...defaultShareImage, alt: t('title') }]
   return {
     // Resolves relative URLs such as share images into the absolute ones social networks need.
     metadataBase: new URL(env.SITE_URL),
     title: { default: t('title'), template: `%s · ${t('title')}` },
     description: t('description'),
+    icons: {
+      icon: [
+        { url: '/favicon.ico', sizes: '48x48' },
+        { url: '/brand/icons/favicon.svg', type: 'image/svg+xml' },
+      ],
+      apple: '/brand/icons/apple-touch-icon.png',
+    },
+    // Open Graph wants language_TERRITORY.
+    openGraph: { siteName: 'Vanidel', type: 'website', locale: `${locale}_DZ`, images },
+    twitter: { card: 'summary_large_image', images },
   }
 }
 
