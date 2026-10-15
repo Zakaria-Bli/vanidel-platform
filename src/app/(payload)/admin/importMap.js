@@ -33,6 +33,7 @@ import { MarketingContactsExport as MarketingContactsExport_404ec85c3f080188c462
 import { AdminIcon as AdminIcon_7d2983beb49a88f2ddacd74f1aa4b705 } from '../../../payload/components/brand/AdminIcon'
 import { AdminLogo as AdminLogo_dd284dee9613d5c3664c4ef3d4370503 } from '../../../payload/components/brand/AdminLogo'
 import { LoginFooter as LoginFooter_7fb72c19608b34854b4c1c98720a35c0 } from '../../../payload/components/brand/LoginFooter'
+import { VanidelDashboard as VanidelDashboard_b78079a29dd469b15b81f16b6ec6112b } from '../../../payload/components/dashboard/VanidelDashboard'
 import { LoginIntro as LoginIntro_a5bb30ee82622f301900f622afb7ea4d } from '../../../payload/components/brand/LoginIntro'
 import { ViewSiteLink as ViewSiteLink_13792fd73b944226d8202291524a1c8e } from '../../../payload/components/brand/ViewSiteLink'
 import { AdminFonts as AdminFonts_bfbaba69f7c387a867e836c7ff31b12a } from '../../../payload/components/brand/AdminFonts'
@@ -76,6 +77,7 @@ export const importMap = {
   "/payload/components/brand/AdminIcon#AdminIcon": AdminIcon_7d2983beb49a88f2ddacd74f1aa4b705,
   "/payload/components/brand/AdminLogo#AdminLogo": AdminLogo_dd284dee9613d5c3664c4ef3d4370503,
   "/payload/components/brand/LoginFooter#LoginFooter": LoginFooter_7fb72c19608b34854b4c1c98720a35c0,
+  "/payload/components/dashboard/VanidelDashboard#VanidelDashboard": VanidelDashboard_b78079a29dd469b15b81f16b6ec6112b,
   "/payload/components/brand/LoginIntro#LoginIntro": LoginIntro_a5bb30ee82622f301900f622afb7ea4d,
   "/payload/components/brand/ViewSiteLink#ViewSiteLink": ViewSiteLink_13792fd73b944226d8202291524a1c8e,
   "/payload/components/brand/AdminFonts#AdminFonts": AdminFonts_bfbaba69f7c387a867e836c7ff31b12a,

@@ -1,7 +1,8 @@
 import type { Payload } from 'payload'
 import type { I18nClient } from '@payloadcms/translations'
 
-import { drawPeriodsOf, drawTimeZone } from '@/modules/contests/domain/drawPeriod'
+import { drawTimeZone } from '@/modules/contests/domain/drawPeriod'
+import { endedDrawPeriods } from '@/modules/contests/queries/pendingDraws'
 
 import { drawMessages, type DrawMessages } from './drawMessages'
 import { RunDrawForm, type PeriodOption } from './RunDrawForm'
@@ -12,47 +13,18 @@ const dayMonth = new Intl.DateTimeFormat('fr-FR', {
   month: '2-digit',
 })
 
-/** Every ended period of every non-draft contest, newest contest first. */
+/** The ended periods as the form's options, read with full access: this list is staff-only. */
 async function endedPeriods(payload: Payload, t: DrawMessages): Promise<PeriodOption[]> {
-  const now = Date.now()
-
-  const { docs: contests } = await payload.find({
-    collection: 'contests',
-    where: { status: { not_equals: 'draft' } },
-    sort: '-startAt',
-    limit: 100,
-    depth: 0,
-    select: { title: true, startAt: true, endAt: true, draw: true },
-  })
-  const { docs: draws } = await payload.find({
-    collection: 'draws',
-    where: { contest: { in: contests.map(({ id }) => id) } },
-    pagination: false,
-    depth: 0,
-    select: { contest: true, periodStart: true, periodEnd: true },
-  })
-  // A period overlapping any draw cannot be drawn, even if the period settings changed since.
-  const overlapsDraw = (contestId: number, start: Date, end: Date) =>
-    draws.some(
-      (draw) =>
-        (typeof draw.contest === 'object' ? draw.contest.id : draw.contest) === contestId &&
-        new Date(draw.periodStart) < end &&
-        new Date(draw.periodEnd) > start,
-    )
-
-  return contests.flatMap((contest) =>
-    drawPeriodsOf(contest)
-      .filter(({ end }) => end.getTime() <= now)
-      .map(({ index, start, end }) => {
-        const value = `${contest.id}|${start.toISOString()}`
-        // The end is exclusive: show the period's last day.
-        const lastDay = dayMonth.format(new Date(end.getTime() - 1))
-        return {
-          value,
-          label: `${contest.title} · ${t.week} ${index + 1} (${dayMonth.format(start)} – ${lastDay})`,
-          drawn: overlapsDraw(contest.id, start, end),
-        }
-      }),
+  return (await endedDrawPeriods(payload)).map(
+    ({ contest, period: { index, start, end }, drawn }) => {
+      // The end is exclusive: show the period's last day.
+      const lastDay = dayMonth.format(new Date(end.getTime() - 1))
+      return {
+        value: `${contest.id}|${start.toISOString()}`,
+        label: `${contest.title} · ${t.week} ${index + 1} (${dayMonth.format(start)} – ${lastDay})`,
+        drawn,
+      }
+    },
   )
 }
 
