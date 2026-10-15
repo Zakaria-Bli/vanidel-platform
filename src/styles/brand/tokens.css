@@ -1,0 +1,81 @@
+/*
+ * Vanidel brand primitives, shared by the public site and the Payload admin (docs/brand/README.md).
+ *
+ * The charter gives three colours: red #EA0029, blue #308AB9 and cream #F2DAB2. Each ramp is built
+ * in OKLCH around its charter colour (step 500 for red and blue, 300 for cream); the neutrals are
+ * warm greys tinted toward the cream. Components never use these directly: the site maps them to
+ * semantic roles in src/app/(frontend)/styles/theme.css, the admin in src/app/(payload)/custom.scss.
+ *
+ * Contrast on white, for text: red 500 4.64:1 (AA), red 700 7.54:1, blue 500 3.85:1 (large text
+ * only), blue 700 6.72:1, neutral 600 6.85:1, ink 16.3:1.
+ */
+
+:root {
+  --brand-red-50: #fef4f3;
+  --brand-red-100: #fee8e6;
+  --brand-red-200: #fecfcb;
+  --brand-red-300: #feaba4;
+  --brand-red-400: #ff726c;
+  --brand-red-500: #ea0029; /* Charter red, Pantone 185 C */
+  --brand-red-600: #d00023;
+  --brand-red-700: #ac031c;
+  --brand-red-800: #8a0114;
+  --brand-red-900: #6a000d;
+
+  --brand-blue-50: #eff8ff;
+  --brand-blue-100: #e6eff6;
+  --brand-blue-200: #c9e0f0;
+  --brand-blue-300: #97ccec;
+  --brand-blue-400: #63aeda;
+  --brand-blue-500: #308ab9; /* Charter blue, Pantone 7688 C */
+  --brand-blue-600: #1577a5;
+  --brand-blue-700: #04628b;
+  --brand-blue-800: #084e6e;
+  --brand-blue-900: #013a54;
+
+  --brand-cream-50: #fef9f1;
+  --brand-cream-100: #fdf3e2;
+  --brand-cream-200: #fbe9ca;
+  --brand-cream-300: #f2dab2; /* Charter cream, Pantone 7506 C */
+  --brand-cream-400: #e4c693;
+  --brand-cream-500: #cdac72;
+  --brand-cream-600: #9f814c;
+  --brand-cream-700: #775f36;
+
+  --brand-neutral-0: #ffffff;
+  --brand-neutral-50: #f9f6f4;
+  --brand-neutral-100: #f1edea;
+  --brand-neutral-150: #e8e4e1;
+  --brand-neutral-200: #dedad7;
+  --brand-neutral-250: #d1cdca;
+  --brand-neutral-300: #c1bdba;
+  --brand-neutral-350: #b1adaa;
+  --brand-neutral-400: #9e9a98;
+  --brand-neutral-450: #8c8886;
+  --brand-neutral-500: #7c7875;
+  --brand-neutral-550: #6c6865;
+  --brand-neutral-600: #5d5a57;
+  --brand-neutral-650: #504c4a;
+  --brand-neutral-700: #44403e;
+  --brand-neutral-750: #383532;
+  --brand-neutral-800: #2c2927;
+  --brand-neutral-850: #23201e;
+  --brand-neutral-900: #191714;
+  --brand-neutral-950: #110f0d;
+  --brand-neutral-1000: #090705;
+
+  /* The black of the logo file; the charter sets no text colour. */
+  --brand-ink: #231f20;
+
+  /* Corners: the charter's blocks are generously rounded. */
+  --brand-radius-control: 0.75rem;
+  --brand-radius-card: 1.25rem;
+  --brand-radius-band: 1.75rem;
+
+  --brand-shadow-card: 0 1px 2px rgb(35 31 32 / 0.06), 0 8px 32px -12px rgb(35 31 32 / 0.22);
+  --brand-shadow-raised: 0 2px 4px rgb(35 31 32 / 0.08), 0 16px 40px -12px rgb(35 31 32 / 0.3);
+
+  --brand-duration-fast: 150ms;
+  --brand-duration: 220ms;
+  --brand-ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+}

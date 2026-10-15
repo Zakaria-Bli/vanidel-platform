@@ -1,49 +1,52 @@
-import { Alexandria, Montserrat, Poppins } from 'next/font/google'
-import localFont from 'next/font/local'
+import { Alexandria, IBM_Plex_Sans_Arabic, Jost, Libre_Franklin } from 'next/font/google'
 
-// Latin headings.
-export const poppins = Poppins({
+/*
+ * The four brand fonts, by role. This is the only file to change when the licensed charter fonts
+ * (Futura LT Paneuropean for titles, Franklin Gothic for text) are bought for the web: replace a
+ * role's loader with `localFont` from 'next/font/local', pointing at the woff2 files and keeping
+ * the same `variable`. The site's CSS (src/app/(frontend)/styles/typography.css) and the admin
+ * (src/payload/components/brand/AdminFonts.tsx) only read these role variables.
+ *
+ * Until then, free look-alikes under the SIL Open Font License (docs/brand/README.md):
+ * - Jost, a Futura revival, for Latin titles.
+ * - Libre Franklin, a Franklin Gothic revival, for Latin text.
+ * - Alexandria, a geometric, monoline Arabic sans built like Futura, for Arabic titles.
+ * - IBM Plex Sans Arabic, light and open like Franklin's Book weight, for Arabic text.
+ */
+
+export const fontDisplay = Jost({
   subsets: ['latin', 'latin-ext'],
-  weight: ['400', '500', '600', '700'],
-  variable: '--font-poppins',
+  variable: '--font-brand-display',
   display: 'swap',
 })
 
-// Latin body.
-export const montserrat = Montserrat({
+export const fontBody = Libre_Franklin({
   subsets: ['latin', 'latin-ext'],
-  variable: '--font-montserrat',
+  variable: '--font-brand-body',
   display: 'swap',
 })
 
-// Arabic headings.
-export const alexandria = Alexandria({
+export const fontDisplayArabic = Alexandria({
   subsets: ['arabic'],
-  variable: '--font-alexandria',
+  variable: '--font-brand-display-ar',
   display: 'swap',
-  // Only used on Arabic pages; avoid preloading it on French ones (see montserratArabic).
+  // Arabic pages swap the Arabic fonts in after first paint. next/font preload lists are static per
+  // route entry and both locales share the `[locale]` layout, so `preload: true` would also fetch
+  // them on French pages. Revisit if Arabic first paint matters more than that cost.
   preload: false,
 })
 
-// Arabic body. Not on Google Fonts, so it is self-hosted from ./montserrat-arabic.
-export const montserratArabic = localFont({
-  src: [
-    { path: './montserrat-arabic/Montserrat-Arabic-Regular.woff2', weight: '400' },
-    { path: './montserrat-arabic/Montserrat-Arabic-Medium.woff2', weight: '500' },
-    { path: './montserrat-arabic/Montserrat-Arabic-SemiBold.woff2', weight: '600' },
-    { path: './montserrat-arabic/Montserrat-Arabic-Bold.woff2', weight: '700' },
-  ],
-  variable: '--font-montserrat-arabic',
+export const fontBodyArabic = IBM_Plex_Sans_Arabic({
+  subsets: ['arabic'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-brand-body-ar',
   display: 'swap',
-  // Arabic pages swap these fonts in after first paint. next/font preload lists are static per
-  // route entry and both locales share the `[locale]` layout, so `preload: true` would also
-  // fetch them on French pages. Revisit if Arabic first paint matters more than that cost.
   preload: false,
 })
 
 export const fontVariables = [
-  poppins.variable,
-  montserrat.variable,
-  alexandria.variable,
-  montserratArabic.variable,
+  fontDisplay.variable,
+  fontBody.variable,
+  fontDisplayArabic.variable,
+  fontBodyArabic.variable,
 ].join(' ')

@@ -1,0 +1,57 @@
+/*
+ * The site's colour roles, under shadcn's names, mapped to the brand primitives in
+ * src/styles/brand/tokens.css, and its layout rhythm. Light theme only: the public site has no dark
+ * mode.
+ */
+
+:root {
+  --background: var(--brand-neutral-0);
+  --foreground: var(--brand-ink);
+  --card: var(--brand-neutral-0);
+  --card-foreground: var(--brand-ink);
+  --popover: var(--brand-neutral-0);
+  --popover-foreground: var(--brand-ink);
+
+  /* White on it is 4.64:1 (AA): buttons, badges, step numbers, red bands. */
+  --primary: var(--brand-red-500);
+  --primary-foreground: var(--brand-neutral-0);
+  --primary-hover: var(--brand-red-600);
+  /* Small red text and links: 7.54:1 on white, 5.55:1 on cream. Red 500 is not for small text. */
+  --primary-ink: var(--brand-red-700);
+
+  /* Step cards and the participation section. */
+  --secondary: var(--brand-cream-100);
+  --secondary-foreground: var(--brand-ink);
+
+  /* The charter's cream bands. Ink on it is 12:1; red text on it only at primary-ink. */
+  --brand-cream: var(--brand-cream-300);
+  /*
+   * The charter's blue, for bands and icons. White on it is 3.85:1, so it carries white text only
+   * at large sizes (24px, or 18.7px bold); smaller white text sits on blue 600 or 700.
+   */
+  --brand-blue: var(--brand-blue-500);
+  --brand-blue-strong: var(--brand-blue-700);
+  /* Blue text and icons on white: 6.72:1. */
+  --brand-blue-ink: var(--brand-blue-700);
+
+  --muted: var(--brand-neutral-50);
+  /* Secondary text: 6.85:1 on white, 6.26:1 on cream. */
+  --muted-foreground: var(--brand-neutral-600);
+  --accent: var(--brand-red-50);
+  --accent-foreground: var(--brand-red-700);
+  --border: var(--brand-neutral-150);
+  --input: var(--brand-neutral-250);
+  /* Blue, so a focused field is never mistaken for an error or for the brand red. */
+  --ring: var(--brand-blue-600);
+
+  /* The brand is red, so errors always pair this colour with an icon and text. */
+  --destructive: #b91c1c;
+  --success: #15803d;
+  --success-foreground: var(--brand-neutral-0);
+
+  --radius: var(--brand-radius-control);
+
+  /* Space between page sections, and between blocks inside one. */
+  --space-section: clamp(3rem, 2rem + 4vw, 5rem);
+  --space-block: clamp(1.5rem, 1.1rem + 1.6vw, 2.5rem);
+}

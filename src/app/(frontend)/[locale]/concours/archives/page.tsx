@@ -26,7 +26,7 @@ export default async function ContestArchivePage({
   )
 
   return (
-    <Container size="narrow" className="flex flex-col gap-6 py-10">
+    <Container size="narrow" className="flex flex-col gap-6 py-section">
       <h1>{t('archiveTitle')}</h1>
       {contests.length > 0 ? (
         <ContestList contests={contests} winners={winners} />

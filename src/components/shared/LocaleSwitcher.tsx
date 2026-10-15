@@ -1,5 +1,6 @@
 'use client'
 
+import { Globe } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import { useLocale } from 'next-intl'
 import { Suspense } from 'react'
@@ -43,8 +44,9 @@ function LocaleLinks({ search }: { search: URLSearchParams | string }) {
             lang={code}
             hrefLang={code}
             dir={localeMetadata[code].direction}
-            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+            className={buttonVariants({ variant: 'outline', className: 'rounded-full px-4' })}
           >
+            <Globe aria-hidden className="size-4.5 text-muted-foreground" />
             {localeMetadata[code].nativeName}
           </Link>
         ))}

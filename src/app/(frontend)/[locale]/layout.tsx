@@ -4,9 +4,8 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import React from 'react'
 
 import { Tracking } from '@/components/analytics/Tracking'
-import { Container } from '@/components/shared/Container'
-import { LocaleSwitcher } from '@/components/shared/LocaleSwitcher'
 import { SiteFooter } from '@/components/shared/SiteFooter'
+import { SiteHeader } from '@/components/shared/SiteHeader'
 import { DirectionProvider } from '@/components/ui/direction'
 import { getDirection } from '@/i18n/config'
 import { routing } from '@/i18n/routing'
@@ -49,15 +48,12 @@ export default async function LocaleLayout({ children }: LayoutProps<'/[locale]'
 
   return (
     <html lang={locale} dir={dir} className={fontVariables}>
-      <body>
+      {/* A full-height column, so the footer sits at the bottom of short pages too. */}
+      <body className="flex min-h-dvh flex-col">
         <NextIntlClientProvider>
           <DirectionProvider direction={dir}>
-            <header>
-              <Container className="flex justify-end py-3">
-                <LocaleSwitcher />
-              </Container>
-            </header>
-            <main>{children}</main>
+            <SiteHeader />
+            <main className="flex flex-1 flex-col">{children}</main>
             <SiteFooter />
             <Tracking />
           </DirectionProvider>

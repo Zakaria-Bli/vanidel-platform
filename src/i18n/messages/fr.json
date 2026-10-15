@@ -8,6 +8,12 @@
     "description": "La page que vous cherchez n'existe pas ou a été déplacée.",
     "backHome": "Voir les concours"
   },
+  "header": {
+    "home": "Vanidel, accueil des concours",
+    "nav": "Navigation principale",
+    "current": "Concours en cours",
+    "past": "Concours passés"
+  },
   "contests": {
     "title": "Concours",
     "current": "Concours en cours",
@@ -83,7 +89,10 @@
     "legal": "Mentions légales",
     "privacy": "Politique de confidentialité",
     "cookies": "Gérer les cookies",
-    "notYetAvailable": "Ce texte sera bientôt disponible."
+    "notYetAvailable": "Ce texte sera bientôt disponible.",
+    "legalNav": "Informations légales",
+    "followUs": "Suivez Vanidel",
+    "copyright": "© {year} Vanidel. Tous droits réservés."
   },
   "share": {
     "title": "Partagez le concours",

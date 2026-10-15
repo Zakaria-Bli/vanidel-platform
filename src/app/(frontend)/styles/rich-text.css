@@ -1,0 +1,55 @@
+/*
+ * Text written in the admin's rich-text editor (contest descriptions, legal pages). Tailwind's reset
+ * removes list bullets and paragraph spacing, which this puts back. Applied through
+ * src/components/shared/RichText.tsx.
+ */
+
+@layer components {
+  .rich-text > * + * {
+    margin-block-start: 1em;
+  }
+
+  .rich-text > :is(h2, h3, h4) {
+    margin-block-start: 1.75em;
+  }
+
+  .rich-text > :is(h2, h3, h4) + * {
+    margin-block-start: 0.5em;
+  }
+
+  .rich-text :is(ul, ol) {
+    padding-inline-start: 1.5em;
+  }
+
+  .rich-text ul {
+    list-style: disc;
+  }
+
+  .rich-text ol {
+    list-style: decimal;
+  }
+
+  .rich-text li + li {
+    margin-block-start: 0.375em;
+  }
+
+  .rich-text li::marker {
+    color: var(--primary);
+  }
+
+  .rich-text a {
+    color: var(--primary-ink);
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .rich-text strong {
+    font-weight: 600;
+  }
+
+  .rich-text blockquote {
+    border-inline-start: 4px solid var(--brand-cream);
+    padding-inline-start: 1em;
+    color: var(--muted-foreground);
+  }
+}

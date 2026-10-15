@@ -22,7 +22,7 @@ export default async function ContestsPage({ params }: PageProps<'/[locale]/conc
   const contests = await getCachedCurrentContests(locale as Locale)
 
   return (
-    <Container size="narrow" className="flex flex-col gap-6 py-10">
+    <Container size="narrow" className="flex flex-col gap-6 py-section">
       <h1>{t('current')}</h1>
       {contests.length > 0 ? <ContestList contests={contests} /> : <p>{t('noCurrent')}</p>}
       <Link href="/concours/archives">{t('archiveLink')}</Link>
