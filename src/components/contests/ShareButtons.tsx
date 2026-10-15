@@ -17,10 +17,9 @@ export interface ShareButtonsProps {
   className?: string
 }
 
-const buttonClass = 'h-11 gap-2 px-4 text-sm'
+const buttonClass = 'px-4'
 
-// Merged like <Button> does, so `outline` replaces the base transparent border on links too.
-const outlineLink = cn(buttonVariants({ variant: 'outline' }), buttonClass)
+const outlineLink = buttonVariants({ variant: 'outline', className: buttonClass })
 
 const noSubscription = () => () => {}
 const hasShareSheet = () => typeof navigator.share === 'function'

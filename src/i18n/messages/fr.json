@@ -17,14 +17,10 @@
   "contests": {
     "title": "Concours",
     "current": "Concours en cours",
-    "noCurrent": "Aucun concours en cours pour le moment.",
-    "archiveLink": "Voir les concours passés",
     "archiveTitle": "Concours passés",
-    "noArchive": "Aucun concours passé pour le moment.",
     "backToContests": "Tous les concours",
     "howToTakePart": "Comment participer",
     "prizes": "Lots à gagner",
-    "regulation": "Règlement du concours (PDF)",
     "phase": {
       "scheduled": "Ouverture le {date}",
       "open": "Jusqu’au {date}",
@@ -36,7 +32,72 @@
     "ended": "Ce concours est terminé. Merci à tous les participants !",
     "winners": "Les gagnants",
     "winnersPeriod": "Tirage du {range}",
-    "winnersOf": "Gagnants : <names></names>"
+    "winnersOf": "Gagnants : <names></names>",
+    "winnersSoon": "Les gagnants seront publiés ici après le tirage.",
+    "eyebrow": "Concours Vanidel",
+    "listHero": {
+      "title": "Participez et gagnez",
+      "text": "Achetez un produit Vanidel, gardez votre ticket de caisse et tentez votre chance."
+    },
+    "archiveHero": {
+      "title": "Concours passés",
+      "text": "Les concours terminés et leurs gagnants."
+    },
+    "tabs": {
+      "label": "Concours",
+      "current": "En cours",
+      "past": "Concours passés"
+    },
+    "status": {
+      "open": "En cours",
+      "scheduled": "Bientôt",
+      "closed": "Terminé"
+    },
+    "countdown": {
+      "ends": "{days, plural, =0 {Se termine aujourd’hui} =1 {Se termine demain} other {Plus que # jours}}",
+      "starts": "{days, plural, =0 {Ouvre aujourd’hui} =1 {Ouvre demain} other {Ouvre dans # jours}}"
+    },
+    "card": {
+      "toWin": "À gagner : {prize}",
+      "participate": "Participer",
+      "discover": "Découvrir",
+      "seeWinners": "Voir les gagnants",
+      "seeContest": "Voir le concours",
+      "winnersPublished": "Gagnants publiés",
+      "noImage": "Concours Vanidel"
+    },
+    "facts": {
+      "title": "L’essentiel",
+      "period": "Période",
+      "draw": "Tirage",
+      "prizes": "Lots",
+      "entry": "Participation",
+      "drawValue": "{days, plural, =1 {Chaque jour} =7 {Chaque semaine} other {Tous les # jours}} · {winners, plural, =1 {1 gagnant} other {# gagnants}}",
+      "prizesValue": "{count, plural, =1 {1 lot à gagner} other {# lots à gagner}}",
+      "entryValue": "Une photo du ticket de caisse",
+      "entryLimit": "{limit, plural, =1 {1 participation} other {# participations}} par numéro et par tirage"
+    },
+    "regulationShort": "Règlement (PDF)",
+    "opensButton": "Ouvre le {date}",
+    "reassurance": "Environ 2 minutes. Gardez votre ticket de caisse jusqu’au tirage.",
+    "empty": {
+      "currentTitle": "Pas de concours en ce moment",
+      "currentText": "Le prochain concours Vanidel arrive bientôt. En attendant, découvrez les gagnants des concours passés.",
+      "currentAction": "Voir les concours passés",
+      "follow": "Suivez Vanidel pour ne pas le manquer",
+      "pastTitle": "Aucun concours terminé pour l’instant",
+      "pastText": "Les gagnants des concours terminés seront publiés ici.",
+      "pastAction": "Voir les concours en cours"
+    },
+    "notFound": {
+      "title": "Ce concours est introuvable",
+      "text": "Il a peut-être pris fin, ou le lien est incorrect.",
+      "current": "Voir les concours en cours",
+      "past": "Concours passés",
+      "suggestions": "Concours en cours"
+    },
+    "loading": "Chargement des concours…",
+    "participateBar": "Participer"
   },
   "participation": {
     "optional": "(facultatif)",
@@ -76,7 +137,13 @@
       "period-drawn": "La période de tirage vient de se terminer. Renvoyez votre participation.",
       "consents-changed": "Les conditions de participation ont été mises à jour depuis l’ouverture de la page. Rechargez la page pour les relire, puis envoyez de nouveau votre participation."
     },
-    "reload": "Recharger la page"
+    "reload": "Recharger la page",
+    "file": {
+      "choose": "Choisir une photo",
+      "change": "Changer de photo",
+      "none": "Aucune photo choisie",
+      "preview": "Aperçu de la photo choisie"
+    }
   },
   "cookies": {
     "title": "Cookies",
