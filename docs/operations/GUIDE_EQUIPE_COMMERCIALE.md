@@ -7,6 +7,10 @@ Ce guide couvre tout ce qu’il faut pour créer, lancer et clôturer un concour
 - Connectez-vous avec l’e-mail et le mot de passe donnés par l’administrateur.
 - La langue de l’administration (français, anglais ou arabe) se choisit dans votre compte, en haut à droite.
 - Le rôle **Commercial** permet tout ce qui est décrit ici. Supprimer un concours ou un média, et gérer les comptes, est réservé à l’administrateur.
+- La page d’accueil (**Tableau de bord**) montre :
+  - **En direct** : chaque concours ouvert ou à venir, avec ses participations (au total, aujourd’hui, numéros uniques) et les liens **Modifier**, **Voir la page** et **Rapport (CSV)**.
+  - **À faire** : les tirages à lancer, les gagnants à publier et les brouillons qui ne peuvent pas encore être publiés. Chaque ligne mène à l’endroit où le faire.
+  - **Actions rapides** : nouveau concours, lien de campagne, export des participations, médias.
 
 ## 2. Créer un concours
 

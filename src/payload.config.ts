@@ -60,6 +60,8 @@ export default buildConfig({
       beforeLogin: ['/payload/components/brand/LoginIntro#LoginIntro'],
       afterLogin: ['/payload/components/brand/LoginFooter#LoginFooter'],
       beforeNavLinks: ['/payload/components/brand/ViewSiteLink#ViewSiteLink'],
+      // Above Payload's collection cards, which stay. Not the experimental `admin.dashboard` widgets.
+      beforeDashboard: ['/payload/components/dashboard/VanidelDashboard#VanidelDashboard'],
     },
   },
   collections: [
