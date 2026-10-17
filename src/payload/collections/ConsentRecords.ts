@@ -27,6 +27,7 @@ export const ConsentRecords: CollectionConfig = {
     plural: label('Consentements', 'Consent records', 'سجلات الموافقة'),
   },
   admin: {
+    hideAPIURL: true,
     group: groups.participations,
     defaultColumns: ['contact', 'type', 'granted', 'capturedAt'],
   },

@@ -27,6 +27,7 @@ export const Users: CollectionConfig = {
     plural: label('Utilisateurs', 'Users', 'المستخدمون'),
   },
   admin: {
+    hideAPIURL: true,
     useAsTitle: 'email',
     group: groups.administration,
     defaultColumns: ['email', 'name', 'role'],

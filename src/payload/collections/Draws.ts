@@ -16,6 +16,7 @@ export const Draws: CollectionConfig = {
     plural: label('Tirages', 'Draws', 'السحوبات'),
   },
   admin: {
+    hideAPIURL: true,
     group: groups.contests,
     defaultColumns: ['contest', 'periodStart', 'periodEnd', 'eligibleCount', 'executedAt'],
     components: {

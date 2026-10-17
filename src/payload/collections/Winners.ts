@@ -50,6 +50,7 @@ export const Winners: CollectionConfig = {
     plural: label('Gagnants', 'Winners', 'الفائزون'),
   },
   admin: {
+    hideAPIURL: true,
     group: groups.contests,
     useAsTitle: 'publicDisplayName',
     defaultColumns: ['publicDisplayName', 'draw', 'published', 'voided'],

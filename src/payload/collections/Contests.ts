@@ -168,6 +168,7 @@ export const Contests: CollectionConfig = {
     plural: label('Concours', 'Contests', 'المسابقات'),
   },
   admin: {
+    hideAPIURL: true,
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'status', 'startAt', 'endAt'],
     group: groups.contests,
