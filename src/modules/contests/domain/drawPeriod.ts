@@ -126,3 +126,15 @@ export function startOfAlgiersDay(day: string): Date | null {
   if (check.getUTCMonth() !== month - 1 || check.getUTCDate() !== date) return null
   return new Date(utcMidnight - algiersOffset(utcMidnight))
 }
+
+/** 00:00 Algiers time on the Algiers calendar day containing `instant`. */
+export function startOfAlgiersDayOf(instant: Date): Date {
+  const offset = algiersOffset(instant.getTime())
+  const local = instant.getTime() + offset
+  return new Date(local - (((local % dayMs) + dayMs) % dayMs) - offset)
+}
+
+/** The last millisecond (23:59:59.999 Algiers time) of the Algiers calendar day containing `instant`. */
+export function endOfAlgiersDayOf(instant: Date): Date {
+  return new Date(startOfAlgiersDayOf(instant).getTime() + dayMs - 1)
+}

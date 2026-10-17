@@ -61,8 +61,8 @@ Suggested attributes:
 - `id`
 - `slug`
 - `status`
-- `startAt`
-- `endAt`
+- `startAt` (00:00 Africa/Algiers on the first day)
+- `endAt` (exclusive bound, the last millisecond of the last day, Africa/Algiers)
 - localized `title`
 - localized `description`
 - localized `participationInstructions`
@@ -169,7 +169,7 @@ Suggested attributes:
 - `participation`
 - `type`
 - `granted`
-- `textVersion`
+- `textVersion` (the contest consent's version at submission, derived from its wording in every language)
 - `capturedAt`
 - `source`
 

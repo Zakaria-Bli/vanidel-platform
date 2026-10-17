@@ -6,7 +6,7 @@ import { submitParticipation } from '@/modules/contests/services/submitParticipa
 import type { Contest, User } from '@/payload-types'
 import { exportMarketingContacts, exportParticipations } from '@/payload/endpoints/exports'
 
-import { createPublishedContest } from './helpers/contests'
+import { createPublishedContest, consentVersionsOf } from './helpers/contests'
 import { phonePhoto } from './helpers/images'
 import { createUser, getMigratedPayload } from './helpers/payload'
 
@@ -44,7 +44,7 @@ async function participate(
     email: `${name.split(' ')[0].toLowerCase()}.${daysFromNow}@example.com`,
     wilaya: '31',
     consents: { regulation: true, dataProcessing: true, marketing },
-    consentVersions: { regulation: 'r1', dataProcessing: 'd1', marketing: 'm1' },
+    consentVersions: consentVersionsOf(target),
     ticket: await phonePhoto(photoSeed++),
     attribution: { source: 'qr', utmCampaign: 'rentree', landedAt: new Date().toISOString() },
     now: new Date(Date.now() + daysFromNow * day),

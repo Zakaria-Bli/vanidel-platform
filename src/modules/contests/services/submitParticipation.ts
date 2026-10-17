@@ -292,7 +292,7 @@ export async function submitParticipation(
           participation: participation.id,
           type: consent.type,
           granted: consent.granted,
-          textVersion: consent.textVersion,
+          textVersion: consent.textVersion ?? '',
           capturedAt: submittedAt,
           source: 'participation-form',
         },

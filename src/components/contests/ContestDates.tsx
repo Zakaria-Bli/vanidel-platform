@@ -30,8 +30,8 @@ export async function ContestDates({
   }
 
   const t = await getTranslations('contests.phase')
-  const date = (value: string) =>
-    format.dateTime(new Date(value), { dateStyle: 'long', timeStyle: 'short' })
+  // Contests run for whole days, so the time adds nothing.
+  const date = (value: string) => format.dateTime(new Date(value), { dateStyle: 'long' })
 
   switch (contestPhase(contest)) {
     case 'scheduled':

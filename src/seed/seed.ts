@@ -85,10 +85,9 @@ async function ensureImage(
 
 /**
  * Placeholder contest content, modelled on a typical Algerian receipt contest until Vanidel sends
- * its own texts, visuals, rules and legal wording. Consent texts are versioned `placeholder-…` so
- * records captured with them are recognizable once the final wording replaces them.
+ * its own texts, visuals, rules and legal wording. Consent records keep the version of the
+ * text accepted, so those captured with this wording stay recognizable once the final one replaces it.
  */
-const placeholderTextVersion = 'placeholder-2026-10'
 
 const content = {
   fr: {
@@ -219,7 +218,6 @@ export async function seed(payload: Payload, options: SeedOptions): Promise<Cont
         type,
         required,
         label: fr.consents[type],
-        textVersion: placeholderTextVersion,
       })),
     },
   })

@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { drawPeriodFor, drawPeriodsOf, startOfAlgiersDay, type DrawSettings } from './drawPeriod'
+import {
+  drawPeriodFor,
+  drawPeriodsOf,
+  endOfAlgiersDayOf,
+  startOfAlgiersDay,
+  startOfAlgiersDayOf,
+  type DrawSettings,
+} from './drawPeriod'
 
 // Algiers is UTC+1 all year, so 00:00 Algiers is 23:00 UTC the day before.
 // 2026-10-15 is a Thursday.
@@ -83,6 +90,25 @@ describe('startOfAlgiersDay', () => {
 
   it.each(['2026-02-30', '15/10/2026', '', '2026-13-01'])('rejects %j', (day) => {
     expect(startOfAlgiersDay(day)).toBeNull()
+  })
+})
+
+describe('startOfAlgiersDayOf and endOfAlgiersDayOf', () => {
+  // The admin's day-only picker sends noon UTC on the chosen day.
+  it.each([
+    ['a day picked in the admin', '2026-10-15T12:00:00.000Z'],
+    ['early morning in Algiers', '2026-10-14T23:30:00.000Z'],
+    ['late evening in Algiers', '2026-10-15T22:59:59.999Z'],
+  ])('spans the whole Algiers day for %s', (_, instant) => {
+    expect(startOfAlgiersDayOf(new Date(instant)).toISOString()).toBe('2026-10-14T23:00:00.000Z')
+    expect(endOfAlgiersDayOf(new Date(instant)).toISOString()).toBe('2026-10-15T22:59:59.999Z')
+  })
+
+  it('leaves a value it already produced unchanged', () => {
+    const start = startOfAlgiersDayOf(new Date('2026-10-15T12:00:00.000Z'))
+    const end = endOfAlgiersDayOf(new Date('2026-10-15T12:00:00.000Z'))
+    expect(startOfAlgiersDayOf(start)).toEqual(start)
+    expect(endOfAlgiersDayOf(end)).toEqual(end)
   })
 })
 
