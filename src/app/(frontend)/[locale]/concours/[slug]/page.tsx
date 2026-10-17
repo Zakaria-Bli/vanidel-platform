@@ -148,7 +148,8 @@ export default async function ContestPage({ params }: Props) {
             type,
             required: Boolean(required),
             label,
-            textVersion,
+            // Always set on save; see the Contests collection.
+            textVersion: textVersion ?? '',
           }))}
           regulationUrl={populated(contest.regulation)?.url ?? undefined}
           share={<ContestShareButtons contest={contest} />}

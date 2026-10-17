@@ -44,10 +44,7 @@ export async function ContestParticipationSection({
           {phase === 'scheduled' && (
             <p className="text-center text-body-lg">
               {t('opensOn', {
-                date: format.dateTime(new Date(contest.startAt), {
-                  dateStyle: 'long',
-                  timeStyle: 'short',
-                }),
+                date: format.dateTime(new Date(contest.startAt), { dateStyle: 'long' }),
               })}
             </p>
           )}

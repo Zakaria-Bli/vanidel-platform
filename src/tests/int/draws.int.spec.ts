@@ -10,7 +10,7 @@ import { submitParticipation } from '@/modules/contests/services/submitParticipa
 import type { Contest, User } from '@/payload-types'
 import { redrawWinner, runDraw } from '@/payload/endpoints/draws'
 
-import { createPublishedContest } from './helpers/contests'
+import { createPublishedContest, consentVersionsOf } from './helpers/contests'
 import { phonePhoto } from './helpers/images'
 import { createUser, getMigratedPayload } from './helpers/payload'
 
@@ -48,7 +48,7 @@ async function participate(contest: Contest, at: Date, name = 'Amine Benali'): P
     phone: newPhone(),
     wilaya: '16',
     consents: { regulation: true, dataProcessing: true, marketing: false },
-    consentVersions: { regulation: 'r1', dataProcessing: 'd1', marketing: 'm1' },
+    consentVersions: consentVersionsOf(contest),
     ticket: await phonePhoto(photoSeed++),
     now: at,
   })

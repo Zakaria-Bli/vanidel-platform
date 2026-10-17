@@ -3,10 +3,16 @@ import {
   type CollectionBeforeChangeHook,
   type CollectionConfig,
   type FieldHook,
+  type PayloadRequest,
 } from 'payload'
 
 import { locales } from '@/i18n/config'
-import { weekdays } from '@/modules/contests/domain/drawPeriod'
+import { consentTextVersion } from '@/modules/contests/domain/consentVersion'
+import {
+  endOfAlgiersDayOf,
+  startOfAlgiersDayOf,
+  weekdays,
+} from '@/modules/contests/domain/drawPeriod'
 import { duplicateSlug, duplicateSlugPrefix } from '@/modules/contests/domain/duplicate'
 import { advisoryLock, contestSlugLock } from '@/modules/contests/services/advisoryLock'
 import { contestStatuses } from '@/modules/contests/domain/phase'
@@ -44,6 +50,39 @@ export const requiredRowTranslations = {
 
 type Row = Record<string, unknown> & { id?: unknown }
 
+/** The locale a save writes localized fields to, or null for a `locale: 'all'` save. */
+const editedLocaleOf = (req: PayloadRequest) =>
+  req.locale && req.locale !== 'all' ? req.locale : null
+
+/**
+ * The stored contest in every locale. A Local API call given `req` switches `req.locale` to its
+ * own, and the rest of the save writes localized fields to `req.locale`: keep the locale being
+ * saved and restore it after the read, or the edit would be silently dropped.
+ */
+async function storedInAllLocales(req: PayloadRequest, id: number | string) {
+  const { locale, fallbackLocale } = req
+  try {
+    return await req.payload.findByID({ collection: 'contests', id, locale: 'all', depth: 0, req })
+  } finally {
+    req.locale = locale
+    req.fallbackLocale = fallbackLocale
+  }
+}
+
+/**
+ * A localized value as a `locale: 'all'` read shows it: the stored values, with the locale being
+ * saved replaced by the incoming one.
+ */
+function mergeLocales(editedLocale: string | null, storedValues: unknown, incoming: unknown) {
+  const values = { ...(storedValues as Record<string, unknown> | undefined) }
+  if (editedLocale) {
+    if (incoming !== undefined) values[editedLocale] = incoming
+  } else if (incoming && typeof incoming === 'object') {
+    Object.assign(values, incoming)
+  }
+  return values
+}
+
 /**
  * Refuses to publish or archive a contest while a required field is empty in some locale; with
  * `fallback: true`, Arabic pages would otherwise silently show the French text. The admin saves
@@ -58,38 +97,11 @@ const requireTranslationsWhenPublic: CollectionBeforeChangeHook = async ({
   const status = data.status ?? originalDoc?.status
   if (status === 'draft') return data
 
-  // A Local API call given `req` switches `req.locale` to its own, and the rest of this save
-  // writes localized fields to `req.locale`: keep the locale being saved and restore it after the
-  // read, or the edit would be silently dropped.
-  const { locale, fallbackLocale } = req
-  const editedLocale = locale && locale !== 'all' ? locale : null
-  let stored = {}
-  if (operation === 'update' && originalDoc?.id) {
-    try {
-      stored = await req.payload.findByID({
-        collection: 'contests',
-        id: originalDoc.id,
-        locale: 'all',
-        depth: 0,
-        req,
-      })
-    } finally {
-      req.locale = locale
-      req.fallbackLocale = fallbackLocale
-    }
-  }
-
-  // Build the shape of a `locale: 'all'` read: stored values, with the locale being saved
-  // replaced by the incoming one.
-  const mergeValue = (storedValues: unknown, incoming: unknown) => {
-    const values = { ...(storedValues as Record<string, unknown> | undefined) }
-    if (editedLocale) {
-      if (incoming !== undefined) values[editedLocale] = incoming
-    } else if (incoming && typeof incoming === 'object') {
-      Object.assign(values, incoming)
-    }
-    return values
-  }
+  const editedLocale = editedLocaleOf(req)
+  const stored =
+    operation === 'update' && originalDoc?.id ? await storedInAllLocales(req, originalDoc.id) : {}
+  const mergeValue = (storedValues: unknown, incoming: unknown) =>
+    mergeLocales(editedLocale, storedValues, incoming)
 
   const merged: Record<string, unknown> = {}
   for (const path of requiredTranslations) {
@@ -144,6 +156,41 @@ const requireTranslationsWhenPublic: CollectionBeforeChangeHook = async ({
 }
 
 /**
+ * Sets each consent's text version from its wording in every language, so it follows every change
+ * to the text. The admin saves one locale at a time: rows are matched by ID to the stored ones for
+ * their other languages, and a new row has only the edited language.
+ */
+const versionConsentTexts: CollectionBeforeChangeHook = async ({
+  data,
+  originalDoc,
+  operation,
+  req,
+}) => {
+  const rows = data.consents as Row[] | undefined
+  if (!rows) return data
+
+  const editedLocale = editedLocaleOf(req)
+  const stored =
+    operation === 'update' && originalDoc?.id ? await storedInAllLocales(req, originalDoc.id) : {}
+  const storedRows = (valueAt(stored, 'consents') as Row[] | undefined) ?? []
+  data.consents = rows.map((row) => {
+    const storedRow = storedRows.find(({ id }) => id !== undefined && id === row.id)
+    const label = mergeLocales(editedLocale, storedRow?.label, row.label)
+    return { ...row, textVersion: consentTextVersion(label) }
+  })
+  return data
+}
+
+/** Moves a date to the start or end of its Algiers day; see the `startAt` and `endAt` fields. */
+const wholeDay =
+  (toBoundary: (instant: Date) => Date): FieldHook =>
+  ({ value }) => {
+    if (value === null || value === undefined || value === '') return value
+    const instant = new Date(value as string)
+    return Number.isNaN(instant.getTime()) ? value : toBoundary(instant).toISOString()
+  }
+
+/**
  * A duplicated contest gets a free slug (the original's is unique and printed on QR codes).
  * Copies are serialized until their transaction ends, so two made at once cannot pick the same.
  */
@@ -186,7 +233,7 @@ export const Contests: CollectionConfig = {
     delete: isAdmin,
   },
   hooks: {
-    beforeChange: [requireTranslationsWhenPublic],
+    beforeChange: [versionConsentTexts, requireTranslationsWhenPublic],
     afterChange: [revalidateContestAfterChange],
     afterDelete: [revalidateContestAfterDelete],
   },
@@ -368,12 +415,12 @@ export const Contests: CollectionConfig = {
                   name: 'textVersion',
                   label: label('Version du texte', 'Text version', 'إصدار النص'),
                   type: 'text',
-                  required: true,
                   admin: {
+                    readOnly: true,
                     description: label(
-                      'À changer dès que le texte change, pour garder la preuve du texte accepté.',
-                      'Change it whenever the text changes, to keep evidence of the accepted text.',
-                      'غيّره كلما تغيّر النص، للاحتفاظ بإثبات النص المقبول.',
+                      'Calculée à l’enregistrement à partir du texte dans chaque langue ; elle change dès que le texte change. Chaque consentement recueilli garde la version acceptée.',
+                      'Computed on save from the text in every language; it changes whenever the text does. Each consent collected keeps the version accepted.',
+                      'تُحسب عند الحفظ من النص بكل اللغات، وتتغيّر كلما تغيّر النص. تحتفظ كل موافقة مسجّلة بالإصدار المقبول.',
                     ),
                   },
                 },
@@ -542,29 +589,47 @@ export const Contests: CollectionConfig = {
         ),
       },
     },
+    // Contests run for whole days in Algiers time: from 00:00 on the first day to the last
+    // millisecond of the last, whatever time a value comes with.
     {
       name: 'startAt',
-      label: label('Début', 'Start', 'البداية'),
+      label: label('Premier jour', 'First day', 'اليوم الأول'),
       type: 'date',
       required: true,
       admin: {
         position: 'sidebar',
-        date: { pickerAppearance: 'dayAndTime', timeFormat: 'HH:mm' },
+        date: { pickerAppearance: 'dayOnly', displayFormat: 'dd/MM/yyyy' },
+        description: label(
+          'Ouvert dès 00:00 (heure d’Algérie).',
+          'Opens at 00:00 (Algiers time).',
+          'تفتح على الساعة 00:00 (بتوقيت الجزائر).',
+        ),
       },
+      hooks: { beforeValidate: [wholeDay(startOfAlgiersDayOf)] },
     },
     {
       name: 'endAt',
-      label: label('Fin', 'End', 'النهاية'),
+      label: label('Dernier jour', 'Last day', 'اليوم الأخير'),
       type: 'date',
       required: true,
       admin: {
         position: 'sidebar',
-        date: { pickerAppearance: 'dayAndTime', timeFormat: 'HH:mm' },
+        date: { pickerAppearance: 'dayOnly', displayFormat: 'dd/MM/yyyy' },
+        description: label(
+          'Ouvert jusqu’à 23:59 (heure d’Algérie).',
+          'Open until 23:59 (Algiers time).',
+          'مفتوحة حتى الساعة 23:59 (بتوقيت الجزائر).',
+        ),
       },
+      hooks: { beforeValidate: [wholeDay(endOfAlgiersDayOf)] },
+      // Also checks unsaved form values, before the hooks move them: compare days, not instants.
       validate: (value: unknown, { siblingData }: { siblingData: { startAt?: unknown } }) => {
         if (!value) return 'Required.'
-        const start = siblingData.startAt ? new Date(siblingData.startAt as string) : null
-        return start && new Date(value as string) <= start ? 'Must be after the start.' : true
+        if (!siblingData.startAt) return true
+        const start = startOfAlgiersDayOf(new Date(siblingData.startAt as string))
+        return endOfAlgiersDayOf(new Date(value as string)) < start
+          ? 'Must not be before the first day.'
+          : true
       },
     },
   ],

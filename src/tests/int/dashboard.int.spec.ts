@@ -18,7 +18,12 @@ import { executeDraw } from '@/modules/contests/services/draws'
 import { submitParticipation } from '@/modules/contests/services/submitParticipation'
 import type { Contest, User } from '@/payload-types'
 
-import { createDraftContest, createPublishedContest, translateToArabic } from './helpers/contests'
+import {
+  createDraftContest,
+  createPublishedContest,
+  translateToArabic,
+  consentVersionsOf,
+} from './helpers/contests'
 import { phonePhoto } from './helpers/images'
 import { createUser, getMigratedPayload } from './helpers/payload'
 
@@ -59,7 +64,7 @@ async function participate(contest: Contest, at: Date, phone = newPhone(), name 
     phone,
     wilaya: '16',
     consents: { regulation: true, dataProcessing: true, marketing: false },
-    consentVersions: { regulation: 'r1', dataProcessing: 'd1', marketing: 'm1' },
+    consentVersions: consentVersionsOf(contest),
     ticket: await phonePhoto(photoSeed++),
     now: at,
   })

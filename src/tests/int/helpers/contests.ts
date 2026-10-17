@@ -19,18 +19,16 @@ export function draftContestData(): RequiredDataFromCollectionSlug<'contests'> {
     description: paragraph('Gagnez des lots.'),
     steps: [{ text: 'Envoyez votre ticket.' }],
     consents: [
-      { type: 'regulation', required: true, label: 'J’accepte le règlement.', textVersion: 'r1' },
+      { type: 'regulation', required: true, label: 'J’accepte le règlement.' },
       {
         type: 'dataProcessing',
         required: true,
         label: 'J’accepte le traitement de mes données.',
-        textVersion: 'd1',
       },
       {
         type: 'marketing',
         required: false,
         label: 'J’accepte de recevoir des offres.',
-        textVersion: 'm1',
       },
     ],
     seo: { title: 'Grand concours' },
@@ -70,4 +68,11 @@ export async function createPublishedContest(payload: Payload): Promise<Contest>
   const draft = await createDraftContest(payload)
   await translateToArabic(payload, draft.id)
   return payload.update({ collection: 'contests', id: draft.id, data: { status: 'published' } })
+}
+
+/** The consent text versions a visitor's form sends: the contest's current ones. */
+export function consentVersionsOf(contest: Contest): Record<string, string> {
+  return Object.fromEntries(
+    (contest.consents ?? []).map(({ type, textVersion }) => [type, textVersion ?? '']),
+  )
 }

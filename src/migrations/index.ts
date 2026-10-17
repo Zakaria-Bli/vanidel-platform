@@ -8,6 +8,7 @@ import * as migration_20261012_124811_role_default from './20261012_124811_role_
 import * as migration_20261012_171830_participation_steps from './20261012_171830_participation_steps';
 import * as migration_20261013_092146_ticket_thumbnails from './20261013_092146_ticket_thumbnails';
 import * as migration_20261014_110120_campaign_links from './20261014_110120_campaign_links';
+import * as migration_20261017_213841_contest_day_dates_consent_versions from './20261017_213841_contest_day_dates_consent_versions';
 
 export const migrations = [
   {
@@ -58,6 +59,11 @@ export const migrations = [
   {
     up: migration_20261014_110120_campaign_links.up,
     down: migration_20261014_110120_campaign_links.down,
-    name: '20261014_110120_campaign_links'
+    name: '20261014_110120_campaign_links',
+  },
+  {
+    up: migration_20261017_213841_contest_day_dates_consent_versions.up,
+    down: migration_20261017_213841_contest_day_dates_consent_versions.down,
+    name: '20261017_213841_contest_day_dates_consent_versions'
   },
 ];

@@ -1,6 +1,7 @@
 import type { Payload } from 'payload'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import { consentTextVersion } from '@/modules/contests/domain/consentVersion'
 import { seed, seedContestSlug } from '@/seed/seed'
 
 import { getMigratedPayload } from './helpers/payload'
@@ -59,13 +60,13 @@ describe('development seed', () => {
     expect(contest.steps?.map(({ text }) => languagesOf(text))).toEqual(Array(6).fill(['ar', 'fr']))
     expect(contest.prizes?.map(({ title }) => languagesOf(title))).toEqual([['ar', 'fr']])
     expect(contest.form).toMatchObject({ email: 'optional', wilayaRequired: true })
+    // Read with `locale: 'all'`, each label holds every language.
+    const versionOf = (label: unknown) => consentTextVersion(label as Record<string, string>)
     expect(
       contest.consents?.map(({ type, required, textVersion }) => [type, required, textVersion]),
-    ).toEqual([
-      ['regulation', true, 'placeholder-2026-10'],
-      ['dataProcessing', true, 'placeholder-2026-10'],
-      ['marketing', false, 'placeholder-2026-10'],
-    ])
+    ).toEqual(
+      contest.consents?.map(({ type, required, label }) => [type, required, versionOf(label)]),
+    )
     expect(contest.consents?.map(({ label }) => languagesOf(label))).toEqual(
       Array(3).fill(['ar', 'fr']),
     )

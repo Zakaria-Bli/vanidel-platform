@@ -10,7 +10,7 @@ import { submitParticipation } from '@/modules/contests/services/submitParticipa
 import type { Contest, User } from '@/payload-types'
 import { contestReportEndpoint, reportCsv } from '@/payload/endpoints/reports'
 
-import { createPublishedContest } from './helpers/contests'
+import { createPublishedContest, consentVersionsOf } from './helpers/contests'
 import { phonePhoto } from './helpers/images'
 import { createUser, getMigratedPayload } from './helpers/payload'
 
@@ -30,7 +30,7 @@ async function enter(url: string | null, wilaya = '16', marketing = false, phone
     phone,
     wilaya,
     consents: { regulation: true, dataProcessing: true, marketing },
-    consentVersions: { regulation: 'r1', dataProcessing: 'd1', marketing: 'm1' },
+    consentVersions: consentVersionsOf(contest),
     ticket: await phonePhoto(photoSeed++),
     attribution: url ? attributionFromSearch(new URL(url).searchParams) : null,
   })

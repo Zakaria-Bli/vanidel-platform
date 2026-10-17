@@ -193,9 +193,9 @@ export interface Contest {
         required?: boolean | null;
         label: string;
         /**
-         * Change it whenever the text changes, to keep evidence of the accepted text.
+         * Computed on save from the text in every language; it changes whenever the text does. Each consent collected keeps the version accepted.
          */
-        textVersion: string;
+        textVersion?: string | null;
         id?: string | null;
       }[]
     | null;
@@ -220,7 +220,13 @@ export interface Contest {
    * Published: open between the start and end dates.
    */
   status: 'draft' | 'published' | 'archived';
+  /**
+   * Opens at 00:00 (Algiers time).
+   */
   startAt: string;
+  /**
+   * Open until 23:59 (Algiers time).
+   */
   endAt: string;
   updatedAt: string;
   createdAt: string;

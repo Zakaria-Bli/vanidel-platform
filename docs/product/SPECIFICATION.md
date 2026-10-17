@@ -119,8 +119,7 @@ Each contest must support contest-specific configuration including:
 - Hero/main visual.
 - Participation instructions.
 - Prize information.
-- Start date/time.
-- End date/time.
+- First and last day (whole days in Africa/Algiers time: from 00:00 on the first day to 23:59 on the last).
 - Participation rules, including the entry limit per phone per draw period.
 - Regulation document, including PDF where supplied.
 - Winner publication content.

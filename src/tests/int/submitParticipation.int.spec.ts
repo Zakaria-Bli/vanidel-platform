@@ -11,7 +11,7 @@ import {
 } from '@/modules/contests/services/submitParticipation'
 import type { Contest } from '@/payload-types'
 
-import { createDraftContest, createPublishedContest } from './helpers/contests'
+import { createDraftContest, createPublishedContest, consentVersionsOf } from './helpers/contests'
 import { phonePhoto } from './helpers/images'
 import { getMigratedPayload } from './helpers/payload'
 
@@ -35,7 +35,7 @@ async function input(overrides: Partial<ParticipationInput> = {}): Promise<Parti
     phone: newPhone(),
     wilaya: '16',
     consents: { regulation: true, dataProcessing: true, marketing: false },
-    consentVersions: { regulation: 'r1', dataProcessing: 'd1', marketing: 'm1' },
+    consentVersions: consentVersionsOf(contest),
     ticket: await newPhoto(),
     ...overrides,
   }
@@ -131,11 +131,11 @@ describe('an accepted participation', () => {
       consents
         .map(({ type, granted, textVersion }) => [type, granted, textVersion])
         .sort(([a], [b]) => String(a).localeCompare(String(b))),
-    ).toEqual([
-      ['dataProcessing', true, 'd1'],
-      ['marketing', true, 'm1'],
-      ['regulation', true, 'r1'],
-    ])
+    ).toEqual(
+      Object.entries(consentVersionsOf(contest))
+        .map(([type, version]) => [type, true, version])
+        .sort(([a], [b]) => String(a).localeCompare(String(b))),
+    )
   })
 
   it('records a refused optional consent as not granted', async () => {
@@ -226,18 +226,23 @@ describe('duplicate prevention', () => {
 describe('consent wording', () => {
   it('refuses consent given to wording older than the current text version', async () => {
     const changed = await publishedContest()
-    const stale = Object.fromEntries((changed.consents ?? []).map((c) => [c.type, c.textVersion]))
+    const stale = consentVersionsOf(changed)
     // Staff update the marketing wording after the visitor loaded the page.
-    await payload.update({
+    const updated = await payload.update({
       collection: 'contests',
       id: changed.id,
       locale: 'fr',
       data: {
         consents: (changed.consents ?? []).map((consent) =>
-          consent.type === 'marketing' ? { ...consent, textVersion: 'm2' } : consent,
+          consent.type === 'marketing'
+            ? { ...consent, label: 'J’accepte de recevoir les offres de Vanidel.' }
+            : consent,
         ),
       },
     })
+    const current = consentVersionsOf(updated)
+    expect(current.marketing).not.toBe(stale.marketing)
+    expect({ ...current, marketing: stale.marketing }).toEqual(stale)
 
     await expect(
       submitParticipation(
@@ -250,7 +255,7 @@ describe('consent wording', () => {
       payload,
       await input({
         contestSlug: changed.slug,
-        consentVersions: { ...stale, marketing: 'm2' },
+        consentVersions: current,
         consents: { regulation: true, dataProcessing: true, marketing: true },
       }),
     )
@@ -258,7 +263,7 @@ describe('consent wording', () => {
       collection: 'consent-records',
       where: { participation: { equals: result.participationId }, type: { equals: 'marketing' } },
     })
-    expect(docs.map(({ textVersion }) => textVersion)).toEqual(['m2'])
+    expect(docs.map(({ textVersion }) => textVersion)).toEqual([current.marketing])
   })
 
   it('refuses a submission that does not say which wording was shown', async () => {

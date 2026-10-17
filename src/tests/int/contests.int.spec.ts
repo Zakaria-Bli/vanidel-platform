@@ -158,13 +158,11 @@ describe('translated rows', () => {
             type: 'regulation',
             required: true,
             label: 'J’accepte le règlement.',
-            textVersion: 'v1',
           },
           {
             type: 'dataProcessing',
             required: true,
             label: 'J’accepte le traitement de mes données.',
-            textVersion: 'v1',
           },
         ],
       },
@@ -323,15 +321,95 @@ describe('contest rules', () => {
     ).rejects.toThrow()
   })
 
-  it('requires the end to come after the start', async () => {
+  it('refuses a last day before the first day, and allows a one-day contest', async () => {
     const contest = await track(createDraftContest(payload))
+    const dayBefore = new Date(Date.parse(contest.startAt) - 12 * 60 * 60 * 1000).toISOString()
 
     await expect(
-      payload.update({
-        collection: 'contests',
-        id: contest.id,
-        data: { endAt: contest.startAt },
-      }),
+      payload.update({ collection: 'contests', id: contest.id, data: { endAt: dayBefore } }),
     ).rejects.toThrow()
+    const oneDay = await payload.update({
+      collection: 'contests',
+      id: contest.id,
+      data: { endAt: contest.startAt },
+    })
+    expect(Date.parse(oneDay.endAt) - Date.parse(oneDay.startAt)).toBe(24 * 60 * 60 * 1000 - 1)
+  })
+})
+
+describe('contest days', () => {
+  it('runs from 00:00 on the first day to 23:59:59.999 on the last, Algiers time', async () => {
+    const contest = await track(
+      payload.create({
+        collection: 'contests',
+        locale: 'fr',
+        // What the admin's day-only picker sends: noon UTC on the chosen days.
+        data: {
+          ...draftContestData(),
+          startAt: '2026-11-01T12:00:00.000Z',
+          endAt: '2026-11-30T12:00:00.000Z',
+        },
+      }),
+    )
+    expect([contest.startAt, contest.endAt]).toEqual([
+      '2026-10-31T23:00:00.000Z',
+      '2026-11-30T22:59:59.999Z',
+    ])
+
+    // Saving again keeps the same days.
+    const saved = await payload.update({
+      collection: 'contests',
+      id: contest.id,
+      data: { startAt: contest.startAt, endAt: contest.endAt },
+    })
+    expect([saved.startAt, saved.endAt]).toEqual([contest.startAt, contest.endAt])
+  })
+})
+
+describe('consent text versions', () => {
+  const versions = (contest: { consents?: { textVersion?: string | null }[] | null }) =>
+    (contest.consents ?? []).map(({ textVersion }) => textVersion)
+
+  it('follows the wording in every language, whatever is sent', async () => {
+    const draft = await track(
+      payload.create({
+        collection: 'contests',
+        locale: 'fr',
+        data: {
+          ...draftContestData(),
+          consents: draftContestData().consents?.map((row) => ({ ...row, textVersion: 'typed' })),
+        },
+      }),
+    )
+    const created = versions(draft)
+    expect(created).toEqual([expect.any(String), expect.any(String), expect.any(String)])
+    expect(new Set(created).size).toBe(3)
+    expect(created).not.toContain('typed')
+
+    // Adding the Arabic text changes every version.
+    const translated = await translateToArabic(payload, draft.id)
+    versions(translated).forEach((version, index) => expect(version).not.toBe(created[index]))
+
+    // Saving unchanged text keeps them; editing one text changes only its version.
+    const french = await payload.findByID({ collection: 'contests', id: draft.id, locale: 'fr' })
+    const resaved = await payload.update({
+      collection: 'contests',
+      id: draft.id,
+      locale: 'fr',
+      data: { consents: french.consents },
+    })
+    expect(versions(resaved)).toEqual(versions(translated))
+    const edited = await payload.update({
+      collection: 'contests',
+      id: draft.id,
+      locale: 'ar',
+      data: {
+        consents: (translated.consents ?? []).map((row, index) =>
+          index === 0 ? { ...row, label: 'أوافق على نظام المسابقة.' } : { ...row, label: 'أوافق.' },
+        ),
+      },
+    })
+    expect(versions(edited)[0]).not.toBe(versions(translated)[0])
+    expect(versions(edited).slice(1)).toEqual(versions(translated).slice(1))
   })
 })
