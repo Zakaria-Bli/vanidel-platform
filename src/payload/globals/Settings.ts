@@ -9,6 +9,7 @@ export const Settings: GlobalConfig = {
   slug: 'settings',
   label: label('Paramètres', 'Settings', 'الإعدادات'),
   admin: {
+    hideAPIURL: true,
     group: groups.administration,
   },
   access: {

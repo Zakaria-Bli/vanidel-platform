@@ -17,6 +17,7 @@ export const Contacts: CollectionConfig = {
     plural: label('Contacts', 'Contacts', 'جهات الاتصال'),
   },
   admin: {
+    hideAPIURL: true,
     group: groups.participations,
     useAsTitle: 'phoneNormalized',
     defaultColumns: ['phoneNormalized', 'name', 'wilaya', 'createdAt'],

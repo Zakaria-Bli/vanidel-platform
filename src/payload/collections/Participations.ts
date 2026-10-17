@@ -19,6 +19,7 @@ export const Participations: CollectionConfig = {
     plural: label('Participations', 'Participations', 'المشاركات'),
   },
   admin: {
+    hideAPIURL: true,
     group: groups.participations,
     useAsTitle: 'name',
     defaultColumns: ['submittedAt', 'ticket', 'name', 'phone', 'wilaya', 'source', 'contest'],

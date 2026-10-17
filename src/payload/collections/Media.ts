@@ -11,6 +11,7 @@ export const Media: CollectionConfig = {
     plural: label('Médias', 'Media', 'الوسائط'),
   },
   admin: {
+    hideAPIURL: true,
     group: groups.content,
   },
   // Public campaign assets only. Proof-of-purchase images live in the private `tickets` collection.

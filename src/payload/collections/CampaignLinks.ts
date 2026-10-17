@@ -66,6 +66,7 @@ export const CampaignLinks: CollectionConfig = {
     plural: label('Liens de campagne', 'Campaign links', 'روابط الحملة'),
   },
   admin: {
+    hideAPIURL: true,
     group: groups.contests,
     useAsTitle: 'name',
     defaultColumns: ['name', 'channel', 'contest', 'url'],

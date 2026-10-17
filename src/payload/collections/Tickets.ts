@@ -22,6 +22,7 @@ export const Tickets: CollectionConfig = {
     plural: label('Tickets', 'Tickets', 'التذاكر'),
   },
   admin: {
+    hideAPIURL: true,
     group: groups.participations,
     defaultColumns: ['filename', 'contest', 'uploadedAt'],
   },
