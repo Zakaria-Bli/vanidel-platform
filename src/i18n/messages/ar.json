@@ -77,6 +77,7 @@
       "prizes": "الجوائز",
       "entry": "المشاركة",
       "drawValue": "{days, plural, =1 {كل يوم} =2 {كل يومين} =7 {كل أسبوع} few {كل # أيام} many {كل # يومًا} other {كل # يوم}} · {winners, plural, =1 {فائز واحد} =2 {فائزان} few {# فائزين} many {# فائزًا} other {# فائز}}",
+      "drawPoolSinceStart": "من بين كل المشاركات منذ البداية",
       "prizesValue": "{count, plural, =1 {جائزة واحدة} =2 {جائزتان} few {# جوائز} many {# جائزة} other {# جائزة}}",
       "entryValue": "صورة تذكرة الشراء",
       "entryLimit": "{limit, plural, =1 {مشاركة واحدة} =2 {مشاركتان} few {# مشاركات} many {# مشاركة} other {# مشاركة}} لكل رقم في كل سحب"

@@ -13,7 +13,7 @@ export function draftContestData(): RequiredDataFromCollectionSlug<'contests'> {
     status: 'draft',
     form: { email: 'optional', wilayaRequired: true },
     entryLimitPerPhone: 1,
-    draw: { periodDays: 7, winnersPerDraw: 1 },
+    draw: { periodDays: 7, winnersPerDraw: 1, poolScope: 'period' },
     slug: `test-${randomUUID()}`,
     title: 'Grand concours',
     description: paragraph('Gagnez des lots.'),

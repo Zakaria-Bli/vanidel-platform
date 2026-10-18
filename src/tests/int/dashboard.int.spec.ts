@@ -132,7 +132,12 @@ describe('pendingDraws', () => {
       ({ contest: { id } }) => id === contest.id,
     )
     expect(pending).toEqual([
-      { contest: { id: contest.id, title: contest.title }, period: periods[1], drawn: false },
+      {
+        contest: { id: contest.id, title: contest.title },
+        period: periods[1],
+        poolStart: periods[1].start,
+        drawn: false,
+      },
     ])
   })
 

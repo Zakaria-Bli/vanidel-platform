@@ -25,7 +25,10 @@ let photoSeed = randomInt(1_000_000)
 const newPhone = () => `05${String(randomInt(100_000_000)).padStart(8, '0')}`
 
 /** A published contest that started three weeks ago, so its first two weekly periods have ended. */
-async function pastContest(winnersPerDraw = 1): Promise<Contest> {
+async function pastContest(
+  winnersPerDraw = 1,
+  poolScope: 'period' | 'sinceStart' = 'period',
+): Promise<Contest> {
   const created = await createPublishedContest(payload)
   contestIds.push(created.id)
   return payload.update({
@@ -34,18 +37,24 @@ async function pastContest(winnersPerDraw = 1): Promise<Contest> {
     data: {
       startAt: new Date(Date.now() - 21 * day).toISOString(),
       endAt: new Date(Date.now() + 7 * day).toISOString(),
-      draw: { periodDays: 7, winnersPerDraw },
+      draw: { periodDays: 7, winnersPerDraw, poolScope },
+      entryLimitPerPhone: 2,
     },
   })
 }
 
-/** Submits one participation at `at`; returns its ID. */
-async function participate(contest: Contest, at: Date, name = 'Amine Benali'): Promise<number> {
+/** Submits one participation at `at`, from a new phone unless given; returns its ID. */
+async function participate(
+  contest: Contest,
+  at: Date,
+  name = 'Amine Benali',
+  phone = newPhone(),
+): Promise<number> {
   const { participationId } = await submitParticipation(payload, {
     contestSlug: contest.slug,
     locale: 'fr',
     name,
-    phone: newPhone(),
+    phone,
     wilaya: '16',
     consents: { regulation: true, dataProcessing: true, marketing: false },
     consentVersions: consentVersionsOf(contest),
@@ -262,6 +271,132 @@ describe('a draw and submissions being saved', () => {
     }
     expect(draw.eligibleCount).toBe(pool.length)
     expect(draw.poolHash).toBe(hashPool(pool.map(({ id }) => id)))
+  })
+})
+
+describe('the draw pool', () => {
+  const draw = (contest: Contest, index: number, random?: (max: number) => number) =>
+    executeDraw(payload, {
+      contestId: contest.id,
+      periodStart: periods(contest)[index].start,
+      user: operator,
+      random,
+    })
+  const participationsOf = async (drawId: number) =>
+    (await winnersOf(drawId)).map(({ participation }) => participation)
+
+  it('takes every entry since the contest started when the contest says so', async () => {
+    const contest = await pastContest(1, 'sinceStart')
+    const early = await participate(contest, atStartOf(contest, 0))
+    const current = await participate(contest, atStartOf(contest, 1))
+    // After the period ends, so not eligible.
+    await participate(contest, atStartOf(contest, 2))
+
+    const { drawId } = await draw(contest, 1)
+
+    const record = await payload.findByID({ collection: 'draws', id: drawId, depth: 0 })
+    expect(record).toMatchObject({
+      periodStart: periods(contest)[1].start.toISOString(),
+      poolStart: new Date(contest.startAt).toISOString(),
+      eligibleCount: 2,
+      poolHash: hashPool([early, current].sort((a, b) => a - b)),
+    })
+  })
+
+  it('records the period start as the pool start by default', async () => {
+    const contest = await pastContest()
+    await participate(contest, atStartOf(contest, 1))
+
+    const { drawId } = await draw(contest, 1)
+
+    const record = await payload.findByID({ collection: 'draws', id: drawId, depth: 0 })
+    expect(record.poolStart).toBe(periods(contest)[1].start.toISOString())
+  })
+
+  it('never lets a winner win again, in either pool', async () => {
+    for (const poolScope of ['period', 'sinceStart'] as const) {
+      const contest = await pastContest(1, poolScope)
+      const phone = newPhone()
+      const won = await participate(contest, atStartOf(contest, 0), 'Amine Benali', phone)
+      const first = await draw(contest, 0)
+      expect(await participationsOf(first.drawId)).toEqual([won])
+
+      // The winner enters again; with a generator returning 0 they would be picked first.
+      await participate(contest, atStartOf(contest, 1), 'Amine Benali', phone)
+      const other = await participate(contest, atStartOf(contest, 1, 2 * hour), 'Samira Haddad')
+      const second = await draw(contest, 1, () => 0)
+
+      expect(await participationsOf(second.drawId)).toEqual([other])
+      const record = await payload.findByID({ collection: 'draws', id: second.drawId, depth: 0 })
+      expect(record.eligibleCount).toBe(1)
+    }
+  })
+
+  it('counts each entry as one chance but picks one entry per person in a draw', async () => {
+    const contest = await pastContest(2)
+    const phone = newPhone()
+    const entries = [
+      await participate(contest, atStartOf(contest, 0), 'Amine Benali', phone),
+      await participate(contest, atStartOf(contest, 0, 2 * hour), 'Amine Benali', phone),
+    ]
+    const other = await participate(contest, atStartOf(contest, 0, 3 * hour), 'Samira Haddad')
+
+    const { drawId } = await draw(contest, 0, () => 0)
+
+    const record = await payload.findByID({ collection: 'draws', id: drawId, depth: 0 })
+    expect(record.eligibleCount).toBe(3)
+    // The second entry of the same phone is skipped, so the other person takes rank 2.
+    expect(await participationsOf(drawId)).toEqual([entries[0], other])
+  })
+
+  it('re-draws over the original pool, without the winners of other periods', async () => {
+    const contest = await pastContest(1, 'sinceStart')
+    const weekOne = await participate(contest, atStartOf(contest, 0))
+    const first = await draw(contest, 0)
+    const weekTwo = [
+      await participate(contest, atStartOf(contest, 1)),
+      await participate(contest, atStartOf(contest, 1, 2 * hour)),
+    ]
+    const second = await draw(contest, 1, () => 0)
+    expect(await participationsOf(second.drawId)).toEqual([weekTwo[0]])
+
+    const redraw = await voidAndRedraw(payload, {
+      winnerId: second.winnerIds[0],
+      reason: 'Injoignable',
+      user: operator,
+    })
+
+    const record = await payload.findByID({ collection: 'draws', id: redraw.drawId, depth: 0 })
+    expect(record).toMatchObject({
+      redrawOf: second.drawId,
+      poolStart: new Date(contest.startAt).toISOString(),
+      eligibleCount: 1,
+    })
+    expect(await participationsOf(redraw.drawId)).toEqual([weekTwo[1]])
+    expect(await participationsOf(first.drawId)).toEqual([weekOne])
+  })
+
+  it('cannot change once the contest has a draw', async () => {
+    const contest = await pastContest()
+    const switchPool = (poolScope: 'period' | 'sinceStart') =>
+      payload.update({
+        collection: 'contests',
+        id: contest.id,
+        data: { draw: { ...contest.draw, poolScope } },
+      })
+
+    await expect(switchPool('sinceStart')).resolves.toMatchObject({
+      draw: { poolScope: 'sinceStart' },
+    })
+    await switchPool('period')
+    await participate(contest, atStartOf(contest, 0))
+    await draw(contest, 0)
+
+    await expect(switchPool('sinceStart')).rejects.toMatchObject({
+      data: { errors: [expect.objectContaining({ path: 'draw.poolScope' })] },
+    })
+    // Saving the same value is fine.
+    await expect(switchPool('period')).resolves.toBeDefined()
   })
 })
 

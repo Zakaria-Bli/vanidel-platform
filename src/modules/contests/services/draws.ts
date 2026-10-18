@@ -87,8 +87,56 @@ async function inTransaction<T>(
 }
 
 /**
- * Draws `count` winners among the contest's participations submitted during the period, minus
- * `excluded`, and records the draw with its pool hash and one Winner per pick.
+ * What no draw of the contest may pick again: every participation already selected, voided or not
+ * (SPECIFICATION §10.3), and every person (contact) holding a winner that is not voided, since a
+ * winner cannot win again (§10.2). A voided winner's other entries stay eligible.
+ */
+async function earlierSelections(
+  payload: Payload,
+  req: PayloadRequest,
+  contestId: number,
+): Promise<{ participations: Set<number>; contacts: Set<number> }> {
+  const { docs: draws } = await payload.find({
+    collection: 'draws',
+    where: { contest: { equals: contestId } },
+    select: {},
+    pagination: false,
+    depth: 0,
+    req,
+  })
+  const { docs: winners } = draws.length
+    ? await payload.find({
+        collection: 'winners',
+        where: { draw: { in: draws.map(({ id }) => id) } },
+        select: { participation: true, voided: true },
+        pagination: false,
+        depth: 0,
+        req,
+      })
+    : { docs: [] }
+  const confirmed = winners
+    .filter(({ voided }) => !voided)
+    .map(({ participation }) => idOf(participation))
+  const { docs: entries } = confirmed.length
+    ? await payload.find({
+        collection: 'participations',
+        where: { id: { in: confirmed } },
+        select: { contact: true },
+        pagination: false,
+        depth: 0,
+        req,
+      })
+    : { docs: [] }
+  return {
+    participations: new Set(winners.map(({ participation }) => idOf(participation))),
+    contacts: new Set(entries.map(({ contact }) => idOf(contact))),
+  }
+}
+
+/**
+ * Draws `count` winners among the contest's participations submitted from `poolStart` to the
+ * period end, minus the excluded entries and people, at most one per person, and records the draw
+ * with its pool hash and one Winner per pick.
  */
 async function drawFromPool(
   payload: Payload,
@@ -96,7 +144,9 @@ async function drawFromPool(
   args: {
     contest: Contest
     period: Pick<DrawPeriod, 'start' | 'end'>
-    excluded: Set<number>
+    /** The period start, or the contest start when the pool covers the whole contest. */
+    poolStart: Date
+    excluded: { participations: Set<number>; contacts: Set<number> }
     count: number
     redrawOf?: Draw
     user: User
@@ -109,20 +159,28 @@ async function drawFromPool(
     where: {
       contest: { equals: args.contest.id },
       submittedAt: {
-        greater_than_equal: args.period.start.toISOString(),
+        greater_than_equal: args.poolStart.toISOString(),
         less_than: args.period.end.toISOString(),
       },
     },
-    select: { name: true },
+    select: { name: true, contact: true },
     pagination: false,
     depth: 0,
     req,
   })
   const names = new Map(docs.map(({ id, name }) => [id, name]))
-  const pool = orderPool(docs.map(({ id }) => id).filter((id) => !args.excluded.has(id)))
+  const people = new Map(docs.map(({ id, contact }) => [id, idOf(contact)]))
+  const pool = orderPool(
+    docs
+      .filter(
+        ({ id, contact }) =>
+          !args.excluded.participations.has(id) && !args.excluded.contacts.has(idOf(contact)),
+      )
+      .map(({ id }) => id),
+  )
   if (pool.length === 0) throw new DrawError('empty-pool')
 
-  const picks = selectFromPool(pool, args.count, args.random)
+  const picks = selectFromPool(pool, args.count, args.random, (id) => people.get(id) ?? id)
   const executedAt = args.now.toISOString()
 
   const draw = await payload.create({
@@ -131,6 +189,7 @@ async function drawFromPool(
       contest: args.contest.id,
       periodStart: args.period.start.toISOString(),
       periodEnd: args.period.end.toISOString(),
+      poolStart: args.poolStart.toISOString(),
       status: 'completed',
       eligibleCount: pool.length,
       poolHash: hashPool(pool),
@@ -140,10 +199,12 @@ async function drawFromPool(
       randomnessMetadata: {
         source: 'node:crypto.randomInt',
         poolOrder: 'participation id ascending',
+        onePerPerson: 'contact',
         hashInput: 'ids joined by \\n',
         requested: args.count,
         selected: picks.length,
-        excludedEarlierWinners: [...args.excluded].sort((a, b) => a - b),
+        excludedEarlierWinners: [...args.excluded.participations].sort((a, b) => a - b),
+        excludedWinnerContacts: [...args.excluded.contacts].sort((a, b) => a - b),
       },
       redrawOf: args.redrawOf?.id,
     },
@@ -174,8 +235,8 @@ async function drawFromPool(
 
 /**
  * Runs the draw of one ended contest period (SPECIFICATION §10.2): every participation submitted
- * in the period is eligible, and the contest's `winnersPerDraw` are picked with
- * `crypto.randomInt`. Time already covered by a draw is never drawn again, even if the period
+ * in the period is eligible, or since the contest start when its draw pool says so, except those
+ * of earlier winners, and the contest's `winnersPerDraw` are picked with `crypto.randomInt`. Time already covered by a draw is never drawn again, even if the period
  * settings changed since; replacing a winner goes through `voidAndRedraw`.
  * Throws `DrawError` for anything the operator can act on.
  */
@@ -211,7 +272,8 @@ export async function executeDraw(payload: Payload, input: ExecuteDrawInput): Pr
     return drawFromPool(payload, req, {
       contest,
       period,
-      excluded: new Set(),
+      poolStart: contest.draw.poolScope === 'sinceStart' ? new Date(contest.startAt) : period.start,
+      excluded: await earlierSelections(payload, req, contest.id),
       count: contest.draw.winnersPerDraw,
       user: input.user,
       now,
@@ -222,9 +284,9 @@ export async function executeDraw(payload: Payload, input: ExecuteDrawInput): Pr
 
 /**
  * Voids a drawn winner with a reason and draws one replacement (SPECIFICATION §10.3). The re-draw
- * is a new draw linked to the winner's draw, over the same period, excluding every participation
- * already selected anywhere in that period's draw chain, voided or not. Earlier records are never
- * changed, apart from the winner being voided and unpublished.
+ * is a new draw linked to the winner's draw, over the same period and pool, excluding every
+ * participation already selected in the contest, voided or not, and every other winner. Earlier
+ * records are never changed, apart from the winner being voided and unpublished.
  */
 export async function voidAndRedraw(payload: Payload, input: RedrawInput): Promise<DrawResult> {
   const now = input.now ?? new Date()
@@ -258,29 +320,6 @@ export async function voidAndRedraw(payload: Payload, input: RedrawInput): Promi
       req,
     })
 
-    // Draws never overlap except within a chain, which keeps its original period, so the draws of
-    // exactly this period are the chain.
-    const { docs: chain } = await payload.find({
-      collection: 'draws',
-      where: {
-        contest: { equals: contestId },
-        periodStart: { equals: periodStart },
-        periodEnd: { equals: periodEnd },
-      },
-      select: {},
-      pagination: false,
-      depth: 0,
-      req,
-    })
-    const { docs: earlierWinners } = await payload.find({
-      collection: 'winners',
-      where: { draw: { in: chain.map(({ id }) => id) } },
-      select: { participation: true },
-      pagination: false,
-      depth: 0,
-      req,
-    })
-
     await payload.update({
       collection: 'winners',
       id: winner.id,
@@ -298,7 +337,8 @@ export async function voidAndRedraw(payload: Payload, input: RedrawInput): Promi
     return drawFromPool(payload, req, {
       contest,
       period: { start: new Date(periodStart), end: new Date(periodEnd) },
-      excluded: new Set(earlierWinners.map(({ participation }) => idOf(participation))),
+      poolStart: new Date(draw.poolStart),
+      excluded: await earlierSelections(payload, req, contestId),
       count: 1,
       redrawOf: draw,
       user: input.user,

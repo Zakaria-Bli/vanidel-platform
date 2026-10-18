@@ -49,6 +49,14 @@ export const weekdays = [
 
 export type Weekday = (typeof weekdays)[number]
 
+/**
+ * Which participations a draw picks from: those submitted during its period, or every one since
+ * the contest started up to the period's end.
+ */
+export const drawPoolScopes = ['period', 'sinceStart'] as const
+
+export type DrawPoolScope = (typeof drawPoolScopes)[number]
+
 export interface DrawSettings {
   /** Period length in days; 7 for weekly draws. */
   periodDays: number

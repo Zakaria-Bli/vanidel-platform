@@ -77,6 +77,7 @@
       "prizes": "Lots",
       "entry": "Participation",
       "drawValue": "{days, plural, =1 {Chaque jour} =7 {Chaque semaine} other {Tous les # jours}} · {winners, plural, =1 {1 gagnant} other {# gagnants}}",
+      "drawPoolSinceStart": "Parmi toutes les participations depuis le début",
       "prizesValue": "{count, plural, =1 {1 lot à gagner} other {# lots à gagner}}",
       "entryValue": "Une photo du ticket de caisse",
       "entryLimit": "{limit, plural, =1 {1 participation} other {# participations}} par numéro et par tirage"

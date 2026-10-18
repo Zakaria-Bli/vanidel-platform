@@ -20,6 +20,8 @@ export interface ReadOptions {
 export interface EndedPeriod {
   contest: { id: number; title: string }
   period: DrawPeriod
+  /** Where its draw's pool starts: the period start, or the contest start (`poolScope`). */
+  poolStart: Date
   /** Overlaps a recorded draw, so it cannot be drawn. */
   drawn: boolean
 }
@@ -62,6 +64,8 @@ export async function endedDrawPeriods(
       .map((period) => ({
         contest: { id: contest.id, title: contest.title },
         period,
+        poolStart:
+          contest.draw.poolScope === 'sinceStart' ? new Date(contest.startAt) : period.start,
         drawn: overlapsDraw(contest.id, period),
       })),
   )

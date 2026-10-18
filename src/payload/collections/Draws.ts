@@ -72,6 +72,20 @@ export const Draws: CollectionConfig = {
         admin: { date: { pickerAppearance: 'dayAndTime' } },
       },
       {
+        name: 'poolStart',
+        label: label('Participations depuis', 'Entries since', 'المشاركات منذ'),
+        type: 'date',
+        required: true,
+        admin: {
+          date: { pickerAppearance: 'dayAndTime' },
+          description: label(
+            'Le tirage porte sur les participations envoyées entre cette date et la fin de période.',
+            'The draw picks among entries submitted from this time to the period end.',
+            'يشمل السحب المشاركات المرسلة بين هذا التاريخ ونهاية الفترة.',
+          ),
+        },
+      },
+      {
         name: 'status',
         label: label('Statut', 'Status', 'الحالة'),
         type: 'select',

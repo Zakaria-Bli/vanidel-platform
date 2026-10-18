@@ -213,7 +213,7 @@ export async function seed(payload: Payload, options: SeedOptions): Promise<Cont
       prizes: [{ ...fr.prize, quantity: 4 }],
       form: { email: 'optional', wilayaRequired: true },
       entryLimitPerPhone: 1,
-      draw: { periodDays: 7, winnersPerDraw: 1 },
+      draw: { periodDays: 7, winnersPerDraw: 1, poolScope: 'period' },
       consents: consentSettings.map(({ type, required }) => ({
         type,
         required,

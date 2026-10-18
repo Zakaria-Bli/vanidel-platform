@@ -236,19 +236,22 @@ The proposal requires weekly random draws among valid participations for the rel
 ### 10.1 Draw periods
 
 - The draw period (weekly by default) and the draw day are **configurable per contest**.
+- The draw pool is also **configurable per contest**: the participations of the draw's period (default), or every participation since the contest started. It cannot change once the contest has a draw.
 - Each draw stores its own exact period start and end, so changing a contest's settings later never changes past draws.
 - Period boundaries use the Africa/Algiers timezone.
 
 ### 10.2 Eligibility and execution
 
-- Eligible: every participation of the contest whose submission time falls within the draw period.
+- Eligible: every participation of the contest whose submission time falls within the draw period, or, when the contest's draw pool covers the whole contest, from the contest start to the end of the draw period.
+- A winner cannot win again: participations of a person (Contact) who already holds a winner that is not voided are excluded, as is every participation already selected, voided or not. A voided winner's other participations stay eligible.
+- Each eligible participation is one chance, so a person with more participations has more chances; a single draw picks at most one participation per person.
 - The draw is **operator-triggered** from the administration, not run automatically.
 - Selection uses a cryptographically secure random number generator.
 
 A draw should record:
 
 - Contest.
-- Period start and end.
+- Period start and end, and where the pool starts (the period start or the contest start).
 - Execution timestamp.
 - User who executed it.
 - Number of eligible participations.
@@ -264,7 +267,7 @@ If a drawn winner is invalid (for example an unreadable or non-qualifying ticket
 
 - The original winner is marked void with a reason. The original draw record is kept unchanged.
 - The re-draw is a new draw record linked to the draw it replaces and uses the original draw period and eligibility rules.
-- Its replacement pool excludes **every Participation already selected as a Winner anywhere in the original draw/re-draw chain**, whether that earlier winner was confirmed, published, or voided.
+- Its replacement pool excludes **every Participation already selected as a Winner in the contest**, whether that earlier winner was confirmed, published, or voided, and every person holding a winner that is not voided (§10.2).
 - The re-draw selects only the number of replacement winners required.
 
 ### 10.4 Public visibility

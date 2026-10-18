@@ -9,6 +9,7 @@ import {
 import { locales } from '@/i18n/config'
 import { consentTextVersion } from '@/modules/contests/domain/consentVersion'
 import {
+  drawPoolScopes,
   endOfAlgiersDayOf,
   startOfAlgiersDayOf,
   weekdays,
@@ -34,6 +35,19 @@ const weekdayLabels = {
   thursday: label('Jeudi', 'Thursday', 'الخميس'),
   friday: label('Vendredi', 'Friday', 'الجمعة'),
   saturday: label('Samedi', 'Saturday', 'السبت'),
+}
+
+const poolScopeLabels = {
+  period: label(
+    'Celles de la période du tirage',
+    'Entries from the draw’s period',
+    'مشاركات فترة السحب',
+  ),
+  sinceStart: label(
+    'Toutes depuis le début du concours',
+    'All entries since the contest started',
+    'كل المشاركات منذ بداية المسابقة',
+  ),
 }
 
 export const reservedSlugs = ['archives']
@@ -156,6 +170,39 @@ const requireTranslationsWhenPublic: CollectionBeforeChangeHook = async ({
 }
 
 /**
+ * Refuses to change the draw pool once the contest has a draw: participants entered under the
+ * announced rule, and later draws must follow the one earlier draws used.
+ */
+const lockPoolScopeOnceDrawn: CollectionBeforeChangeHook = async ({
+  data,
+  originalDoc,
+  operation,
+  req,
+}) => {
+  if (operation !== 'update' || !originalDoc?.id) return data
+  const next = data.draw?.poolScope
+  if (next === undefined || next === originalDoc.draw?.poolScope) return data
+  const { totalDocs } = await req.payload.count({
+    collection: 'draws',
+    where: { contest: { equals: originalDoc.id } },
+    req,
+  })
+  if (totalDocs > 0) {
+    throw new ValidationError({
+      collection: 'contests',
+      errors: [
+        {
+          path: 'draw.poolScope',
+          message: 'The draw pool cannot change once the contest has a draw.',
+        },
+      ],
+      req,
+    })
+  }
+  return data
+}
+
+/**
  * Sets each consent's text version from its wording in every language, so it follows every change
  * to the text. The admin saves one locale at a time: rows are matched by ID to the stored ones for
  * their other languages, and a new row has only the edited language.
@@ -233,7 +280,7 @@ export const Contests: CollectionConfig = {
     delete: isAdmin,
   },
   hooks: {
-    beforeChange: [versionConsentTexts, requireTranslationsWhenPublic],
+    beforeChange: [versionConsentTexts, requireTranslationsWhenPublic, lockPoolScopeOnceDrawn],
     afterChange: [revalidateContestAfterChange],
     afterDelete: [revalidateContestAfterDelete],
   },
@@ -464,6 +511,24 @@ export const Contests: CollectionConfig = {
                       'Heure d’Alger, à minuit. Par défaut : le jour de début du concours.',
                       'Algiers time, at midnight. Defaults to the contest start day.',
                       'بتوقيت الجزائر، عند منتصف الليل. افتراضيًا: يوم بداية المسابقة.',
+                    ),
+                  },
+                },
+                {
+                  name: 'poolScope',
+                  label: label('Participations tirées', 'Draw pool', 'المشاركات المعنية بالسحب'),
+                  type: 'select',
+                  required: true,
+                  defaultValue: 'period',
+                  options: drawPoolScopes.map((value) => ({
+                    value,
+                    label: poolScopeLabels[value],
+                  })),
+                  admin: {
+                    description: label(
+                      'Un gagnant ne peut plus gagner, et chaque participation est une chance. Ne peut plus changer après le premier tirage.',
+                      'A winner cannot win again, and each entry is one chance. Locked once the first draw has run.',
+                      'لا يمكن للفائز أن يفوز مرة أخرى، وكل مشاركة فرصة واحدة. لا يمكن تغييره بعد أول سحب.',
                     ),
                   },
                 },
