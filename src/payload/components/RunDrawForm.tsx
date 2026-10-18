@@ -49,7 +49,13 @@ export function RunDrawForm({ options, t }: { options: PeriodOption[]; t: DrawMe
         setError(drawErrorMessage(t, result.code))
         return
       }
-      router.push(`/admin/collections/draws/${result.drawId}`)
+      // Straight to who won, with their receipts a click away.
+      router.push(
+        `/admin/collections/winners?${new URLSearchParams({
+          'where[draw][equals]': String(result.drawId),
+          sort: 'rank',
+        })}`,
+      )
     } catch {
       setError(t.failed)
     } finally {

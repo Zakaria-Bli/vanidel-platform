@@ -135,7 +135,8 @@ describe('executeDraw', () => {
     expect(winners.map(({ rank }) => rank)).toEqual([1, 2])
     expect(winners[0]).toMatchObject({
       publicDisplayName: 'Amine B.',
-      published: false,
+      // Public as soon as drawn; staff uncheck it to hold a winner back.
+      published: true,
       voided: false,
     })
     expect(winners.map(({ participation }) => participation)).not.toContain(later)
@@ -437,8 +438,8 @@ describe('the admin endpoints', () => {
 })
 
 describe('listPublicWinners', () => {
-  const publish = (id: number) =>
-    payload.update({ collection: 'winners', id, data: { published: true }, depth: 0 })
+  const holdBack = (id: number) =>
+    payload.update({ collection: 'winners', id, data: { published: false }, depth: 0 })
 
   it('shows only published, non-voided winners of the given contests, without their entry', async () => {
     const contest = await pastContest(2)
@@ -454,13 +455,12 @@ describe('listPublicWinners', () => {
       user: operator,
     })
     const [first, second] = draw.winnerIds
-    await publish(first)
+    await holdBack(second)
     const otherDraw = await executeDraw(payload, {
       contestId: other.id,
       periodStart: periods(other)[0].start,
       user: operator,
     })
-    await publish(otherDraw.winnerIds[0])
 
     const shown = await listPublicWinners(payload, [contest.id], 'fr')
     expect(shown).toEqual([
@@ -476,14 +476,12 @@ describe('listPublicWinners', () => {
     ])
     expect(shown.map(({ id }) => id)).not.toContain(second)
 
-    // Voiding unpublishes; the published replacement takes its place in the same period.
+    // Voiding unpublishes; the replacement, published as drawn, takes its place in the same period.
     const redraw = await voidAndRedraw(payload, {
       winnerId: first,
       reason: 'Ticket illisible',
       user: operator,
     })
-    expect(await listPublicWinners(payload, [contest.id], 'fr')).toEqual([])
-    await publish(redraw.winnerIds[0])
     const replaced = await listPublicWinners(payload, [contest.id, other.id], 'fr')
     expect(replaced.map(({ id }) => id).sort()).toEqual(
       [redraw.winnerIds[0], otherDraw.winnerIds[0]].sort(),

@@ -82,7 +82,11 @@ export interface Config {
     'payload-preferences': PayloadPreference;
     'payload-migrations': PayloadMigration;
   };
-  collectionsJoins: {};
+  collectionsJoins: {
+    draws: {
+      winners: 'winners';
+    };
+  };
   collectionsSelect: {
     contests: ContestsSelect<false> | ContestsSelect<true>;
     'campaign-links': CampaignLinksSelect<false> | CampaignLinksSelect<true>;
@@ -298,6 +302,11 @@ export interface CampaignLink {
  */
 export interface Draw {
   id: number;
+  winners?: {
+    docs?: (number | Winner)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
   contest: number | Contest;
   periodStart: string;
   periodEnd: string;
@@ -322,34 +331,6 @@ export interface Draw {
   redrawOf?: (number | null) | Draw;
   updatedAt: string;
   createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
- */
-export interface User {
-  id: number;
-  name?: string | null;
-  role: 'admin' | 'commercial';
-  updatedAt: string;
-  createdAt: string;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  resetPasswordRequestedAt?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
-  password?: string | null;
-  collection: 'users';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -451,6 +432,34 @@ export interface Ticket {
       filename?: string | null;
     };
   };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users".
+ */
+export interface User {
+  id: number;
+  name?: string | null;
+  role: 'admin' | 'commercial';
+  updatedAt: string;
+  createdAt: string;
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  resetPasswordRequestedAt?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
+    | {
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
+      }[]
+    | null;
+  password?: string | null;
+  collection: 'users';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -653,6 +662,7 @@ export interface CampaignLinksSelect<T extends boolean = true> {
  * via the `definition` "draws_select".
  */
 export interface DrawsSelect<T extends boolean = true> {
+  winners?: T;
   contest?: T;
   periodStart?: T;
   periodEnd?: T;
