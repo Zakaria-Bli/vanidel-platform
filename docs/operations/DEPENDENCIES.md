@@ -25,6 +25,24 @@ These overrides impose minimum versions on framework/tooling dependencies that c
 
 Use `pnpm why dompurify esbuild undici` to inspect consumers. When changing an override, run frozen installation from the updated lockfile, lint, formatting, type checking, integration tests, migration generation/drift checks, dependency audit, and a production build. Do not raise major versions solely to silence the audit without checking consumers.
 
+## ESLint 10 compatibility review
+
+Reviewed 18 October 2026 for [Dependabot PR #23](https://github.com/Zakaria-Bli/vanidel-platform/pull/23). Keep `eslint` at the locked `9.39.5` and `@eslint/js` at `9.39.5`; take the independent Prettier `3.9.9 → 3.9.10` patch without the ESLint major upgrade.
+
+Next.js documents support for ESLint 9 and 10, and Node.js 24 meets ESLint 10's engine requirement. However, the versions bundled by the locked `eslint-config-next@16.4.0` still have these published ESLint peer constraints:
+
+| Package                  | Locked version | Published ESLint peer range                                      | ESLint 10 accepted? |
+| ------------------------ | -------------- | ---------------------------------------------------------------- | ------------------- |
+| `eslint-plugin-react`    | `7.37.5`       | `^3 \|\| ^4 \|\| ^5 \|\| ^6 \|\| ^7 \|\| ^8 \|\| ^9.7`           | No                  |
+| `eslint-plugin-jsx-a11y` | `6.10.2`       | `^3 \|\| ^4 \|\| ^5 \|\| ^6 \|\| ^7 \|\| ^8 \|\| ^9`             | No                  |
+| `eslint-plugin-import`   | `2.32.0`       | `^2 \|\| ^3 \|\| ^4 \|\| ^5 \|\| ^6 \|\| ^7.2.0 \|\| ^8 \|\| ^9` | No                  |
+
+`eslint-config-next` itself, `eslint-plugin-react-hooks@7.1.1`, `typescript-eslint@8.71.1`, and `@eslint/compat@2.1.1` accept ESLint 10. The existing `fixupConfigRules()` wrappers address legacy rule APIs, but do not change the three plugins' declared peer support. `@eslint/js@10.0.1` also requires ESLint `^10.0.0`, so it must not be upgraded independently while ESLint 9 is retained.
+
+Revisit #23 when the dependency chain declares compatible peer ranges. Then review the [ESLint 10 migration guide](https://eslint.org/docs/latest/use/migrate-to-10.0.0), test the effective Next.js/TypeScript rules and autofixes, and rerun the full validation suite. Do not add peer-dependency exceptions, force a framework/plugin update, or weaken lint or audit rules to make this rollup pass.
+
+To reproduce the peer review, query each exact locked version with `pnpm view <package>@<version> peerDependencies --json`. The [Next.js ESLint guide](https://nextjs.org/docs/app/api-reference/config/eslint) documents the bundled-plugin peer warning caveat.
+
 ## Toolchain conventions
 
 - Node.js is selected by `.node-version`; pnpm is pinned in `package.json` and CI.

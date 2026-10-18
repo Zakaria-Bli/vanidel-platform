@@ -8,7 +8,8 @@ allowBuilds:
 
 # Deprecations we can't act on yet; keeps `pnpm install` output clean.
 allowedDeprecatedVersions:
-  # ESLint 10 is out, but eslint-config-next's react, jsx-a11y and import plugins only support ESLint 9.
+  # Keep ESLint 9: bundled react, jsx-a11y and import peer ranges exclude 10.
+  # Compatibility review and upgrade criteria: docs/operations/DEPENDENCIES.md.
   eslint: 9.39.5
   # Pulled in by drizzle-kit, which @payloadcms/db-postgres pins.
   '@esbuild-kit/core-utils': 3.3.2
