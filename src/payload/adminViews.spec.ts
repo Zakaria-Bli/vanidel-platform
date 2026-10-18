@@ -35,4 +35,8 @@ describe('admin document views', () => {
       expect(config.admin?.hideAPIURL).toBe(true)
     },
   )
+
+  it('keeps Tickets out of the sidebar', () => {
+    expect(Tickets.admin?.hidden).toBe(true)
+  })
 })
