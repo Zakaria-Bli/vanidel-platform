@@ -23,6 +23,9 @@ export const Tickets: CollectionConfig = {
   },
   admin: {
     hideAPIURL: true,
+    // Receipts are only useful next to their participation, where the list thumbnail and the
+    // winner verification panel already show them; a separate Tickets page adds nothing.
+    hidden: true,
     group: groups.participations,
     defaultColumns: ['filename', 'contest', 'uploadedAt'],
   },
