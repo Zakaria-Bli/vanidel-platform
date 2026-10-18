@@ -294,7 +294,7 @@ Implementation (`next-intl`):
 
 - `src/i18n/config.ts` is the single source of truth for locales (`fr` default, `ar`), their direction and display names. Routing, the proxy, Payload `localization` and the language switcher derive from it.
 - Public pages live under `src/app/(frontend)/[locale]/` with `localePrefix: 'always'`; the layout sets `<html lang dir>` and validates the locale.
-- `src/proxy.ts` redirects unprefixed public paths to the visitor's locale (`NEXT_LOCALE` cookie, then `Accept-Language`, then `fr`). This serves the locale-independent QR entry `/concours/{slug}`. Payload's `/admin` and `/api` are excluded.
+- `src/proxy.ts` redirects unprefixed public paths to the visitor's locale (`NEXT_LOCALE` cookie, then `Accept-Language`, then `fr`). This serves the locale-independent QR entry `/concours/{slug}`. Payload's `/api` is excluded; on `/admin` it only drops `Accept-Language` until a user picks a language in their account (`payload-lng` cookie), so the admin opens in French (`i18n.fallbackLanguage`).
 - Interface strings live in `src/i18n/messages/{fr,ar}.json` with identical keys (checked by `src/tests/int/i18n.int.spec.ts`). Editorial content stays in Payload localized fields.
 - Internal links use `Link`/`redirect` from `src/i18n/navigation.ts`, never `next/link` or a hand-built `/${locale}` prefix.
 
