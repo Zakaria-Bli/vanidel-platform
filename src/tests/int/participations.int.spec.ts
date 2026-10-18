@@ -236,6 +236,7 @@ describe('winners', () => {
         contest: contest.id,
         periodStart: contest.startAt,
         periodEnd: contest.endAt,
+        poolStart: contest.startAt,
         eligibleCount: 1,
         poolHash: sha256(Buffer.from(String(participation.id))),
         executedAt: new Date().toISOString(),

@@ -92,7 +92,7 @@ Operator runs a re-draw on the same period
         ↓
 New draw record persisted, linked to the original draw
         ↓
-Pool = original eligibility pool minus all Participations already selected as Winners in the draw/re-draw chain
+Pool = original eligibility pool minus all Participations already selected as Winners in the contest, and minus every person holding a winner that is not voided
 ```
 
 The original draw record is never modified.

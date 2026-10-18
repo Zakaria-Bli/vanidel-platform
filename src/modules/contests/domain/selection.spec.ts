@@ -47,6 +47,23 @@ describe('selectFromPool', () => {
     expect(new Set(picks).size).toBe(50)
   })
 
+  it('skips entries of a person already picked and keeps shuffling', () => {
+    const personOf = (id: number) => ({ 10: 1, 20: 1, 30: 2, 40: 3 })[id] ?? id
+    const random = sequence(0, 0, 1)
+
+    // Picks 10 (person 1), then 20 (person 1 again: skipped), then 40 from [30, 40].
+    expect(selectFromPool([10, 20, 30, 40], 2, random, personOf)).toEqual([10, 40])
+    expect(random.calls).toEqual([4, 3, 2])
+  })
+
+  it('picks at most one entry per person when the pool has fewer people than the count', () => {
+    const personOf = (id: number) => (id < 100 ? 1 : 2)
+
+    expect(selectFromPool([1, 2, 3, 100], 3, undefined, personOf).map(personOf).sort()).toEqual([
+      1, 2,
+    ])
+  })
+
   it('refuses a count below one', () => {
     expect(() => selectFromPool([1], 0)).toThrow(RangeError)
   })

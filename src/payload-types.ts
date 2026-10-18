@@ -213,6 +213,10 @@ export interface Contest {
      * Algiers time, at midnight. Defaults to the contest start day.
      */
     periodStartDay?: ('sunday' | 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday') | null;
+    /**
+     * A winner cannot win again, and each entry is one chance. Locked once the first draw has run.
+     */
+    poolScope: 'period' | 'sinceStart';
     winnersPerDraw: number;
   };
   seo?: {
@@ -314,6 +318,10 @@ export interface Draw {
   contest: number | Contest;
   periodStart: string;
   periodEnd: string;
+  /**
+   * The draw picks among entries submitted from this time to the period end.
+   */
+  poolStart: string;
   status: 'completed';
   eligibleCount: number;
   /**
@@ -642,6 +650,7 @@ export interface ContestsSelect<T extends boolean = true> {
     | {
         periodDays?: T;
         periodStartDay?: T;
+        poolScope?: T;
         winnersPerDraw?: T;
       };
   seo?:
@@ -680,6 +689,7 @@ export interface DrawsSelect<T extends boolean = true> {
   contest?: T;
   periodStart?: T;
   periodEnd?: T;
+  poolStart?: T;
   status?: T;
   eligibleCount?: T;
   poolHash?: T;

@@ -25,6 +25,11 @@ export async function ContestKeyFacts({ contest }: { contest: Contest }) {
             days: contest.draw.periodDays,
             winners: contest.draw.winnersPerDraw,
           })}
+          {contest.draw.poolScope === 'sinceStart' && (
+            <span className="block text-small font-normal text-muted-foreground">
+              {t('drawPoolSinceStart')}
+            </span>
+          )}
         </Fact>
         {prizes > 0 && (
           <Fact icon={Gift} label={t('prizes')}>

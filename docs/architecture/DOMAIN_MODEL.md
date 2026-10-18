@@ -188,6 +188,7 @@ Suggested attributes:
 - `contest`
 - `periodStart`
 - `periodEnd` (exact values stored on the draw, Africa/Algiers time)
+- `poolStart` (where the pool starts: the period start, or the contest start when the contest's draw pool covers the whole contest)
 - `status`
 - `eligibleCount`
 - `poolHash` (hash of the ordered list of eligible participation IDs)
@@ -294,7 +295,9 @@ Application services should enforce rules such as:
 - A duplicate receipt (same hash in the contest) or a phone over its entry limit for the period is refused at submission.
 - A Participation and its submitted snapshot are never modified after creation.
 - A Contact is never updated by a later participation.
-- A re-draw uses the original draw's eligibility pool but excludes every Participation already selected as a Winner anywhere in the same draw/re-draw chain.
+- A winner cannot win again: a draw excludes every Participation already selected in the contest and every Contact holding a winner that is not voided, and picks at most one Participation per Contact.
+- A re-draw uses the original draw's eligibility pool (`poolStart` to `periodEnd`) with the same exclusions.
+- A contest's draw pool setting cannot change once it has a draw.
 - A completed draw must not be overwritten; a re-draw is a new Draw.
 - TicketProof files are not public assets.
 - Marketing exports require the relevant **effective** consent state to be granted, resolved from the most recent applicable ConsentRecord for the Contact.

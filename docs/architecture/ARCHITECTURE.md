@@ -235,11 +235,13 @@ executeDraw()
    ↓
 resolve the period (contest settings, Africa/Algiers time)
    ↓
-query all participations submitted in the period
+query all participations submitted in the pool window (the period, or since the contest start)
+   ↓
+exclude earlier winners' entries and people
    ↓
 hash the ordered list of eligible IDs
    ↓
-secure random selection
+secure random selection, one entry per person
    ↓
 persist Draw (period, pool hash, count, executor)
    ↓
@@ -248,7 +250,7 @@ persist Winner(s)
 
 The draw is operator-triggered rather than automatically scheduled.
 
-A re-draw voids the affected winner with a reason and creates a new Draw linked to the previous draw. It reuses the original period and eligibility rules, but excludes every Participation already selected as a Winner anywhere in the original draw/re-draw chain. It selects only the replacement winner count required. Completed draws are never modified.
+A re-draw voids the affected winner with a reason and creates a new Draw linked to the previous draw. It reuses the original period, pool start and eligibility rules, so it excludes every Participation already selected as a Winner in the contest and every person holding a winner that is not voided. It selects only the replacement winner count required. Completed draws are never modified.
 
 ## 12. Jobs
 

@@ -16,12 +16,13 @@ const dayMonth = new Intl.DateTimeFormat('fr-FR', {
 /** The ended periods as the form's options, read with full access: this list is staff-only. */
 async function endedPeriods(payload: Payload, t: DrawMessages): Promise<PeriodOption[]> {
   return (await endedDrawPeriods(payload)).map(
-    ({ contest, period: { index, start, end }, drawn }) => {
+    ({ contest, period: { index, start, end }, poolStart, drawn }) => {
       // The end is exclusive: show the period's last day.
       const lastDay = dayMonth.format(new Date(end.getTime() - 1))
+      const pool = poolStart < start ? ` · ${t.since} ${dayMonth.format(poolStart)}` : ''
       return {
         value: `${contest.id}|${start.toISOString()}`,
-        label: `${contest.title} · ${t.week} ${index + 1} (${dayMonth.format(start)} – ${lastDay})`,
+        label: `${contest.title} · ${t.week} ${index + 1} (${dayMonth.format(start)} – ${lastDay})${pool}`,
         drawn,
       }
     },
