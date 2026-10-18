@@ -126,6 +126,29 @@ describe('proxy', () => {
     })
   })
 
+  describe('admin language', () => {
+    // NextResponse.next({ request }) lists the headers the page receives in this header.
+    const forwarded = (response: Response) =>
+      response.headers.get('x-middleware-override-headers')?.split(',')
+
+    it('opens the admin in French whatever the browser language', async () => {
+      const response = await request('/admin/collections/contests', { 'accept-language': 'en-US' })
+
+      expect(response.headers.get('location')).toBeNull()
+      expect(forwarded(response)).toBeDefined()
+      expect(forwarded(response)).not.toContain('accept-language')
+    })
+
+    it('keeps the language a user chose in their account', async () => {
+      const response = await request('/admin', {
+        'accept-language': 'en-US',
+        cookie: 'payload-lng=en',
+      })
+
+      expect(forwarded(response)).toBeUndefined()
+    })
+  })
+
   describe('matcher', () => {
     const [matcher] = proxyConfig.matcher
     const matches = (path: string) => new RegExp(`^${matcher}$`).test(path)
