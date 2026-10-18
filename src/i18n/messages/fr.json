@@ -34,6 +34,10 @@
     "winnersPeriod": "Tirage du {range}",
     "winnersOf": "Gagnants : <names></names>",
     "winnersSoon": "Les gagnants seront publiés ici après le tirage.",
+    "winnersCount": "{count, plural, =1 {1 gagnant} other {# gagnants}}",
+    "winnersDraws": "{draws, plural, =1 {1 tirage} other {# tirages}}",
+    "winnersShow": "Voir les gagnants",
+    "winnersHide": "Masquer les gagnants",
     "eyebrow": "Concours Vanidel",
     "listHero": {
       "title": "Participez et gagnez",
@@ -79,7 +83,7 @@
     },
     "regulationShort": "Règlement (PDF)",
     "opensButton": "Ouvre le {date}",
-    "reassurance": "Environ 2 minutes. Gardez votre ticket de caisse jusqu’au tirage.",
+    "reassurance": "Gardez votre ticket de caisse jusqu’au tirage.",
     "empty": {
       "currentTitle": "Pas de concours en ce moment",
       "currentText": "Le prochain concours Vanidel arrive bientôt. En attendant, découvrez les gagnants des concours passés.",
@@ -116,7 +120,9 @@
     },
     "success": {
       "title": "Participation enregistrée !",
-      "body": "Merci et bonne chance. Gardez votre ticket de caisse : il vous sera demandé si vous êtes tiré au sort."
+      "body": "Merci et bonne chance. Gardez votre ticket de caisse : il vous sera demandé si vous êtes tiré au sort.",
+      "badge": "C’est envoyé",
+      "chef": "Le chef Vanidel lève le pouce"
     },
     "errors": {
       "contest-not-found": "Ce concours n’existe pas ou n’est plus disponible.",
@@ -162,14 +168,12 @@
     "copyright": "© {year} Vanidel. Tous droits réservés."
   },
   "share": {
-    "title": "Partagez le concours",
     "share": "Partager",
     "text": "Participez à « {title} » et tentez de gagner !",
     "copy": "Copier le lien",
     "copied": "Lien copié",
-    "visualShare": "Partager le visuel",
-    "visualSave": "Enregistrer le visuel",
-    "afterParticipation": "Invitez vos proches à participer :"
+    "afterParticipation": "Invitez vos proches à participer :",
+    "instagramCopied": "Lien copié. Collez-le dans votre story ou un message Instagram."
   },
   "preview": {
     "title": "Aperçu",

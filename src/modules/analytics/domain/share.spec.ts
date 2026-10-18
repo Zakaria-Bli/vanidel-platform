@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { attributionFromSearch } from './attribution'
-import { contestShareUrl, networkShareUrl } from './share'
+import { contestShareUrl, whatsappShareUrl } from './share'
 
 describe('contestShareUrl', () => {
   it('points at the locale-independent entry URL, tagged for the channel', () => {
@@ -18,26 +18,20 @@ describe('contestShareUrl', () => {
   })
 
   it('is attributed when someone lands on it', () => {
-    const url = new URL(contestShareUrl('https://vanidel.example', 'ete', 'facebook'))
+    const url = new URL(contestShareUrl('https://vanidel.example', 'ete', 'instagram'))
     expect(attributionFromSearch(url.searchParams)).toMatchObject({
-      source: 'facebook',
+      source: 'instagram',
       utmMedium: 'share',
       utmCampaign: 'ete',
     })
   })
 })
 
-describe('networkShareUrl', () => {
-  const link = 'https://vanidel.example/concours/ete?utm_source=whatsapp'
-
+describe('whatsappShareUrl', () => {
   it('puts the text and link in a WhatsApp message', () => {
-    const url = new URL(networkShareUrl('whatsapp', link, 'Participez !'))
+    const link = 'https://vanidel.example/concours/ete?utm_source=whatsapp'
+    const url = new URL(whatsappShareUrl(link, 'Participez !'))
     expect(url.origin).toBe('https://wa.me')
     expect(url.searchParams.get('text')).toBe(`Participez ! ${link}`)
-  })
-
-  it('gives Facebook the link only; it reads the preview from the page', () => {
-    const url = new URL(networkShareUrl('facebook', link, 'ignored'))
-    expect(url.searchParams.get('u')).toBe(link)
   })
 })

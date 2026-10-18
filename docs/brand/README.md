@@ -78,6 +78,7 @@ Files fetched by a fixed URL (favicons, the default share image) live in `public
 | `src/assets/brand/packshots/vanidel-packshots-mix.png`  | Crêpes, pancake, brownies and gaufres boxes, cut out | Red bands, the default share image                           |
 | `src/assets/brand/packshots/vanidel-packshots-flan.png` | The five flan sachets, cut out                       | Blue bands, as in the charter                                |
 | `src/assets/brand/photos/vanidel-chef-ambassador.png`   | The chef ambassador, cut out, 2000 px wide           | Approved for the "no contest running" state only (see below) |
+| `src/assets/brand/photos/vanidel-chef-thumbs-up.png`    | The chef ambassador giving a thumbs up, cut out      | The participation confirmation                               |
 | `public/brand/icons/favicon.svg`                        | White mark on a rounded red square                   | Browser tab icon, site and admin                             |
 | `public/favicon.ico`                                    | 16, 32 and 48 px, made from `favicon.svg`            | Browsers that ask for `/favicon.ico`                         |
 | `public/brand/icons/apple-touch-icon.png`               | 180 px, opaque, made from `favicon.svg`              | Home-screen icon on iOS                                      |
@@ -95,4 +96,5 @@ The full-resolution chef photo (3300 px) is kept with the project files under `b
 - **Slogan.** Always the vector artwork, in white on red or blue, or in red on white or cream. It is the same in French and Arabic, and its `alt` text is marked `lang="ar"`. If a French slogan is supplied one day, it replaces these two files and nothing else changes.
 - **Mirroring.** Logos, the slogan, packshots and photos are never mirrored in Arabic (right-to-left). Where a picture has a direction, it is placed physically, not logically.
 - **Chef photo.** Used only in the "no contest running" empty state, on the right in both languages: his gesture points left, at the message, and mirroring the photo would reverse the logo on his apron.
+- **Chef thumbs up.** Shown once a participation is sent, beside the confirmation. Never mirrored either.
 - **Packshots.** The Mix boxes go with red, the flan sachets with blue, as in the charter.

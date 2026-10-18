@@ -40,7 +40,7 @@ Les textes se saisissent une langue à la fois : changez de langue avec **Param�
 **Onglet Partage et SEO**
 
 - Titre et description SEO dans chaque langue : ce qui s’affiche sur Google et dans les aperçus de lien.
-- **Image de partage (1200×630)** : l’image des aperçus sur WhatsApp et Facebook, proposée aussi au téléchargement pour Instagram ou TikTok. À défaut, le visuel principal est utilisé.
+- **Image de partage (1200×630)** : l’image des aperçus de lien (WhatsApp, Facebook, Instagram…). À défaut, le visuel principal est utilisé.
 
 **Colonne de droite**
 
@@ -64,7 +64,7 @@ Les textes se saisissent une langue à la fois : changez de langue avec **Param�
 - Choisissez le concours et le **Canal** : QR code emballage, affiche, Facebook, Instagram, TikTok, influenceur ou autre.
 - **Code** : distingue les liens d’un même canal, par exemple le nom de l’influenceur ou le lieu de l’affiche. Obligatoire pour « Influenceur » et « Autre ».
 - Après l’enregistrement, la page du lien affiche l’adresse à copier et le QR code à télécharger : **PNG** pour l’écran, **SVG** pour l’impression.
-- Donnez à chaque influenceur et à chaque réseau **son** lien. Les boutons de partage du site sont comptés à part (« whatsapp », « facebook », « share »).
+- Donnez à chaque influenceur et à chaque réseau **son** lien. Les boutons de partage du site, proposés après la participation, sont comptés à part (« whatsapp », « instagram », « share »).
 
 ## 6. Pendant le concours
 

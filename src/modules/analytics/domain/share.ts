@@ -3,7 +3,7 @@
  * a French visitor's share opens in Arabic for an Arabic reader, and carry UTM tags so visits and
  * participations they bring are attributed to sharing on that network (§13.1).
  */
-export const shareChannels = ['native', 'whatsapp', 'facebook', 'copy'] as const
+export const shareChannels = ['native', 'whatsapp', 'instagram', 'copy'] as const
 
 export type ShareChannel = (typeof shareChannels)[number]
 
@@ -11,7 +11,7 @@ export type ShareChannel = (typeof shareChannels)[number]
 const sources: Record<ShareChannel, string> = {
   native: 'share',
   whatsapp: 'whatsapp',
-  facebook: 'facebook',
+  instagram: 'instagram',
   copy: 'share',
 }
 
@@ -26,16 +26,13 @@ export function contestShareUrl(siteUrl: string, slug: string, channel: ShareCha
   return url.toString()
 }
 
-/** Where each network's share dialog takes the link; the device sheet and copying need none. */
-export function networkShareUrl(
-  channel: Extract<ShareChannel, 'whatsapp' | 'facebook'>,
-  link: string,
-  text: string,
-): string {
-  switch (channel) {
-    case 'whatsapp':
-      return `https://wa.me/?text=${encodeURIComponent(`${text} ${link}`)}`
-    case 'facebook':
-      return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(link)}`
-  }
+/** WhatsApp's share dialog, with the text and link prefilled. */
+export function whatsappShareUrl(link: string, text: string): string {
+  return `https://wa.me/?text=${encodeURIComponent(`${text} ${link}`)}`
 }
+
+/**
+ * Instagram has no web share dialog: the link is copied, then Instagram opens (the app on phones)
+ * for the visitor to paste it in a story or a message.
+ */
+export const instagramUrl = 'https://www.instagram.com/'

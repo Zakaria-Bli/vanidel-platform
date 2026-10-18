@@ -371,7 +371,8 @@ Priority areas:
 - Mobile camera/file upload.
 - Simple form interactions.
 - Accessible prize and participation information.
-- Share actions after participation.
+- Share actions after participation only (WhatsApp, Instagram, copy link, and the device share sheet where available).
+- An open contest's page scrolls to the participation form on arrival.
 
 ## 17. SEO and social sharing
 
@@ -391,7 +392,7 @@ QR codes are printed on packaging and point to a **specific contest**, so the lo
 - On entry, the application detects or resolves the visitor's locale and serves/redirects to the appropriate localized contest page.
 - `/{fr|ar}/concours/{slug}` — localized contest page.
 - `/{fr|ar}/concours/archives` — localized archive of past contests.
-- Winners are shown on the contest page and in the archive.
+- Winners are shown on the contest page, below the participation form in a collapsible block, and in the archive.
 
 The QR code must use `/concours/{slug}`, not a locale-prefixed URL, so the same printed code can serve both Arabic and French visitors.
 

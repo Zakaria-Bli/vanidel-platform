@@ -9,12 +9,13 @@ import { ContestHero, heroActionAttribute } from '@/components/contests/ContestH
 import { ContestKeyFacts } from '@/components/contests/ContestKeyFacts'
 import { ContestParticipationSection } from '@/components/contests/ContestParticipationSection'
 import { ContestPrizes } from '@/components/contests/ContestPrizes'
-import { ContestShare, ContestShareButtons } from '@/components/contests/ContestShare'
+import { ContestShareButtons } from '@/components/contests/ContestShare'
 import { ContestSteps } from '@/components/contests/ContestSteps'
 import { ContestWinners, WinnersSkeleton } from '@/components/contests/ContestWinners'
 import { ParticipateBar } from '@/components/contests/ParticipateBar'
 import { ParticipationForm } from '@/components/contests/ParticipationForm'
 import { PreviewBanner } from '@/components/contests/PreviewBanner'
+import { ScrollToParticipation } from '@/components/contests/ScrollToParticipation'
 import { Container } from '@/components/shared/Container'
 import { RichText } from '@/components/shared/RichText'
 import { locales, type Locale } from '@/i18n/config'
@@ -106,15 +107,7 @@ export default async function ContestPage({ params }: Props) {
 
   const t = await getTranslations('contests')
   const phase = contestPhase(contest)
-  // Once a contest has ended, its winners are what visitors come for.
   const ended = phase === 'closed' || phase === 'archived'
-  // Streamed: the rest of the page does not wait for the winners. While the contest runs there may
-  // be none yet, so nothing holds their place.
-  const winners = (
-    <Suspense fallback={ended ? <WinnersSkeleton /> : null}>
-      <ContestWinners contestId={contest.id} locale={locale} ended={ended} />
-    </Suspense>
-  )
   const countdown = contestCountdown(contest)
 
   return (
@@ -131,13 +124,11 @@ export default async function ContestPage({ params }: Props) {
         <ContestHero contest={contest} />
         <ContestKeyFacts contest={contest} />
       </div>
-      {ended && winners}
       {contest.description && (
         <RichText data={contest.description} className="max-w-2xl text-body-lg" />
       )}
       <ContestSteps steps={contest.steps ?? []} />
       <ContestPrizes prizes={contest.prizes ?? []} />
-      {!ended && winners}
       <ContestParticipationSection contest={contest}>
         <ParticipationForm
           contestSlug={contest.slug}
@@ -156,7 +147,16 @@ export default async function ContestPage({ params }: Props) {
           action={participate}
         />
       </ContestParticipationSection>
-      <ContestShare contest={contest} />
+      {/*
+       * Below the form, folded: a draw can have up to 25 winners. Streamed, so the rest of the page
+       * does not wait for them; while the contest runs there may be none yet, so nothing holds
+       * their place.
+       */}
+      <Suspense fallback={ended ? <WinnersSkeleton /> : null}>
+        <ContestWinners contestId={contest.id} locale={locale} ended={ended} />
+      </Suspense>
+      {/* Staff previewing a contest read it from the top. */}
+      {phase === 'open' && !preview && <ScrollToParticipation />}
       {phase === 'open' && (
         <ParticipateBar
           countdown={
