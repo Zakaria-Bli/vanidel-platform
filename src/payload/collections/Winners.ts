@@ -90,6 +90,12 @@ export const Winners: CollectionConfig = {
       },
     ]),
     {
+      name: 'verification',
+      label: label('Vérification', 'Verification', 'التحقق'),
+      type: 'ui',
+      admin: { components: { Field: '/payload/components/WinnerReceiptField#WinnerReceiptField' } },
+    },
+    {
       type: 'collapsible',
       label: label('Publication', 'Publication', 'النشر'),
       fields: [
@@ -126,7 +132,8 @@ export const Winners: CollectionConfig = {
           name: 'published',
           label: label('Publié', 'Published', 'منشور'),
           type: 'checkbox',
-          defaultValue: false,
+          // Winners go public as soon as they are drawn; uncheck to hold one back while checking.
+          defaultValue: true,
         },
       ],
     },

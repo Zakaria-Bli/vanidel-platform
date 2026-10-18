@@ -161,7 +161,7 @@ async function drawFromPool(
         rank: index + 1,
         selectedAt: executedAt,
         publicDisplayName: maskName(names.get(participationId) ?? ''),
-        published: false,
+        published: true,
       },
       depth: 0,
       req,

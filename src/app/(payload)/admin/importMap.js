@@ -25,6 +25,7 @@ import { ContestReportField as ContestReportField_5c59038aa20cbd189f73898f8a0d95
 import { ContestChecklistField as ContestChecklistField_5489a4a9e46588e58bc69ab8686542ed } from '../../../payload/components/ContestChecklistField'
 import { CampaignLinkField as CampaignLinkField_abe7d0042cee56c8f0f600b81bbc8cd1 } from '../../../payload/components/CampaignLinkField'
 import { DrawPanel as DrawPanel_ee020c419aa33e36b7f240ffdf82f2d9 } from '../../../payload/components/DrawPanel'
+import { WinnerReceiptField as WinnerReceiptField_ed58e86d67b76f99ac621281f30e8029 } from '../../../payload/components/WinnerReceiptField'
 import { RedrawField as RedrawField_6c7e9d9cc1999f6349f5f5795b14d513 } from '../../../payload/components/RedrawField'
 import { WilayaCell as WilayaCell_fe09ceaebe8e5274113055b257b54647 } from '../../../payload/components/WilayaCell'
 import { TicketCell as TicketCell_375c690b9a649001ded3ae4da69f0151 } from '../../../payload/components/TicketCell'
@@ -69,6 +70,7 @@ export const importMap = {
   "/payload/components/ContestChecklistField#ContestChecklistField": ContestChecklistField_5489a4a9e46588e58bc69ab8686542ed,
   "/payload/components/CampaignLinkField#CampaignLinkField": CampaignLinkField_abe7d0042cee56c8f0f600b81bbc8cd1,
   "/payload/components/DrawPanel#DrawPanel": DrawPanel_ee020c419aa33e36b7f240ffdf82f2d9,
+  "/payload/components/WinnerReceiptField#WinnerReceiptField": WinnerReceiptField_ed58e86d67b76f99ac621281f30e8029,
   "/payload/components/RedrawField#RedrawField": RedrawField_6c7e9d9cc1999f6349f5f5795b14d513,
   "/payload/components/WilayaCell#WilayaCell": WilayaCell_fe09ceaebe8e5274113055b257b54647,
   "/payload/components/TicketCell#TicketCell": TicketCell_375c690b9a649001ded3ae4da69f0151,

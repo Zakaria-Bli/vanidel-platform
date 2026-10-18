@@ -157,6 +157,10 @@ describe('unpublishedWinners', () => {
     const [first, second] = await drawFirstPeriod(contest)
     const archived = await pastContest()
     const [left] = await drawFirstPeriod(archived)
+    // Winners are published as drawn; these are held back.
+    for (const id of [first, second, left]) {
+      await payload.update({ collection: 'winners', id, data: { published: false } })
+    }
 
     const ids = async () => (await unpublishedWinners(payload, as(commercial))).map(({ id }) => id)
     expect(await ids()).toEqual(expect.arrayContaining([first, second, left]))

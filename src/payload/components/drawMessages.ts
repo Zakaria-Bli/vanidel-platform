@@ -23,6 +23,16 @@ const messages = {
     redraw: 'Annuler et retirer au sort',
     confirmRedraw: 'Annuler ce gagnant et tirer un remplaçant ? Cette action est définitive.',
     failed: 'Le tirage a échoué. Réessayez.',
+    verifyTitle: 'Vérification',
+    verifyHelp:
+      'La participation tirée, telle qu’envoyée. Vérifiez que le ticket montre bien un produit Vanidel acheté pendant la période.',
+    entryName: 'Nom',
+    entryPhone: 'Téléphone',
+    entryWilaya: 'Wilaya',
+    entrySubmittedAt: 'Envoyée le',
+    receipt: 'Ticket de caisse',
+    openReceipt: 'Ouvrir en taille réelle',
+    noReceipt: 'Ticket introuvable.',
     errors: {
       'contest-not-found': 'Concours introuvable.',
       'period-not-found':
@@ -53,6 +63,16 @@ const messages = {
     redraw: 'Void and re-draw',
     confirmRedraw: 'Void this winner and draw a replacement? This cannot be undone.',
     failed: 'The draw failed. Try again.',
+    verifyTitle: 'Verification',
+    verifyHelp:
+      'The drawn participation, as submitted. Check that the receipt shows a Vanidel product bought during the period.',
+    entryName: 'Name',
+    entryPhone: 'Phone',
+    entryWilaya: 'Wilaya',
+    entrySubmittedAt: 'Submitted at',
+    receipt: 'Receipt',
+    openReceipt: 'Open full size',
+    noReceipt: 'Receipt not found.',
     errors: {
       'contest-not-found': 'Contest not found.',
       'period-not-found':
@@ -83,6 +103,16 @@ const messages = {
     redraw: 'إلغاء وإعادة السحب',
     confirmRedraw: 'إلغاء هذا الفائز وسحب بديل؟ لا يمكن التراجع عن ذلك.',
     failed: 'فشل السحب. حاول مرة أخرى.',
+    verifyTitle: 'التحقق',
+    verifyHelp:
+      'المشاركة المسحوبة كما أُرسلت. تحقّق من أن التذكرة تُظهر منتج Vanidel تم شراؤه خلال الفترة.',
+    entryName: 'الاسم',
+    entryPhone: 'الهاتف',
+    entryWilaya: 'الولاية',
+    entrySubmittedAt: 'أُرسلت في',
+    receipt: 'تذكرة الشراء',
+    openReceipt: 'فتح بالحجم الكامل',
+    noReceipt: 'التذكرة غير موجودة.',
     errors: {
       'contest-not-found': 'المسابقة غير موجودة.',
       'period-not-found': 'هذه الفترة لم تعد موجودة: تغيّرت إعدادات المسابقة. أعد تحميل الصفحة.',

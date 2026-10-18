@@ -102,22 +102,21 @@ The original draw record is never modified.
 ```text
 Completed draw
         ↓
-Selected winner(s)
+Selected winner(s), published with a masked public name
         ↓
-Commercial team checks the winner's ticket and contacts them
+Operator lands on the draw's winners list
         ↓
-(If invalid or unreachable → re-draw, see section 3)
+Commercial team opens each winner: entry details and ticket photo, to verify; then contacts them
         ↓
-Commercial team verifies publication details
-        ↓
-Apply masked public name
+(If invalid or unreachable → re-draw, see section 3; the voided winner is unpublished
+ and the replacement is published as drawn)
         ↓
 Optional winner image/video added
         ↓
-Publish winner content
-        ↓
 Winner appears on public contest page/archive
 ```
+
+Winners are published as soon as they are drawn. To hold one back while checking, staff uncheck "Published" on the winner.
 
 ## 5. First-contest setup flow
 

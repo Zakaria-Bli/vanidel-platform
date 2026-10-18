@@ -9,6 +9,7 @@ import * as migration_20261012_171830_participation_steps from './20261012_17183
 import * as migration_20261013_092146_ticket_thumbnails from './20261013_092146_ticket_thumbnails';
 import * as migration_20261014_110120_campaign_links from './20261014_110120_campaign_links';
 import * as migration_20261017_213841_contest_day_dates_consent_versions from './20261017_213841_contest_day_dates_consent_versions';
+import * as migration_20261018_054253_draw_winners_review from './20261018_054253_draw_winners_review';
 
 export const migrations = [
   {
@@ -64,6 +65,11 @@ export const migrations = [
   {
     up: migration_20261017_213841_contest_day_dates_consent_versions.up,
     down: migration_20261017_213841_contest_day_dates_consent_versions.down,
-    name: '20261017_213841_contest_day_dates_consent_versions'
+    name: '20261017_213841_contest_day_dates_consent_versions',
+  },
+  {
+    up: migration_20261018_054253_draw_winners_review.up,
+    down: migration_20261018_054253_draw_winners_review.down,
+    name: '20261018_054253_draw_winners_review'
   },
 ];
