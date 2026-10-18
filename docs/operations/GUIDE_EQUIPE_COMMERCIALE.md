@@ -40,7 +40,7 @@ Les textes se saisissent une langue à la fois : changez de langue avec **Param�
 **Onglet Partage et SEO**
 
 - Titre et description SEO dans chaque langue : ce qui s’affiche sur Google et dans les aperçus de lien.
-- **Image de partage (1200×630)** : l’image des aperçus de lien (WhatsApp, Facebook, Instagram…). À défaut, le visuel principal est utilisé.
+- **Image de partage (1200×630)** : l’image des aperçus de lien (WhatsApp, Facebook…). Sur téléphone, le bouton Instagram l’envoie aussi telle quelle en story ou en publication. À défaut, le visuel principal est utilisé.
 
 **Colonne de droite**
 
