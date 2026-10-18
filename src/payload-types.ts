@@ -86,6 +86,10 @@ export interface Config {
     draws: {
       winners: 'winners';
     };
+    contacts: {
+      participations: 'participations';
+      consents: 'consent-records';
+    };
   };
   collectionsSelect: {
     contests: ContestsSelect<false> | ContestsSelect<true>;
@@ -397,6 +401,32 @@ export interface Contact {
   emailNormalized?: string | null;
   wilaya?: string | null;
   firstContest: number | Contest;
+  participations?: {
+    docs?: (number | Participation)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  consents?: {
+    docs?: (number | ConsentRecord)[];
+    hasNextPage?: boolean;
+    totalDocs?: number;
+  };
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "consent-records".
+ */
+export interface ConsentRecord {
+  id: number;
+  contact: number | Contact;
+  participation: number | Participation;
+  type: 'regulation' | 'dataProcessing' | 'marketing';
+  granted: boolean;
+  textVersion: string;
+  capturedAt: string;
+  source: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -460,22 +490,6 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "consent-records".
- */
-export interface ConsentRecord {
-  id: number;
-  contact: number | Contact;
-  participation: number | Participation;
-  type: 'regulation' | 'dataProcessing' | 'marketing';
-  granted: boolean;
-  textVersion: string;
-  capturedAt: string;
-  source: string;
-  updatedAt: string;
-  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -766,6 +780,8 @@ export interface ContactsSelect<T extends boolean = true> {
   emailNormalized?: T;
   wilaya?: T;
   firstContest?: T;
+  participations?: T;
+  consents?: T;
   updatedAt?: T;
   createdAt?: T;
 }

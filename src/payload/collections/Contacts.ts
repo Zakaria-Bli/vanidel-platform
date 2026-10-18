@@ -9,6 +9,7 @@ import { exportMarketingContacts } from '../endpoints/exports'
  * One person in the cross-contest audience, identified only by normalized phone. Created on the
  * first participation from that phone and never updated afterwards (SPECIFICATION §7.1): name,
  * email and wilaya are as first submitted, and exports read the latest participation instead.
+ * The page lists every participation and consent record of the contact, newest first.
  */
 export const Contacts: CollectionConfig = {
   slug: 'contacts',
@@ -32,28 +33,59 @@ export const Contacts: CollectionConfig = {
     update: nobody,
     delete: isAdmin,
   },
-  fields: readOnly([
+  fields: [
+    ...readOnly([
+      {
+        name: 'phoneNormalized',
+        label: label('Téléphone', 'Phone', 'الهاتف'),
+        type: 'text',
+        required: true,
+        unique: true,
+      },
+      { name: 'name', label: label('Nom', 'Name', 'الاسم'), type: 'text', required: true },
+      {
+        name: 'emailNormalized',
+        label: label('E-mail', 'Email', 'البريد الإلكتروني'),
+        type: 'text',
+      },
+      {
+        name: 'wilaya',
+        label: label('Wilaya', 'Wilaya', 'الولاية'),
+        type: 'text',
+        admin: { components: { Cell: '/payload/components/WilayaCell#WilayaCell' } },
+      },
+      {
+        name: 'firstContest',
+        label: label('Premier concours', 'First contest', 'أول مسابقة'),
+        type: 'relationship',
+        relationTo: 'contests',
+        required: true,
+      },
+    ]),
+    // The fields above are as first submitted; these show everything since, as each was recorded.
     {
-      name: 'phoneNormalized',
-      label: label('Téléphone', 'Phone', 'الهاتف'),
-      type: 'text',
-      required: true,
-      unique: true,
-    },
-    { name: 'name', label: label('Nom', 'Name', 'الاسم'), type: 'text', required: true },
-    { name: 'emailNormalized', label: label('E-mail', 'Email', 'البريد الإلكتروني'), type: 'text' },
-    {
-      name: 'wilaya',
-      label: label('Wilaya', 'Wilaya', 'الولاية'),
-      type: 'text',
-      admin: { components: { Cell: '/payload/components/WilayaCell#WilayaCell' } },
+      name: 'participations',
+      label: label('Participations', 'Participations', 'المشاركات'),
+      type: 'join',
+      collection: 'participations',
+      on: 'contact',
+      defaultSort: '-submittedAt',
+      admin: {
+        allowCreate: false,
+        defaultColumns: ['submittedAt', 'contest', 'name', 'wilaya', 'ticket'],
+      },
     },
     {
-      name: 'firstContest',
-      label: label('Premier concours', 'First contest', 'أول مسابقة'),
-      type: 'relationship',
-      relationTo: 'contests',
-      required: true,
+      name: 'consents',
+      label: label('Consentements', 'Consents', 'الموافقات'),
+      type: 'join',
+      collection: 'consent-records',
+      on: 'contact',
+      defaultSort: '-capturedAt',
+      admin: {
+        allowCreate: false,
+        defaultColumns: ['capturedAt', 'type', 'granted', 'textVersion', 'participation'],
+      },
     },
-  ]),
+  ],
 }
