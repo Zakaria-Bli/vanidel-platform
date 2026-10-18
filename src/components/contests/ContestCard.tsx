@@ -134,7 +134,13 @@ export async function ContestCard({
           })}
         >
           {action}
-          <ArrowRight className="rtl:rotate-180" />
+          {/* Nudges forward on open contests, to draw the eye to taking part. */}
+          <ArrowRight
+            className={cn(
+              'rtl:rotate-180',
+              phase === 'open' && 'animate-nudge rtl:[--nudge-x:-0.25rem]',
+            )}
+          />
         </span>
       </div>
     </article>

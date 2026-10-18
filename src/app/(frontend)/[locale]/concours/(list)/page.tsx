@@ -1,6 +1,8 @@
 import type { Metadata } from 'next'
 import { getTranslations } from 'next-intl/server'
 
+import { ArrowDown } from 'lucide-react'
+
 import { ContestList } from '@/components/contests/ContestList'
 import { NoCurrentContest } from '@/components/contests/ContestsEmpty'
 import { ContestsHero } from '@/components/contests/ContestsHero'
@@ -13,6 +15,9 @@ import { getCachedCurrentContests } from '@/modules/contests/queries/cached'
 // comes from the cache (src/modules/contests/queries/cached.ts). In the (list) route group so its
 // loading skeleton never wraps a contest page, whose 404 must be sent before streaming starts.
 export const dynamic = 'force-dynamic'
+
+/** The tabs and the contests, which the hero's "Participez" links to. */
+const listAnchor = 'concours'
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('contests')
@@ -29,15 +34,32 @@ export default async function ContestsPage({ params }: PageProps<'/[locale]/conc
       <ContestsHero
         tone="red"
         eyebrow={t('eyebrow')}
-        title={t('listHero.title')}
+        title={t.rich('listHero.title', {
+          // "Participez" leads down to the contests, for visitors who would not think to scroll.
+          link: (chunks) => (
+            <a
+              href={`#${listAnchor}`}
+              className="group/participate inline-flex items-baseline gap-[0.15em] underline decoration-[0.08em] underline-offset-[0.14em] transition-[text-decoration-color] duration-150 hover:decoration-primary-foreground/60"
+            >
+              {chunks}
+              <ArrowDown
+                aria-hidden
+                strokeWidth={3}
+                className="size-[0.55em] self-center motion-safe:animate-bounce"
+              />
+            </a>
+          ),
+        })}
         text={t('listHero.text')}
       />
-      <ContestsTabs active="current" />
-      {contests.length > 0 ? (
-        <ContestList contests={contests} featureOpen />
-      ) : (
-        <NoCurrentContest locale={locale as Locale} />
-      )}
+      <div id={listAnchor} className="flex scroll-mt-24 flex-col gap-block">
+        <ContestsTabs active="current" />
+        {contests.length > 0 ? (
+          <ContestList contests={contests} featureOpen />
+        ) : (
+          <NoCurrentContest locale={locale as Locale} />
+        )}
+      </div>
     </Container>
   )
 }
