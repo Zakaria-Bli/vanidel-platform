@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import type { ReactNode } from 'react'
 
 import flanPackshot from '@/assets/brand/packshots/vanidel-packshots-flan.png'
 import mixPackshot from '@/assets/brand/packshots/vanidel-packshots-mix.png'
@@ -18,7 +19,8 @@ export function ContestsHero({
 }: {
   tone: 'red' | 'blue'
   eyebrow: string
-  title: string
+  /** May hold a link, such as the current list's "Participez" down to the contests. */
+  title: ReactNode
   text: string
 }) {
   return (

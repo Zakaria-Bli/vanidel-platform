@@ -47,7 +47,9 @@ export default async function LocaleLayout({ children }: LayoutProps<'/[locale]'
   const dir = getDirection(locale)
 
   return (
-    <html lang={locale} dir={dir} className={fontVariables}>
+    // In-page links (the hero's "Participez", "Participer maintenant") scroll smoothly; the
+    // attribute keeps page changes instant.
+    <html lang={locale} dir={dir} className={fontVariables} data-scroll-behavior="smooth">
       {/* A full-height column, so the footer sits at the bottom of short pages too. */}
       <body className="flex min-h-dvh flex-col">
         <NextIntlClientProvider>

@@ -14,7 +14,7 @@ export default async function ContestsLoading() {
       <ContestsHero
         tone="red"
         eyebrow={t('eyebrow')}
-        title={t('listHero.title')}
+        title={t.rich('listHero.title', { link: (chunks) => chunks })}
         text={t('listHero.text')}
       />
       <ContestsTabs active="current" />

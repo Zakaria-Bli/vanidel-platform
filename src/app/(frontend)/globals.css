@@ -103,6 +103,20 @@
   --spacing-block: var(--space-block);
 
   --breakpoint-xs: 22rem;
+
+  /* A call-to-action arrow nudging forward; set `--nudge-x` negative where it points left. */
+  --animate-nudge: nudge 1.6s var(--brand-ease-out) infinite;
+
+  @keyframes nudge {
+    0%,
+    60%,
+    100% {
+      translate: 0 0;
+    }
+    30% {
+      translate: var(--nudge-x, 0.25rem) 0;
+    }
+  }
 }
 
 @layer base {
@@ -113,6 +127,9 @@
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 2px;
+  }
+  html {
+    scroll-behavior: smooth;
   }
   body {
     @apply bg-background text-foreground antialiased;
