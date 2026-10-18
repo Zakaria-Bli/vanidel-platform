@@ -1,18 +1,21 @@
 'use client'
 
 import { Camera, CircleCheck } from 'lucide-react'
+import Image from 'next/image'
 import { useTranslations } from 'next-intl'
 import {
   startTransition,
   useActionState,
   useEffect,
   useId,
+  useRef,
   useState,
   type ChangeEvent,
   type FormEvent,
   type ReactNode,
 } from 'react'
 
+import chefThumbsUp from '@/assets/brand/photos/vanidel-chef-thumbs-up.png'
 import { trackParticipation } from '@/components/analytics/Tracking'
 import { Button, buttonVariants } from '@/components/ui/button'
 import type { Locale } from '@/i18n/config'
@@ -75,9 +78,18 @@ export function ParticipationForm({
   const [preparing, setPreparing] = useState(false)
   const shown = localError ?? state
 
-  // Conversion for the pixels, if the visitor accepted them: the contest slug only.
+  const confirmation = useRef<HTMLDivElement>(null)
+
+  // Conversion for the pixels, if the visitor accepted them: the contest slug only. The
+  // confirmation replaces a long form, so it is brought into view from the submit button.
   useEffect(() => {
-    if (state.status === 'success') trackParticipation(contestSlug)
+    if (state.status !== 'success') return
+    trackParticipation(contestSlug)
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    confirmation.current?.scrollIntoView({
+      behavior: reduceMotion ? 'auto' : 'smooth',
+      block: 'center',
+    })
   }, [state, contestSlug])
   const busy = pending || preparing
 
@@ -107,16 +119,41 @@ export function ParticipationForm({
 
   if (shown.status === 'success') {
     return (
-      <div role="status" className="flex flex-col items-start gap-3">
-        <CircleCheck aria-hidden className="size-10 text-success" />
-        <h3>{t('success.title')}</h3>
-        <p>{t('success.body')}</p>
-        {share && (
-          <div className="mt-2 flex flex-col gap-3">
-            <p className="text-label">{tShare('afterParticipation')}</p>
-            {share}
-          </div>
-        )}
+      <div
+        ref={confirmation}
+        role="status"
+        className="flex flex-col items-center gap-6 text-center sm:flex-row sm:items-end sm:gap-8 sm:text-start"
+      >
+        {/*
+         * Stands on the card's bottom edge from tablets up. Never mirrored in Arabic: the logo on
+         * his apron would read backwards.
+         */}
+        <div className="relative w-44 shrink-0 sm:-mb-8 sm:w-48">
+          <div
+            aria-hidden
+            className="absolute inset-x-0 bottom-0 aspect-square rounded-full bg-secondary"
+          />
+          <Image
+            src={chefThumbsUp}
+            alt={t('success.chef')}
+            sizes="(min-width: 640px) 192px, 176px"
+            className="relative w-full motion-safe:animate-in motion-safe:duration-500 motion-safe:fade-in motion-safe:zoom-in-90"
+          />
+        </div>
+        <div className="flex flex-col items-center gap-3 sm:items-start sm:pb-2">
+          <p className="flex items-center gap-2 text-label text-success">
+            <CircleCheck aria-hidden className="size-6" />
+            {t('success.badge')}
+          </p>
+          <h3>{t('success.title')}</h3>
+          <p>{t('success.body')}</p>
+          {share && (
+            <div className="mt-3 flex w-full flex-col items-center gap-3 border-t pt-5 sm:items-start">
+              <p className="text-label">{tShare('afterParticipation')}</p>
+              {share}
+            </div>
+          )}
+        </div>
       </div>
     )
   }

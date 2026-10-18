@@ -1,4 +1,4 @@
-import { Clock } from 'lucide-react'
+import { Receipt } from 'lucide-react'
 import { getFormatter, getTranslations } from 'next-intl/server'
 import type { ReactNode } from 'react'
 
@@ -34,7 +34,7 @@ export async function ContestParticipationSection({
           <h2 id="participation-title">{t('formTitle')}</h2>
           {phase === 'open' && (
             <p className="text-muted-foreground">
-              <Clock aria-hidden className="me-1.5 inline size-4 align-[-0.125em]" />
+              <Receipt aria-hidden className="me-1.5 inline size-4 align-[-0.125em]" />
               {t('reassurance')}
             </p>
           )}
