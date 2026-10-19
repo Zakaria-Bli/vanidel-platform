@@ -40,3 +40,14 @@ export function contestVisual(contest: {
   const extension = image.url.split('?')[0].split('.').pop() || 'jpg'
   return { ...image, filename: `${contest.slug}.${extension}` }
 }
+
+/**
+ * The image of a contest's card in the lists: its hero, as on the contest page, else its share
+ * image. Null when it has neither.
+ */
+export function contestCardImage(contest: { heroMedia?: unknown; shareMedia?: unknown }) {
+  const hero = populated(contest.heroMedia)
+  if (hero) return imageSize(hero, 'hero')
+  const share = populated(contest.shareMedia)
+  return share && imageSize(share, 'og')
+}

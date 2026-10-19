@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Link } from '@/i18n/navigation'
-import { contestVisual } from '@/lib/media'
+import { contestCardImage } from '@/lib/media'
 import { cn } from '@/lib/utils'
 import { contestPhase } from '@/modules/contests/domain/phase'
 import type { Contest } from '@/payload-types'
@@ -35,7 +35,7 @@ export async function ContestCard({
   const t = await getTranslations('contests')
   const format = await getFormatter()
   const phase = contestPhase(contest)
-  const visual = contestVisual(contest)
+  const visual = contestCardImage(contest)
   const prize = contest.prizes?.[0]
   const ended = phase === 'closed' || phase === 'archived'
   const action = ended
