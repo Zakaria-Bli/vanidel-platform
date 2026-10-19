@@ -174,7 +174,8 @@
     "copy": "Copier le lien",
     "copied": "Lien copié",
     "afterParticipation": "Invitez vos proches à participer :",
-    "instagramCopied": "Lien copié. Collez-le dans votre story ou un message Instagram."
+    "instagramCopied": "Lien copié. Collez-le dans votre story ou un message Instagram.",
+    "instagramStoryCopied": "Lien copié. Dans votre story, ajoutez le sticker « Lien » et collez-le."
   },
   "preview": {
     "title": "Aperçu",
