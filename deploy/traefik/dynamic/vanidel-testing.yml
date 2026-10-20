@@ -1,0 +1,22 @@
+# Testing environment: the app runs under systemd on the host (docs/operations/DEPLOYMENT.md).
+# Its DNS is on the cPanel account, so its certificate uses the DNS challenge.
+http:
+  routers:
+    vanidel-testing:
+      rule: Host(`vanidel.izakcodes.com`)
+      entryPoints: [websecure]
+      service: vanidel-testing
+      middlewares: [vanidel-testing-hsts]
+      tls:
+        certResolver: letsencrypt-dns
+
+  middlewares:
+    vanidel-testing-hsts:
+      headers:
+        stsSeconds: 31536000
+
+  services:
+    vanidel-testing:
+      loadBalancer:
+        servers:
+          - url: http://127.0.0.1:3000

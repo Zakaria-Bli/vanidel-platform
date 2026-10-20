@@ -1,8 +1,8 @@
 # Deployment
 
-Vanidel runs on one VPS hosted in Algeria (ARCHITECTURE §17): the app as a single Node.js process under systemd, PostgreSQL 17 and a single-node SeaweedFS (S3 API) in Docker containers, and Traefik in front (also in Docker) for HTTPS. Real participant data and receipt photos stay on this server (Law 18-07, and the commitment to Algerian hosting).
+Vanidel runs on one VPS hosted in Algeria (ARCHITECTURE §17): the app as a single Node.js process under systemd, PostgreSQL 17 and a single-node SeaweedFS (S3 API) in Docker containers, and the VPS-wide Traefik in front for HTTPS. Real participant data and receipt photos stay on this server (Law 18-07, and the commitment to Algerian hosting).
 
-This is the **testing environment**. Production (`vanidel.com`) runs fully in Docker behind a VPS-wide Traefik: see [DEPLOYMENT_DOCKER.md](DEPLOYMENT_DOCKER.md). The Compose file for the testing environment's PostgreSQL, SeaweedFS and Traefik lives on its server, and is given in full below.
+This is the **testing environment**. Production (`vanidel.com`) runs fully in Docker on the same VPS: see [DEPLOYMENT_DOCKER.md](DEPLOYMENT_DOCKER.md). Both are served by one Traefik, the compose project in `/opt/traefik` (source: [`deploy/traefik/`](../../deploy/traefik/)). The Compose file for the testing environment's PostgreSQL and SeaweedFS lives on the server, and is given in full below.
 
 Names used below:
 
@@ -63,7 +63,7 @@ sysctl --system
 
 Check with `free -h`: `Swap` shows `4.0Gi`. During a build, `free -h` may show swap in use; it drops again once the build ends. If a build still fails with `JavaScript heap out of memory` or `Killed`, run it while traffic is low, or build on another machine and copy `.next` over.
 
-## 2. PostgreSQL, SeaweedFS and Traefik
+## 2. PostgreSQL and SeaweedFS
 
 As `vanidel`, in `/opt/vanidel/services`:
 
@@ -114,22 +114,9 @@ services:
       - ./s3.json:/etc/seaweedfs/s3.json:ro
     ports:
       - '127.0.0.1:8333:8333'
-
-  # HTTPS entry point (section 4). On the host network so it reaches the app on 127.0.0.1:3000
-  # and sees the real client address.
-  traefik:
-    image: traefik:v3.7.14
-    # cPanel API credentials for the DNS challenge (section 4).
-    env_file:
-      - ./traefik-dns.env
-    restart: unless-stopped
-    network_mode: host
-    volumes:
-      - ./traefik:/etc/traefik:ro
-      - ./data/letsencrypt:/letsencrypt
 ```
 
-Start the database and storage (Traefik comes in section 4), then create the two buckets once:
+Start the database and storage, then create the two buckets once:
 
 ```sh
 docker compose up -d postgres seaweedfs
@@ -228,92 +215,30 @@ journalctl -u vanidel -f
 
 ## 4. Traefik and HTTPS
 
-Traefik terminates HTTPS, gets and renews the Let's Encrypt certificate, and forwards to the app on `127.0.0.1:3000`. It reads two files from `/opt/vanidel/services/traefik`; it does not watch Docker, so it needs no access to the Docker socket.
+The VPS-wide Traefik in `/opt/traefik` terminates HTTPS, gets and renews the Let's Encrypt certificate, and forwards to the app on `127.0.0.1:3000`. It runs on the host network, so it reaches the systemd app on loopback and sees the real client address. Set it up from [`deploy/traefik/README.md`](../../deploy/traefik/README.md); the testing route is its file [`dynamic/vanidel-testing.yml`](../../deploy/traefik/dynamic/vanidel-testing.yml).
 
-The certificate is validated through DNS, not HTTP. The provider's network drops inbound connections from some of the regions Let's Encrypt validates from (from probes: France, Austria, Portugal, Romania and Hong Kong time out; Germany, the UK, the Netherlands, Turkey and Singapore connect), so the HTTP and TLS challenges fail with `During secondary validation: … Timeout during connect`. The DNS challenge needs no inbound connection: Traefik publishes a TXT record `_acme-challenge.vanidel.izakcodes.com` through the cPanel API of the DNS host (nvme-servers.com), and Let's Encrypt reads it from DNS.
+The certificate is validated through DNS, not HTTP. The provider's network drops inbound connections from some of the regions Let's Encrypt validates from (from probes: France, Austria, Portugal, Romania and Hong Kong time out; Germany, the UK, the Netherlands, Turkey and Singapore connect), so the HTTP and TLS challenges fail with `During secondary validation: … Timeout during connect`. The DNS challenge needs no inbound connection: Traefik's `letsencrypt-dns` resolver publishes a TXT record `_acme-challenge.vanidel.izakcodes.com` through the cPanel API of the DNS host (nvme-servers.com), and Let's Encrypt reads it from DNS.
 
-`traefik.yml` (static configuration):
+The cPanel credentials are in `/opt/traefik/dns.env` (mode `600`, template [`dns.env.example`](../../deploy/traefik/dns.env.example)). The token is a cPanel user token: as far as cPanel allows, it acts with the whole account's rights, not only on DNS. Keep it in this file only, never in the repository, and revoke and replace it in cPanel if the server is rebuilt, handed over or possibly compromised.
 
-```yaml
-entryPoints:
-  web:
-    address: ':80'
-    http:
-      redirections:
-        entryPoint:
-          to: websecure
-          scheme: https
-  websecure:
-    address: ':443'
-    # Receipt photos (up to 11 MB) can be slow to upload on a mobile connection; the default
-    # read timeout is 60 s. Traefik sets no request body limit by default.
-    transport:
-      respondingTimeouts:
-        readTimeout: 300s
-    http:
-      tls:
-        certResolver: letsencrypt
-    # No forwardedHeaders settings: Traefik then replaces any client-sent X-Forwarded-For with
-    # the real client address, which the rate limit relies on.
+The certificate is requested on the first start: the log (`cd /opt/traefik && docker compose logs -f traefik`) shows `Validations succeeded; requesting certificates` then `Server responded with a certificate`. Traefik renews it about 30 days before expiry, retrying every day until it succeeds.
 
-providers:
-  file:
-    filename: /etc/traefik/dynamic.yml
-    watch: true
+### Moving from the testing environment's own Traefik
 
-certificatesResolvers:
-  letsencrypt:
-    acme:
-      storage: /letsencrypt/acme.json
-      dnsChallenge:
-        provider: cpanel
-
-log:
-  level: INFO
-accessLog: {}
-```
-
-`dynamic.yml` (routing):
-
-```yaml
-http:
-  routers:
-    vanidel:
-      rule: Host(`vanidel.izakcodes.com`)
-      entryPoints: [websecure]
-      service: vanidel
-      middlewares: [hsts]
-
-  middlewares:
-    hsts:
-      headers:
-        stsSeconds: 31536000
-
-  services:
-    vanidel:
-      loadBalancer:
-        servers:
-          - url: http://127.0.0.1:3000
-```
-
-`/opt/vanidel/services/traefik-dns.env` (mode `600`, owned by `vanidel`):
+Until October 2026 Traefik ran as a `traefik` service in `/opt/vanidel/services/compose.yaml`, configured by `services/traefik/` and `services/traefik-dns.env`. Both bind ports 80 and 443, so the switch is a stop then a start (under a minute of downtime, while the new Traefik gets its certificate). As `vanidel`:
 
 ```sh
-CPANEL_BASE_URL=https://srv-de-2.nvme-servers.com:2083
-CPANEL_USERNAME=...
-# cPanel → Security → Manage API Tokens. Without an expiry date, or renewals stop when it expires.
-CPANEL_TOKEN=...
+/opt/vanidel/backup-config.sh
+docker network create traefik-public
+
+# Set up /opt/traefik (deploy/traefik/README.md), reusing the cPanel credentials.
+cp /opt/vanidel/services/traefik-dns.env /opt/traefik/dns.env && chmod 600 /opt/traefik/dns.env
+
+cd /opt/vanidel/services && docker compose stop traefik && docker compose rm -f traefik
+cd /opt/traefik && docker compose up -d && docker compose logs -f traefik
 ```
 
-The token is a cPanel user token: as far as cPanel allows, it acts with the whole account's rights, not only on DNS. Keep it in this file only, never in the repository, and revoke and replace it in cPanel if the server is rebuilt, handed over or possibly compromised.
-
-```sh
-mkdir -p data/letsencrypt
-docker compose up -d traefik
-docker compose logs -f traefik
-```
-
-The certificate is requested on the first start: the log shows `Validations succeeded; requesting certificates` then `Server responded with a certificate`. Traefik renews it about 30 days before expiry, retrying every day until it succeeds.
+Then delete the `traefik` service from `/opt/vanidel/services/compose.yaml` (as in section 2), and the old `services/traefik/`, `services/traefik-dns.env` and `services/data/letsencrypt/` once the new certificate is served. To go back, stop `/opt/traefik` and start the old service again.
 
 Open `https://vanidel.izakcodes.com/admin`: the first request runs the migrations, and the admin offers to create the first user. Use a strong password.
 
@@ -373,7 +298,7 @@ The build replaces `.next` while the old process still runs, so pages can fail f
 
 ### Server configuration
 
-`/opt/vanidel/backup-config.sh` archives everything needed to rebuild the server's setup: `compose.yaml`, the Traefik files, the environment and identity files (`.env`, `s3.json`, `traefik-dns.env`, `app.env`) and the scripts. The archives contain secrets, so their directory is mode `700`:
+`/opt/vanidel/backup-config.sh` archives everything needed to rebuild the server's setup: `compose.yaml`, the Traefik project, the environment and identity files (`.env`, `s3.json`, `app.env`, Traefik's `.env` and `dns.env`, production's `.env`) and the scripts. Until production is set up in `/opt/vanidel-prod`, leave out its `.env`, or `tar` stops on the missing file. The archives contain secrets, so their directory is mode `700`:
 
 ```sh
 #!/usr/bin/env bash
@@ -381,9 +306,11 @@ set -euo pipefail
 umask 077
 dest=/opt/vanidel/config-backups
 mkdir -p "$dest"
-tar -czf "$dest/config-$(date +%F-%H%M%S).tar.gz" -C /opt/vanidel \
-  services/compose.yaml services/.env services/s3.json services/traefik-dns.env services/traefik \
-  app.env build.sh deploy.sh backup-config.sh
+tar -czf "$dest/config-$(date +%F-%H%M%S).tar.gz" -C / \
+  opt/vanidel/services/compose.yaml opt/vanidel/services/.env opt/vanidel/services/s3.json \
+  opt/vanidel/app.env opt/vanidel/build.sh opt/vanidel/deploy.sh opt/vanidel/backup-config.sh \
+  opt/traefik/compose.yaml opt/traefik/.env opt/traefik/dns.env opt/traefik/dynamic \
+  opt/vanidel-prod/.env
 find "$dest" -name 'config-*.tar.gz' -mtime +30 -delete
 ```
 
@@ -393,7 +320,7 @@ Run it before changing any of these files, and nightly from `vanidel`'s crontab 
 15 2 * * * /opt/vanidel/backup-config.sh
 ```
 
-`acme.json` is not included: it is root-only, and Traefik obtains a new certificate if it is lost.
+`acme.json` and `acme-dns.json` are not included: it is root-only, and Traefik obtains a new certificate if it is lost.
 
 ### Data
 
@@ -430,7 +357,7 @@ Test entries must not mix with real ones. Once the staging check passes, as `van
 /opt/vanidel/backup-config.sh
 cd /opt/vanidel/services
 
-# Only the database and storage: Traefik keeps running, and data/letsencrypt (the certificate) stays.
+# Only the database and storage: Traefik (/opt/traefik) and its certificates are untouched.
 docker compose stop postgres seaweedfs
 # The data folders belong to the containers' root user; delete them through a container.
 docker run --rm -v /opt/vanidel/services/data:/d alpine:3.22 rm -rf /d/postgres /d/seaweedfs

@@ -45,5 +45,6 @@ next-env.d.ts
 /media
 /tickets
 
-# Traefik certificates when the compose project is run from the checkout
+# Traefik certificates and secrets when the compose project is run from the checkout
 /deploy/traefik/letsencrypt/
+/deploy/traefik/dns.env
