@@ -41,6 +41,13 @@ services:
       - --certificatesresolvers.letsencrypt-dns.acme.email=${ACME_EMAIL:?}
       - --certificatesresolvers.letsencrypt-dns.acme.storage=/letsencrypt/acme-dns.json
       - --certificatesresolvers.letsencrypt-dns.acme.dnschallenge.provider=cpanel
+      # The VPS often cannot reach the cPanel zone's nameservers (ns3/ns4.nvme-servers.com), so the
+      # propagation check fails with "authoritative nameservers: … i/o timeout". Skip it and wait a
+      # fixed delay for cPanel to serve the record before Let's Encrypt queries those servers itself.
+      # Public resolvers can't stand in for the check: izakcodes.com caches "not found" for a day.
+      - --certificatesresolvers.letsencrypt-dns.acme.dnschallenge.resolvers=1.1.1.1:53,8.8.8.8:53
+      - --certificatesresolvers.letsencrypt-dns.acme.dnschallenge.propagation.disableanschecks=true
+      - --certificatesresolvers.letsencrypt-dns.acme.dnschallenge.propagation.delaybeforechecks=60s
       # Health endpoint on loopback only.
       - --entrypoints.ping.address=127.0.0.1:8082
       - --entrypoints.ping.http.aliasheadersstrategy=delete
