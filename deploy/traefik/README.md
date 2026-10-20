@@ -62,5 +62,6 @@ Give each router, service and middleware a name unique on the server. Never publ
 
 This VPS's provider drops inbound connections from some of the regions Let's Encrypt validates from, so the HTTP challenge can fail with `During secondary validation: … Timeout during connect` ([DEPLOYMENT.md §4](../../docs/operations/DEPLOYMENT.md#4-traefik-and-https)). The DNS challenge needs no inbound connection:
 
-- Domain DNS on the cPanel account in `dns.env`: use `letsencrypt-dns`.
-- Domain DNS elsewhere: try `letsencrypt`; if it fails as above, add a resolver for that DNS host's [provider](https://doc.traefik.io/traefik/https/acme/#providers) in `compose.yaml`, like `letsencrypt-dns`, with its credentials in another env file.
+- Domain DNS on the cPanel account in `dns.env` (`izakcodes.com`): use `letsencrypt-dns`.
+- Domain DNS elsewhere, without an API Traefik supports (`vanidel.com` at Octenium): still use `letsencrypt-dns`, and delegate the challenge with a CNAME at that DNS host, from `_acme-challenge.<domain>` to a name in the cPanel zone, such as `_acme-challenge.vanidel-com.izakcodes.com`. Traefik follows the CNAME and writes the TXT record there.
+- A DNS host Traefik has a [provider](https://doc.traefik.io/traefik/https/acme/#providers) for: either the CNAME above, or a resolver of its own in `compose.yaml`, like `letsencrypt-dns`, with its credentials in another env file.

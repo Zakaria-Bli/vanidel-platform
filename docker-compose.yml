@@ -37,8 +37,8 @@ services:
       traefik.docker.network: traefik-public
       traefik.http.routers.vanidel.rule: Host(`${APP_DOMAIN:-vanidel.com}`)
       traefik.http.routers.vanidel.entrypoints: websecure
-      # letsencrypt (HTTP challenge) or letsencrypt-dns (cPanel DNS challenge), see deploy/traefik.
-      traefik.http.routers.vanidel.tls.certresolver: ${TLS_CERT_RESOLVER:-letsencrypt}
+      # letsencrypt-dns (cPanel DNS challenge) or letsencrypt (HTTP challenge), see deploy/traefik.
+      traefik.http.routers.vanidel.tls.certresolver: ${TLS_CERT_RESOLVER:-letsencrypt-dns}
       traefik.http.routers.vanidel.middlewares: vanidel-hsts
       traefik.http.middlewares.vanidel-hsts.headers.stsSeconds: '31536000'
       traefik.http.services.vanidel.loadbalancer.server.port: '3000'

@@ -26,10 +26,17 @@ Then point the `A` record of `vanidel.com` at the server (`102.206.41.58`).
 
 ### Certificate for vanidel.com
 
-The provider's network drops some of Let's Encrypt's HTTP validation traffic, which is why the testing domain uses the DNS challenge ([DEPLOYMENT.md §4](DEPLOYMENT.md#4-traefik-and-https)). Choose the resolver with `TLS_CERT_RESOLVER` in production's `.env`:
+The provider's network drops some of Let's Encrypt's HTTP validation traffic, which is why the testing domain uses the DNS challenge ([DEPLOYMENT.md §4](DEPLOYMENT.md#4-traefik-and-https)). `vanidel.com` uses it too, through the same `letsencrypt-dns` resolver, although its DNS is at Octenium and not on that cPanel account: its challenge record is delegated with a CNAME.
 
-- `letsencrypt-dns` if `vanidel.com`'s DNS is on the cPanel account in `/opt/traefik/dns.env`.
-- `letsencrypt` (HTTP challenge) otherwise. If Traefik's log then shows `During secondary validation: … Timeout during connect`, add a DNS resolver for that DNS host ([Traefik README](../../deploy/traefik/README.md#choosing-the-certificate-resolver)).
+Once, in Octenium's DNS management for `vanidel.com`, add:
+
+| Name                          | Type  | Value                                       |
+| ----------------------------- | ----- | ------------------------------------------- |
+| `_acme-challenge.vanidel.com` | CNAME | `_acme-challenge.vanidel-com.izakcodes.com` |
+
+Traefik follows the CNAME and publishes the challenge's TXT record at the target, in the `izakcodes.com` zone it already manages through the cPanel API; Let's Encrypt follows the same CNAME when it checks. No Octenium credentials are needed, and the record stays in place for every renewal. Check it from any machine with `dig +short CNAME _acme-challenge.vanidel.com` before starting the app.
+
+This is the default (`TLS_CERT_RESOLVER=letsencrypt-dns` in production's `.env`). It shares the testing certificate's [known issue](DEPLOYMENT.md#4-traefik-and-https): the cPanel API is reachable only intermittently, which the daily renewal retries absorb, and leftover TXT records (now also `_acme-challenge.vanidel-com`) can be deleted in cPanel's **Zone Editor**. `letsencrypt` (HTTP challenge) remains available if the network issue goes away.
 
 ## 2. The app
 
@@ -53,7 +60,7 @@ Fill in `.env` (template: [`.env.production.example`](../../.env.production.exam
 | Variable               | Value                                                                      |
 | ---------------------- | -------------------------------------------------------------------------- |
 | `APP_DOMAIN`           | `vanidel.com`. Traefik routes it to the app; `SITE_URL` is derived from it |
-| `TLS_CERT_RESOLVER`    | `letsencrypt` or `letsencrypt-dns` ([above](#certificate-for-vanidelcom))  |
+| `TLS_CERT_RESOLVER`    | `letsencrypt-dns` ([above](#certificate-for-vanidelcom))                   |
 | `POSTGRES_PASSWORD`    | `openssl rand -hex 24` (hex only: it goes into the database URL as is)     |
 | `PAYLOAD_SECRET`       | `openssl rand -base64 32`                                                  |
 | `S3_ACCESS_KEY_ID`     | `vanidel-app`                                                              |
