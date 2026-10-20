@@ -57,14 +57,15 @@ cp .env.production.example .env && chmod 600 .env
 
 Fill in `.env` (template: [`.env.production.example`](../../.env.production.example)). Generate every secret anew: never reuse the testing environment's.
 
-| Variable               | Value                                                                      |
-| ---------------------- | -------------------------------------------------------------------------- |
-| `APP_DOMAIN`           | `vanidel.com`. Traefik routes it to the app; `SITE_URL` is derived from it |
-| `TLS_CERT_RESOLVER`    | `letsencrypt-dns` ([above](#certificate-for-vanidelcom))                   |
-| `POSTGRES_PASSWORD`    | `openssl rand -hex 24` (hex only: it goes into the database URL as is)     |
-| `PAYLOAD_SECRET`       | `openssl rand -base64 32`                                                  |
-| `S3_ACCESS_KEY_ID`     | `vanidel-app`                                                              |
-| `S3_SECRET_ACCESS_KEY` | `openssl rand -hex 24`                                                     |
+| Variable               | Value                                                                                                                                              |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `APP_DOMAIN`           | `vanidel.com`. Traefik routes it to the app; `SITE_URL` is derived from it                                                                         |
+| `TLS_CERT_RESOLVER`    | `letsencrypt-dns` ([above](#certificate-for-vanidelcom))                                                                                           |
+| `ALPINE_MIRROR`        | `https://mirrors.edge.kernel.org/alpine`: the VPS cannot reach the default `dl-cdn.alpinelinux.org`, so the image build uses another Alpine mirror |
+| `POSTGRES_PASSWORD`    | `openssl rand -hex 24` (hex only: it goes into the database URL as is)                                                                             |
+| `PAYLOAD_SECRET`       | `openssl rand -base64 32`                                                                                                                          |
+| `S3_ACCESS_KEY_ID`     | `vanidel-app`                                                                                                                                      |
+| `S3_SECRET_ACCESS_KEY` | `openssl rand -hex 24`                                                                                                                             |
 
 The compose file sets the rest (`NODE_ENV`, `DATABASE_URL`, `S3_ENDPOINT`, bucket names). The SeaweedFS identity is written from the two `S3_*` values, and the `seaweedfs-buckets` service creates `vanidel-public` and `vanidel-private` before the app starts.
 

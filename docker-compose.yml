@@ -10,6 +10,8 @@ services:
     build:
       context: .
       target: runner
+      args:
+        ALPINE_MIRROR: ${ALPINE_MIRROR:-https://dl-cdn.alpinelinux.org/alpine}
     image: vanidel-app:latest
     restart: unless-stopped
     # One instance only: the participation rate limit is kept in memory (src/lib/rateLimit.ts).
