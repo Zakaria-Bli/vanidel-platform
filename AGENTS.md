@@ -5,7 +5,7 @@ Vanidel is a Payload CMS 3 + Next.js 16 + PostgreSQL contest platform. Read `doc
 - Contest business logic lives in explicit services under `src/modules/`, not in Payload hooks (see `docs/architecture/ARCHITECTURE.md`).
 - Use the globally installed `payload` skill for Payload CMS work (collections, fields, hooks, access control, Local API, migrations) before relying on memory.
 - Payload collections live in `src/payload/collections/`.
-- When local work needs a supporting service (PostgreSQL, SeaweedFS/S3 storage, etc.), run it in a throwaway Docker container rather than adding Docker files to the repo; the app itself runs with `pnpm dev`.
+- When local work needs a supporting service (PostgreSQL, SeaweedFS/S3 storage, etc.), run it in a throwaway Docker container; the app itself runs with `pnpm dev`. The `Dockerfile`, `docker-compose.yml` and `deploy/` are for production only (`docs/operations/DEPLOYMENT_DOCKER.md`).
 - After schema changes, run `pnpm generate:types`, `pnpm generate:importmap` and `pnpm migrate:create <name>`, and commit the results.
 - Before finishing, run `pnpm lint`, `pnpm format:check`, `pnpm type-check` and `pnpm test`.
 

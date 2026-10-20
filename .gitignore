@@ -32,6 +32,7 @@ yarn-error.log*
 .env*
 !.env.example
 !.env.test.example
+!.env.production.example
 test.env
 
 # vercel
@@ -43,3 +44,7 @@ next-env.d.ts
 
 /media
 /tickets
+
+# Traefik certificates and secrets when the compose project is run from the checkout
+/deploy/traefik/letsencrypt/
+/deploy/traefik/dns.env

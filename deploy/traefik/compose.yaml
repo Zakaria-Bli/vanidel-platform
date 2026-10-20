@@ -1,0 +1,69 @@
+# VPS-wide reverse proxy. Copied to /opt/traefik on the server and run from there as its own
+# compose project. Compose projects join the external `traefik-public` network and declare their
+# routes with `traefik.*` labels (see the app's docker-compose.yml); services outside Docker, such
+# as the systemd testing app, get a file in dynamic/. Setup: README.md.
+name: traefik
+
+services:
+  traefik:
+    image: traefik:v3.7.14
+    restart: unless-stopped
+    # On the host network: Traefik binds 80/443 itself, sees the real client address, and reaches
+    # both the systemd testing app on 127.0.0.1:3000 and the containers on `traefik-public`
+    # (through their address on that network, see providers.docker.network).
+    network_mode: host
+    command:
+      - --entrypoints.web.address=:80
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.websecure.address=:443
+      # Receipt photos (up to 11 MB) can be slow to upload on a mobile connection; the default
+      # read timeout is 60 s. Traefik sets no request body limit by default.
+      - --entrypoints.websecure.transport.respondingtimeouts.readtimeout=300s
+      # Drop headers whose names alias a managed one (X_Forwarded_For for X-Forwarded-For).
+      - --entrypoints.web.http.aliasheadersstrategy=delete
+      - --entrypoints.websecure.http.aliasheadersstrategy=delete
+      # No forwardedHeaders settings on purpose: Traefik then replaces any client-sent
+      # X-Forwarded-For with the real client address, which the app's rate limit relies on.
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.docker.network=traefik-public
+      # Routes to services outside Docker, one YAML file each.
+      - --providers.file.directory=/etc/traefik/dynamic
+      - --providers.file.watch=true
+      # HTTP-01 challenge on port 80.
+      - --certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL:?}
+      - --certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      # DNS-01 challenge through the cPanel API (credentials in dns.env), for domains whose DNS is
+      # on that cPanel. Needs no inbound connection, so it works when the provider's network drops
+      # Let's Encrypt's validation traffic (README.md).
+      - --certificatesresolvers.letsencrypt-dns.acme.email=${ACME_EMAIL:?}
+      - --certificatesresolvers.letsencrypt-dns.acme.storage=/letsencrypt/acme-dns.json
+      - --certificatesresolvers.letsencrypt-dns.acme.dnschallenge.provider=cpanel
+      # Health endpoint on loopback only.
+      - --entrypoints.ping.address=127.0.0.1:8082
+      - --entrypoints.ping.http.aliasheadersstrategy=delete
+      - --ping.entrypoint=ping
+      - --log.level=INFO
+      - --accesslog=true
+    env_file:
+      - ./dns.env
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'traefik',
+          'healthcheck',
+          '--ping',
+          '--ping.entrypoint=ping',
+          '--entrypoints.ping.address=127.0.0.1:8082',
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    volumes:
+      # Read-only: Traefik only watches containers for their labels.
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./dynamic:/etc/traefik/dynamic:ro
+      - ./letsencrypt:/letsencrypt

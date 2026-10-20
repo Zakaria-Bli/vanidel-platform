@@ -19,7 +19,8 @@
 ## Operations
 
 - [`operations/DEPENDENCIES.md`](operations/DEPENDENCIES.md) — dependency exceptions, overrides, ownership, and review policy.
-- [`operations/DEPLOYMENT.md`](operations/DEPLOYMENT.md) — setting up the Algerian VPS, deploying updates, backups, staging check.
+- [`operations/DEPLOYMENT.md`](operations/DEPLOYMENT.md) — the testing environment on the Algerian VPS (app under systemd): setup, deploying updates, backups, staging check.
+- [`operations/DEPLOYMENT_DOCKER.md`](operations/DEPLOYMENT_DOCKER.md) — production (`vanidel.com`) fully in Docker on the same VPS: the app's `docker-compose.yml` and the VPS-wide Traefik in `/opt/traefik` that serves both environments.
 - [`operations/GUIDE_EQUIPE_COMMERCIALE.md`](operations/GUIDE_EQUIPE_COMMERCIALE.md) — handover guide for Vanidel's commercial team, in French: creating, publishing, tracking, drawing and closing a contest.
 
 ## Later
