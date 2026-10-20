@@ -35,7 +35,7 @@ pnpm dev
 
 The app is available at <http://localhost:3000>; Payload admin is at <http://localhost:3000/admin>. In development, Payload pushes schema changes to the database directly.
 
-Run supporting services in throwaway Docker containers instead of installing them or adding Docker files to this repository.
+Run supporting services in throwaway Docker containers instead of installing them. The repository's `Dockerfile` and `docker-compose.yml` are for the production deployment ([docs/operations/DEPLOYMENT_DOCKER.md](docs/operations/DEPLOYMENT_DOCKER.md)), not for local development.
 
 ### Seed data
 

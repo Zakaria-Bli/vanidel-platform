@@ -2,7 +2,7 @@
 
 Vanidel runs on one VPS hosted in Algeria (ARCHITECTURE §17): the app as a single Node.js process under systemd, PostgreSQL 17 and a single-node SeaweedFS (S3 API) in Docker containers, and Traefik in front (also in Docker) for HTTPS. Real participant data and receipt photos stay on this server (Law 18-07, and the commitment to Algerian hosting).
 
-The repository has no Docker files: the Compose file for PostgreSQL, SeaweedFS and Traefik lives on the server, and is given in full below.
+This is the **testing environment**. Production (`vanidel.com`) runs fully in Docker behind a VPS-wide Traefik: see [DEPLOYMENT_DOCKER.md](DEPLOYMENT_DOCKER.md). The Compose file for the testing environment's PostgreSQL, SeaweedFS and Traefik lives on its server, and is given in full below.
 
 Names used below:
 

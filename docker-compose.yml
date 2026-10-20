@@ -1,0 +1,108 @@
+# Production stack: the app (built from the Dockerfile), PostgreSQL and SeaweedFS (S3 API).
+# Traefik runs as its own compose project (deploy/traefik) and reaches the app over the shared
+# `traefik-public` network. Setup: docs/operations/DEPLOYMENT_DOCKER.md.
+#
+# Values come from `.env` next to this file (template: .env.production.example).
+name: vanidel
+
+services:
+  app:
+    build:
+      context: .
+      target: runner
+    image: vanidel-app:latest
+    restart: unless-stopped
+    # One instance only: the participation rate limit is kept in memory (src/lib/rateLimit.ts).
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://vanidel:${POSTGRES_PASSWORD:?}@postgres:5432/vanidel
+      PAYLOAD_SECRET: ${PAYLOAD_SECRET:?}
+      SITE_URL: https://${APP_DOMAIN:-vanidel.com}
+      S3_ENDPOINT: http://seaweedfs:8333
+      S3_REGION: us-east-1
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:?}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:?}
+      S3_BUCKET_PUBLIC: vanidel-public
+      S3_BUCKET_PRIVATE: vanidel-private
+    depends_on:
+      postgres:
+        condition: service_healthy
+      seaweedfs-buckets:
+        condition: service_completed_successfully
+    networks:
+      - default
+      - traefik-public
+    labels:
+      traefik.enable: 'true'
+      traefik.docker.network: traefik-public
+      traefik.http.routers.vanidel.rule: Host(`${APP_DOMAIN:-vanidel.com}`)
+      traefik.http.routers.vanidel.entrypoints: websecure
+      traefik.http.routers.vanidel.tls.certresolver: letsencrypt
+      traefik.http.routers.vanidel.middlewares: vanidel-hsts
+      traefik.http.middlewares.vanidel-hsts.headers.stsSeconds: '31536000'
+      traefik.http.services.vanidel.loadbalancer.server.port: '3000'
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: vanidel
+      POSTGRES_USER: vanidel
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U vanidel -d vanidel']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Master, volume, filer and S3 gateway in one process. The identity file is written from the
+  # environment: only the app's identity exists, so there is no anonymous access.
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.23
+    restart: unless-stopped
+    environment:
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:?}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:?}
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - |
+        cat > /etc/s3.json <<EOF
+        {"identities":[{"name":"vanidel","credentials":[{"accessKey":"$${S3_ACCESS_KEY_ID}","secretKey":"$${S3_SECRET_ACCESS_KEY}"}],"actions":["Admin","Read","List","Tagging","Write"]}]}
+        EOF
+        exec weed server -dir=/data -s3 -s3.config=/etc/s3.json
+    volumes:
+      - seaweedfs-data:/data
+
+  # Creates the two buckets if they are missing, then exits. Runs before every app start.
+  seaweedfs-buckets:
+    image: chrislusf/seaweedfs:4.23
+    restart: 'no'
+    depends_on:
+      - seaweedfs
+    entrypoint: ['/bin/sh', '-c']
+    command:
+      - |
+        for attempt in $$(seq 1 60); do
+          for bucket in vanidel-public vanidel-private; do
+            echo "s3.bucket.create -name $$bucket" | weed shell -master=seaweedfs:9333 >/dev/null 2>&1
+          done
+          buckets=$$(echo 's3.bucket.list' | weed shell -master=seaweedfs:9333 2>/dev/null)
+          if echo "$$buckets" | grep -qw vanidel-public && echo "$$buckets" | grep -qw vanidel-private; then
+            echo 'Buckets ready'
+            exit 0
+          fi
+          sleep 2
+        done
+        echo 'SeaweedFS buckets could not be created' >&2
+        exit 1
+
+volumes:
+  postgres-data:
+  seaweedfs-data:
+
+networks:
+  # Created once on the server (docker network create traefik-public) and shared with Traefik.
+  traefik-public:
+    external: true
