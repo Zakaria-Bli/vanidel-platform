@@ -17,19 +17,24 @@ Owner: the repository's technical maintainer. Review these decisions in dependen
 
 These overrides impose minimum versions on framework/tooling dependencies that can otherwise resolve older releases. They preserve the existing security floors rather than changing direct framework versions.
 
-| Override             | Current consumers and purpose                                                                                | Removal condition                                                                                                |
-| -------------------- | ------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| `dompurify: ^3.4.16` | Monaco/Payload UI's HTML sanitizer; require the 3.x line at or above version 3.4.16.                         | Upstream constraints guarantee the same or a higher floor without the override.                                  |
-| `esbuild: ^0.25.0`   | Drizzle migration tooling, TypeScript loaders, and Vite; keep older transitive constraints on the 0.25 line. | Every upstream consumer resolves a suitable version without the override; verify migration generation and tests. |
-| `undici: ^7.29.1`    | Payload and test tooling's HTTP client; require the 7.x line at or above this floor.                         | Upstream constraints guarantee the same or a higher floor; verify Payload initialization and tests.              |
+| Override              | Current consumers and purpose                                                                                  | Removal condition                                                                                                |
+| --------------------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `body-parser: ^2.4.0` | Express server used by shadcn's MCP SDK; fix GHSA-27r3-jxmh-p828 within Express's compatible 2.x range.        | Upstream constraints guarantee the same or a higher patched floor without the override.                          |
+| `dompurify: ^3.4.17`  | Monaco/Payload UI's HTML sanitizer; fix GHSA-cg2g-xh64-v4q7 and GHSA-mrv2-3pqr-j5jr within 3.x.                | Upstream constraints guarantee the same or a higher patched floor without the override.                          |
+| `esbuild: ^0.25.0`    | Drizzle migration tooling, TypeScript loaders, and Vite; keep older transitive constraints on the 0.25 line.   | Every upstream consumer resolves a suitable version without the override; verify migration generation and tests. |
+| `fast-uri: ^3.1.9`    | Payload/ajv and tooling validators; fix GHSA-w74x-v6f9-j3xg and GHSA-wjr9-j795-jxcr within 3.x.                | Upstream constraints guarantee the same or a higher patched floor without the override.                          |
+| `happy-dom: ^21.0.4`  | Lexical/Payload and Vitest DOM environment; patched in 21.0.4 for GHSA-834v-8h66-3h79.                         | Remove when upstream provides a patched 20.x release or formally supports patched 21.x.                          |
+| `ip-address: ^10.7.4` | shadcn's `socks` and MCP SDK paths; fix GHSA-rxp7-6hxx-x8q5 within 10.x.                                       | Upstream constraints guarantee the same or a higher patched floor without the override.                          |
+| `undici: ^7.30.1`     | Payload and test tooling's HTTP client; fix GHSA-xjj6-f33q-929c, GHSA-4qv8-2p9j-2685, and GHSA-f72v-6w45-q472. | Upstream constraints guarantee the same or a higher patched floor without the override.                          |
+| `zod: ^4.6.7`         | shadcn/MCP SDK validation; the SDK accepts Zod 4, patched for GHSA-mrhx-c7xc-m3w5.                             | Upstream constraints guarantee a patched Zod version without overriding consumers' compatible ranges.            |
 
-Use `pnpm why dompurify esbuild undici` to inspect consumers. When changing an override, run frozen installation from the updated lockfile, lint, formatting, type checking, integration tests, migration generation/drift checks, dependency audit, and a production build. Do not raise major versions solely to silence the audit without checking consumers.
+Use `pnpm why body-parser dompurify esbuild fast-uri happy-dom ip-address undici zod` to inspect consumers. When changing an override, run frozen installation from the updated lockfile, lint, formatting, type checking, integration tests, migration generation/drift checks, dependency audit, and a production build. Review consumers before crossing an upstream major range; validate any such override with the full suite.
 
 ## ESLint 10 compatibility review
 
-Reviewed 18 October 2026 for [Dependabot PR #23](https://github.com/Zakaria-Bli/vanidel-platform/pull/23). Keep `eslint` at the locked `9.39.5` and `@eslint/js` at `9.39.5`; take the independent Prettier `3.9.9 → 3.9.10` patch without the ESLint major upgrade.
+Reviewed 24 October 2026 for [Dependabot PR #45](https://github.com/Zakaria-Bli/vanidel-platform/pull/45), following the earlier review for [PR #23](https://github.com/Zakaria-Bli/vanidel-platform/pull/23). Keep `eslint` and `@eslint/js` at `9.39.5`; the ESLint 10 update is not peer-compatible with the plugins bundled by `eslint-config-next@16.4.2`.
 
-Next.js documents support for ESLint 9 and 10, and Node.js 24 meets ESLint 10's engine requirement. However, the versions bundled by the locked `eslint-config-next@16.4.0` still have these published ESLint peer constraints:
+Next.js documents support for ESLint 9 and 10, and Node.js 24 meets ESLint 10's engine requirement. However, the versions bundled by `eslint-config-next@16.4.2` still have these published ESLint peer constraints:
 
 | Package                  | Locked version | Published ESLint peer range                                      | ESLint 10 accepted? |
 | ------------------------ | -------------- | ---------------------------------------------------------------- | ------------------- |
@@ -37,11 +42,11 @@ Next.js documents support for ESLint 9 and 10, and Node.js 24 meets ESLint 10's 
 | `eslint-plugin-jsx-a11y` | `6.10.2`       | `^3 \|\| ^4 \|\| ^5 \|\| ^6 \|\| ^7 \|\| ^8 \|\| ^9`             | No                  |
 | `eslint-plugin-import`   | `2.32.0`       | `^2 \|\| ^3 \|\| ^4 \|\| ^5 \|\| ^6 \|\| ^7.2.0 \|\| ^8 \|\| ^9` | No                  |
 
-`eslint-config-next` itself, `eslint-plugin-react-hooks@7.1.1`, `typescript-eslint@8.71.1`, and `@eslint/compat@2.1.1` accept ESLint 10. The existing `fixupConfigRules()` wrappers address legacy rule APIs, but do not change the three plugins' declared peer support. `@eslint/js@10.0.1` also requires ESLint `^10.0.0`, so it must not be upgraded independently while ESLint 9 is retained.
+`eslint-config-next@16.4.2` itself, `eslint-plugin-react-hooks@7.1.1`, `typescript-eslint@8.71.1`, and `@eslint/compat@2.1.1` accept ESLint 10. The existing `fixupConfigRules()` wrappers address legacy rule APIs, but do not change the three plugins' declared peer support. `@eslint/js@10.0.1` also requires ESLint `^10.0.0`, so it must not be upgraded independently while ESLint 9 is retained.
 
-Revisit #23 when the dependency chain declares compatible peer ranges. Then review the [ESLint 10 migration guide](https://eslint.org/docs/latest/use/migrate-to-10.0.0), test the effective Next.js/TypeScript rules and autofixes, and rerun the full validation suite. Do not add peer-dependency exceptions, force a framework/plugin update, or weaken lint or audit rules to make this rollup pass.
+Revisit an ESLint 10 upgrade when the dependency chain declares compatible peer ranges. Then review the [ESLint 10 migration guide](https://eslint.org/docs/latest/use/migrate-to-10.0.0), test the effective Next.js/TypeScript rules and autofixes, and rerun the full validation suite. Do not add peer-dependency exceptions, force a framework/plugin update, or weaken lint or audit rules to make this rollup pass.
 
-To reproduce the peer review, query each exact locked version with `pnpm view <package>@<version> peerDependencies --json`. The [Next.js ESLint guide](https://nextjs.org/docs/app/api-reference/config/eslint) documents the bundled-plugin peer warning caveat.
+The rollup updates `eslint-config-next` to `16.4.2`, but retains the same incompatible `eslint-plugin-react@7.37.5`, `eslint-plugin-jsx-a11y@6.10.2`, and `eslint-plugin-import@2.32.0` peer ranges. A non-strict install and passing lint run do not make those declared peers compatible. To reproduce the review, query each exact locked version with `pnpm view <package>@<version> peerDependencies --json`. The [Next.js ESLint guide](https://nextjs.org/docs/app/api-reference/config/eslint) documents the bundled-plugin peer warning caveat.
 
 ## Toolchain conventions
 

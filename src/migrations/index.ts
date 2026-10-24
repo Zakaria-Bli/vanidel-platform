@@ -11,6 +11,7 @@ import * as migration_20261014_110120_campaign_links from './20261014_110120_cam
 import * as migration_20261017_213841_contest_day_dates_consent_versions from './20261017_213841_contest_day_dates_consent_versions';
 import * as migration_20261018_054253_draw_winners_review from './20261018_054253_draw_winners_review';
 import * as migration_20261018_232017_draw_pool_scope from './20261018_232017_draw_pool_scope';
+import * as migration_20261024_170449_add_localized_parent_indexes from './20261024_170449_add_localized_parent_indexes';
 
 export const migrations = [
   {
@@ -76,6 +77,11 @@ export const migrations = [
   {
     up: migration_20261018_232017_draw_pool_scope.up,
     down: migration_20261018_232017_draw_pool_scope.down,
-    name: '20261018_232017_draw_pool_scope'
+    name: '20261018_232017_draw_pool_scope',
+  },
+  {
+    up: migration_20261024_170449_add_localized_parent_indexes.up,
+    down: migration_20261024_170449_add_localized_parent_indexes.down,
+    name: '20261024_170449_add_localized_parent_indexes'
   },
 ];

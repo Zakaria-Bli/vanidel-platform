@@ -9,6 +9,7 @@ const eslintConfig = defineConfig(
   ...fixupConfigRules(nextVitals),
   ...fixupConfigRules(nextTs),
   globalIgnores([
+    '.claude/worktrees/**',
     '.next/**',
     'out/**',
     'build/**',
