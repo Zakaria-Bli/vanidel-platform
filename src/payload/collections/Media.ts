@@ -12,6 +12,7 @@ export const Media: CollectionConfig = {
   },
   admin: {
     hideAPIURL: true,
+    components: { edit: { SaveButton: '/payload/components/SaveButton#SaveButton' } },
     group: groups.content,
   },
   // Public campaign assets only. Proof-of-purchase images live in the private `tickets` collection.

@@ -28,6 +28,7 @@ export const Users: CollectionConfig = {
   },
   admin: {
     hideAPIURL: true,
+    components: { edit: { SaveButton: '/payload/components/SaveButton#SaveButton' } },
     useAsTitle: 'email',
     group: groups.administration,
     defaultColumns: ['email', 'name', 'role'],

@@ -10,6 +10,7 @@ export const Settings: GlobalConfig = {
   label: label('Paramètres', 'Settings', 'الإعدادات'),
   admin: {
     hideAPIURL: true,
+    components: { elements: { SaveButton: '/payload/components/SaveButton#SaveButton' } },
     group: groups.administration,
   },
   access: {
