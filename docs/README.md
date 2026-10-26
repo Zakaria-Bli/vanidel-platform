@@ -6,6 +6,12 @@
 - [`product/SCOPE.md`](product/SCOPE.md) — included/excluded scope and staged delivery boundary.
 - [`product/USER_FLOWS.md`](product/USER_FLOWS.md) — participant, participation review, draw, publication, and administration flows.
 
+## User Manual & Quality Assurance
+
+- [`user-manual/README.md`](user-manual/README.md) — complete user manual with step-by-step walkthroughs and screenshots for participants and staff.
+- [`audit-report.md`](audit-report.md) — comprehensive functional audit report with categorized findings and reproduction steps.
+- [`test-coverage.md`](test-coverage.md) — end-to-end testing coverage matrix across participant and administrative workflows.
+
 ## Architecture
 
 - [`architecture/ARCHITECTURE.md`](architecture/ARCHITECTURE.md) — current system structure.

@@ -67,6 +67,7 @@ export const CampaignLinks: CollectionConfig = {
   },
   admin: {
     hideAPIURL: true,
+    components: { edit: { SaveButton: '/payload/components/SaveButton#SaveButton' } },
     group: groups.contests,
     useAsTitle: 'name',
     defaultColumns: ['name', 'channel', 'contest', 'url'],

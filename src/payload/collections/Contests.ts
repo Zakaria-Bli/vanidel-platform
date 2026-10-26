@@ -263,6 +263,7 @@ export const Contests: CollectionConfig = {
   },
   admin: {
     hideAPIURL: true,
+    components: { edit: { SaveButton: '/payload/components/SaveButton#SaveButton' } },
     useAsTitle: 'title',
     defaultColumns: ['title', 'slug', 'status', 'startAt', 'endAt'],
     group: groups.contests,

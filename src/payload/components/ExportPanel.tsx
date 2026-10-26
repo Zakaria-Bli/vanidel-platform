@@ -1,4 +1,7 @@
+import type { I18nClient } from '@payloadcms/translations'
 import type { Payload } from 'payload'
+
+import { reportMessages } from './reportMessages'
 
 // Download forms above the participations and contacts lists. A plain GET form: the browser
 // downloads the CSV with the staff session cookie, and the endpoints check the role again.
@@ -27,14 +30,16 @@ async function contestOptions(payload: Payload) {
 
 function ContestSelect({
   contests,
+  label,
   allLabel,
 }: {
   contests: { id: number; title: string }[]
+  label: string
   allLabel: string
 }) {
   return (
     <label style={style.field}>
-      <span>Concours / Contest</span>
+      <span>{label}</span>
       <select name="contest" defaultValue="">
         <option value="">{allLabel}</option>
         {contests.map((contest) => (
@@ -47,33 +52,37 @@ function ContestSelect({
   )
 }
 
-export async function ParticipationExport({ payload }: { payload: Payload }) {
+type ExportProps = { payload: Payload; i18n: I18nClient }
+
+export async function ParticipationExport({ payload, i18n }: ExportProps) {
+  const t = reportMessages(i18n.language).exports
   const contests = await contestOptions(payload)
   return (
     <form method="get" action="/api/participations/export" style={style.form}>
-      <ContestSelect contests={contests} allLabel="Tous / All" />
+      <ContestSelect contests={contests} label={t.contest} allLabel={t.all} />
       <label style={style.field}>
-        <span>Du / From</span>
+        <span>{t.from}</span>
         <input type="date" name="from" />
       </label>
       <label style={style.field}>
-        <span>Au / To</span>
+        <span>{t.to}</span>
         <input type="date" name="to" />
       </label>
       <button type="submit" className="btn btn--style-secondary btn--size-small">
-        Exporter (CSV) / Export
+        {t.participations}
       </button>
     </form>
   )
 }
 
-export async function MarketingContactsExport({ payload }: { payload: Payload }) {
+export async function MarketingContactsExport({ payload, i18n }: ExportProps) {
+  const t = reportMessages(i18n.language).exports
   const contests = await contestOptions(payload)
   return (
     <form method="get" action="/api/contacts/export-marketing" style={style.form}>
-      <ContestSelect contests={contests} allLabel="Tous les contacts / All contacts" />
+      <ContestSelect contests={contests} label={t.contest} allLabel={t.allContacts} />
       <button type="submit" className="btn btn--style-secondary btn--size-small">
-        Exporter les contacts marketing (CSV) / Export marketing contacts
+        {t.marketingContacts}
       </button>
     </form>
   )

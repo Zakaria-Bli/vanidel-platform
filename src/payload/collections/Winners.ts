@@ -51,6 +51,7 @@ export const Winners: CollectionConfig = {
   },
   admin: {
     hideAPIURL: true,
+    components: { edit: { SaveButton: '/payload/components/SaveButton#SaveButton' } },
     group: groups.contests,
     useAsTitle: 'publicDisplayName',
     defaultColumns: ['publicDisplayName', 'draw', 'published', 'voided'],
