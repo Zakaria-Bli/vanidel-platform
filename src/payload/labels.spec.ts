@@ -11,6 +11,7 @@ import { Participations } from './collections/Participations'
 import { Tickets } from './collections/Tickets'
 import { Users } from './collections/Users'
 import { Winners } from './collections/Winners'
+import { translatedLabels } from './fields/label'
 import { Settings } from './globals/Settings'
 
 const languages = ['fr', 'en', 'ar'] as const
@@ -87,4 +88,36 @@ describe('admin labels', () => {
       expect(untranslated).toEqual([])
     },
   )
+})
+
+describe('translatedLabels', () => {
+  const resolve = (value: unknown, language: string) =>
+    (value as (args: { i18n: { language: string } }) => string)({ i18n: { language } })
+
+  /** The first field with this name, inside groups and tabs too. */
+  const find = (fields: Field[], name: string): Field | undefined => {
+    for (const field of fields) {
+      if ('name' in field && field.name === name) return field
+      const nested =
+        field.type === 'tabs'
+          ? find(
+              field.tabs.flatMap((tab) => tab.fields),
+              name,
+            )
+          : 'fields' in field
+            ? find(field.fields, name)
+            : undefined
+      if (nested) return nested
+    }
+  }
+
+  it('gives Payload labels it can print as they are, in the admin language', () => {
+    const contests = translatedLabels(Contests)
+    expect(resolve(contests.labels?.singular, 'ar')).toBe('المسابقة')
+    // Unknown languages fall back to French, the default.
+    expect(resolve(contests.labels?.singular, 'de')).toBe('Concours')
+
+    const title = find(contests.fields, 'title')
+    expect(resolve(title && 'label' in title && title.label, 'en')).toBe('Title')
+  })
 })

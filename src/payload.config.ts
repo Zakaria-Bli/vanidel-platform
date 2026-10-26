@@ -22,6 +22,7 @@ import { Participations } from './payload/collections/Participations'
 import { Tickets } from './payload/collections/Tickets'
 import { Users } from './payload/collections/Users'
 import { Winners } from './payload/collections/Winners'
+import { translatedLabels } from './payload/fields/label'
 import { Settings } from './payload/globals/Settings'
 
 const filename = fileURLToPath(import.meta.url)
@@ -75,13 +76,31 @@ export default buildConfig({
     ConsentRecords,
     Media,
     Users,
-  ],
+  ].map(translatedLabels),
   globals: [Settings],
   editor: lexicalEditor(),
   // Admin interface languages; each admin user picks theirs in their account settings.
   i18n: {
     supportedLanguages: { fr, ar, en },
     fallbackLanguage: 'fr',
+    // Payload's French writes « Créer un(e) nouveau ou nouvelle Concours » or « Descendant(e) »:
+    // wordings that read well whatever the gender of the name they go with.
+    translations: {
+      fr: {
+        general: {
+          ascending: 'Croissant',
+          descending: 'Décroissant',
+          createNew: 'Créer',
+          createNewLabel: 'Créer : {{label}}',
+          creatingNewLabel: 'Création : {{label}}',
+        },
+        fields: {
+          addNew: 'Ajouter',
+          addNewLabel: 'Ajouter : {{label}}',
+          uploadNewLabel: 'Téléverser : {{label}}',
+        },
+      },
+    },
   },
   // Editorial content (contest titles, descriptions, …) is localized with `localized: true`
   // fields; interface strings live in src/i18n/messages. Both follow src/i18n/config.ts.
