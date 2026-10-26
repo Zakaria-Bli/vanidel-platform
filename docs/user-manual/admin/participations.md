@@ -52,7 +52,7 @@ _Figure 5.18: Immutable participation inspection card._
 
 Above the participations table, the **Export Bar** allows staff to download submissions for accounting or logistics:
 
-1. Select a specific **Concours** or leave on _"Tous / All"_.
-2. (Optional) Define a **Du / From** and **Au / To** date range in `YYYY-MM-DD` format.
-3. Click **Exporter (CSV) / Export**.
+1. Select a specific **Concours** or leave on _"Tous"_.
+2. (Optional) Define a **Du** (_From_) and **Au** (_To_) date range in `YYYY-MM-DD` format.
+3. Click **Exporter les participations (CSV)**.
 4. The browser downloads a clean CSV file (`participations-{contest}-{date}.csv`) containing normalized phone numbers, submission timestamps, wilaya codes, channel parameters, and receipt filenames.

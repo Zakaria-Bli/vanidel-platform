@@ -24,13 +24,13 @@ A comprehensive functional audit and end-to-end workflow verification of the Van
 
 |     ID      | Title                                                                        | Severity |        Category        |        Status         |
 | :---------: | :--------------------------------------------------------------------------- | :------: | :--------------------: | :-------------------: |
-| **BUG-001** | Sort Buttons in Table Headers Display `[object Object]` in ARIA Labels       |   Low    | UI/UX / Accessibility  |   Confirmed Defect    |
-| **BUG-002** | Awkward Phrasing and `[object Object]` in French Admin Action Buttons        |   Low    |  UI/UX / Localization  |   Confirmed Defect    |
+| **BUG-001** | Sort Buttons in Table Headers Display `[object Object]` in ARIA Labels       |   Low    | UI/UX / Accessibility  |         Fixed         |
+| **BUG-002** | Awkward Phrasing and `[object Object]` in French Admin Action Buttons        |   Low    |  UI/UX / Localization  |         Fixed         |
 | **BUG-003** | Public Participation Success State Stale on Browser Back/Anchor Navigation   |  Medium  | Usability / Navigation |   Confirmed Defect    |
 | **BUG-004** | Missing In-Page Lightbox for Receipt Inspection in Winner Verification       |  Medium  |   UI/UX / Usability    | Usability Improvement |
 | **BUG-005** | Persistent Staff Preview Mode Cookie Retains Preview Banner on Direct Visits |   Low    | Functional / Usability |   Confirmed Defect    |
-| **BUG-006** | Inconsistent Bilingual Slash Labels on Administrative Export Panels          |   Low    |  UI/UX / Localization  |   Confirmed Defect    |
-| **BUG-007** | Disabled Save Button Lacks Explanatory Tooltip in Contest Editor             |   Low    |   UI/UX / Usability    | Usability Improvement |
+| **BUG-006** | Inconsistent Bilingual Slash Labels on Administrative Export Panels          |   Low    |  UI/UX / Localization  |         Fixed         |
+| **BUG-007** | Disabled Save Button Lacks Explanatory Tooltip in Contest Editor             |   Low    |   UI/UX / Usability    |         Fixed         |
 
 ---
 
