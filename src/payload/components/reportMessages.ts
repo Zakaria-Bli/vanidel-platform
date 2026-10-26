@@ -1,9 +1,19 @@
-// Admin texts of the campaign link field and the contest report, in each admin language.
+// Admin texts of the campaign link field, the contest report and the export forms, in each admin
+// language.
 
 type Language = 'fr' | 'en' | 'ar'
 
 const messages = {
   fr: {
+    exports: {
+      contest: 'Concours',
+      all: 'Tous',
+      allContacts: 'Tous les contacts',
+      from: 'Du',
+      to: 'Au',
+      participations: 'Exporter les participations (CSV)',
+      marketingContacts: 'Exporter les contacts marketing (CSV)',
+    },
     link: {
       saveFirst: 'Enregistrez le lien pour obtenir son adresse et son QR code.',
       copy: 'Copier le lien',
@@ -41,6 +51,15 @@ const messages = {
     },
   },
   en: {
+    exports: {
+      contest: 'Contest',
+      all: 'All',
+      allContacts: 'All contacts',
+      from: 'From',
+      to: 'To',
+      participations: 'Export participations (CSV)',
+      marketingContacts: 'Export marketing contacts (CSV)',
+    },
     link: {
       saveFirst: 'Save the link to get its address and QR code.',
       copy: 'Copy link',
@@ -77,6 +96,15 @@ const messages = {
     },
   },
   ar: {
+    exports: {
+      contest: 'المسابقة',
+      all: 'الكل',
+      allContacts: 'كل جهات الاتصال',
+      from: 'من',
+      to: 'إلى',
+      participations: 'تصدير المشاركات (CSV)',
+      marketingContacts: 'تصدير جهات الاتصال التسويقية (CSV)',
+    },
     link: {
       saveFirst: 'احفظ الرابط للحصول على عنوانه ورمز QR الخاص به.',
       copy: 'نسخ الرابط',
