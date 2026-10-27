@@ -108,7 +108,8 @@ services:
   seaweedfs:
     image: chrislusf/seaweedfs:4.23
     restart: unless-stopped
-    command: server -dir=/data -s3 -s3.config=/etc/seaweedfs/s3.json
+    # 1 GB volumes and an explicit count: the defaults leave a small disk without room for both buckets.
+    command: server -dir=/data -master.volumeSizeLimitMB=1024 -volume.max=100 -s3 -s3.config=/etc/seaweedfs/s3.json
     volumes:
       - ./data/seaweedfs:/data
       - ./s3.json:/etc/seaweedfs/s3.json:ro
