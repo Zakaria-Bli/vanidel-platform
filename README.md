@@ -51,7 +51,7 @@ Without S3 settings, uploads stay on local disk: campaign media in `media/` and 
 
 ```sh
 docker run -d --rm --name vanidel-seaweedfs -p 127.0.0.1:8333:8333 \
-  chrislusf/seaweedfs:4.23 server -dir=/data -s3
+  chrislusf/seaweedfs:4.23 server -dir=/data -master.volumeSizeLimitMB=1024 -volume.max=100 -s3
 # Wait a few seconds for the S3 gateway, then:
 for bucket in vanidel-public vanidel-private; do
   docker exec vanidel-seaweedfs sh -c "echo 's3.bucket.create -name $bucket' | weed shell"

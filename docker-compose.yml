@@ -62,6 +62,10 @@ services:
 
   # Master, volume, filer and S3 gateway in one process. The identity file is written from the
   # environment: only the app's identity exists, so there is no anonymous access.
+  # Volumes are capped at 1 GB and their count set explicitly. With the defaults (30 GB volumes,
+  # count = free disk / 30 GB) a small VPS gets almost no volume slots: the first bucket takes
+  # them and uploads to the second fail with "No writable volumes and no free volumes left".
+  # Volume files grow as they fill, so the count only bounds total storage, at 100 GB.
   seaweedfs:
     image: chrislusf/seaweedfs:4.23
     restart: unless-stopped
@@ -74,7 +78,7 @@ services:
         cat > /etc/s3.json <<EOF
         {"identities":[{"name":"vanidel","credentials":[{"accessKey":"$${S3_ACCESS_KEY_ID}","secretKey":"$${S3_SECRET_ACCESS_KEY}"}],"actions":["Admin","Read","List","Tagging","Write"]}]}
         EOF
-        exec weed server -dir=/data -s3 -s3.config=/etc/s3.json
+        exec weed server -dir=/data -master.volumeSizeLimitMB=1024 -volume.max=100 -s3 -s3.config=/etc/s3.json
     volumes:
       - seaweedfs-data:/data
 
