@@ -56,9 +56,9 @@ The campaign landing page includes the following structured sections:
 2. **Visual Showcase**: Full-width high-definition product visual (_Visuel principal_) showing qualifying products.
 3. **Key Information Matrix (**L’essentiel**)**:
    - **Période**: Start and end dates.
-   - **Tirage**: Draw cadence (e.g., _"Chaque semaine · 1 gagnant"_).
+   - **Tirage**: Number of draws, winners per draw and cadence (e.g., _"6 tirages, 25 gagnants chaque semaine"_).
    - **Lots**: Total number of prizes up for grabs (e.g., _"4 lots à gagner"_).
-   - **Participation**: Requirements and phone entry constraints (e.g., _"1 participation par numéro et par tirage"_).
+   - **Participation**: Entry requirement (_"Ticket de caisse obligatoire"_).
 4. **Description**: Promotional narrative introducing the campaign and brand context.
 5. **How to Participate (**Comment participer**)**: Numbered, sequential steps guiding the consumer from buying the product and retaining their receipt to taking a clear photo.
 6. **Prizes Showcase (**Lots à gagner**)**: Visual cards detailing prize descriptions and quantities.

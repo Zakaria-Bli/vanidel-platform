@@ -76,11 +76,10 @@
       "draw": "السحب",
       "prizes": "الجوائز",
       "entry": "المشاركة",
-      "drawValue": "{days, plural, =1 {كل يوم} =2 {كل يومين} =7 {كل أسبوع} few {كل # أيام} many {كل # يومًا} other {كل # يوم}} · {winners, plural, =1 {فائز واحد} =2 {فائزان} few {# فائزين} many {# فائزًا} other {# فائز}}",
+      "drawValue": "{draws, plural, =1 {سحب واحد} =2 {سحبان} few {# سحوبات} many {# سحبًا} other {# سحب}}، {winners, plural, =1 {فائز واحد} =2 {فائزان} few {# فائزين} many {# فائزًا} other {# فائز}} {days, plural, =1 {كل يوم} =2 {كل يومين} =7 {كل أسبوع} few {كل # أيام} many {كل # يومًا} other {كل # يوم}}",
       "drawPoolSinceStart": "من بين كل المشاركات منذ البداية",
       "prizesValue": "{count, plural, =1 {جائزة واحدة} =2 {جائزتان} few {# جوائز} many {# جائزة} other {# جائزة}}",
-      "entryValue": "صورة تذكرة الشراء",
-      "entryLimit": "{limit, plural, =1 {مشاركة واحدة} =2 {مشاركتان} few {# مشاركات} many {# مشاركة} other {# مشاركة}} لكل رقم في كل سحب"
+      "entryValue": "تذكرة الشراء إلزامية"
     },
     "regulationShort": "نظام المسابقة (PDF)",
     "opensButton": "تفتح في {date}",
@@ -107,7 +106,7 @@
   "participation": {
     "optional": "(اختياري)",
     "consentsLegend": "الموافقات",
-    "readRules": "قراءة النظام",
+    "readRules": "قراءة شروط وأحكام المسابقة",
     "submit": "إرسال مشاركتي",
     "sending": "جارٍ الإرسال…",
     "fields": {
@@ -121,7 +120,7 @@
     },
     "success": {
       "title": "تم تسجيل مشاركتك!",
-      "body": "شكرًا وحظًا موفقًا. احتفظ بتذكرة الشراء: ستُطلب منك إذا تم اختيارك في السحب.",
+      "body": "شكرًا وحظًا موفقًا. احتفظ بتذكرة الشراء: ستطلب منك في حالة فوزك في السحب.",
       "badge": "تم الإرسال",
       "chef": "شيف Vanidel يرفع إبهامه"
     },
@@ -166,6 +165,7 @@
     "notYetAvailable": "سيتوفر هذا النص قريبًا.",
     "legalNav": "معلومات قانونية",
     "followUs": "تابعوا Vanidel",
+    "consumerContact": "خدمة المستهلك: <number></number>",
     "copyright": "© {year} Vanidel. جميع الحقوق محفوظة."
   },
   "share": {
