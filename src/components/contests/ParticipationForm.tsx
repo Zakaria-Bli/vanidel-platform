@@ -213,7 +213,7 @@ export function ParticipationForm({
           inputMode="tel"
           autoComplete="tel"
           dir="ltr"
-          placeholder="05 55 12 34 56"
+          placeholder="06 xx xx xx xx"
           required
         />
         {error(fields.phone)}

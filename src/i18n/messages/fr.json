@@ -76,11 +76,10 @@
       "draw": "Tirage",
       "prizes": "Lots",
       "entry": "Participation",
-      "drawValue": "{days, plural, =1 {Chaque jour} =7 {Chaque semaine} other {Tous les # jours}} · {winners, plural, =1 {1 gagnant} other {# gagnants}}",
+      "drawValue": "{draws, plural, =1 {1 tirage} other {# tirages}}, {winners, plural, =1 {1 gagnant} other {# gagnants}} {days, plural, =1 {chaque jour} =7 {chaque semaine} other {tous les # jours}}",
       "drawPoolSinceStart": "Parmi toutes les participations depuis le début",
       "prizesValue": "{count, plural, =1 {1 lot à gagner} other {# lots à gagner}}",
-      "entryValue": "Une photo du ticket de caisse",
-      "entryLimit": "{limit, plural, =1 {1 participation} other {# participations}} par numéro et par tirage"
+      "entryValue": "Ticket de caisse obligatoire"
     },
     "regulationShort": "Règlement (PDF)",
     "opensButton": "Ouvre le {date}",
@@ -107,7 +106,7 @@
   "participation": {
     "optional": "(facultatif)",
     "consentsLegend": "Consentements",
-    "readRules": "Lire le règlement",
+    "readRules": "Lire le règlement du concours",
     "submit": "Envoyer ma participation",
     "sending": "Envoi en cours…",
     "fields": {
@@ -166,6 +165,7 @@
     "notYetAvailable": "Ce texte sera bientôt disponible.",
     "legalNav": "Informations légales",
     "followUs": "Suivez Vanidel",
+    "consumerContact": "Contact consommateur : <number></number>",
     "copyright": "© {year} Vanidel. Tous droits réservés."
   },
   "share": {

@@ -2,6 +2,7 @@ import { CalendarDays, Gift, Receipt, Trophy, type LucideIcon } from 'lucide-rea
 import { getTranslations } from 'next-intl/server'
 import type { ReactNode } from 'react'
 
+import { drawPeriodsOf } from '@/modules/contests/domain/drawPeriod'
 import type { Contest } from '@/payload-types'
 
 import { ContestDates } from './ContestDates'
@@ -22,6 +23,7 @@ export async function ContestKeyFacts({ contest }: { contest: Contest }) {
         </Fact>
         <Fact icon={Trophy} label={t('draw')}>
           {t('drawValue', {
+            draws: drawPeriodsOf(contest).length,
             days: contest.draw.periodDays,
             winners: contest.draw.winnersPerDraw,
           })}
@@ -38,9 +40,6 @@ export async function ContestKeyFacts({ contest }: { contest: Contest }) {
         )}
         <Fact icon={Receipt} label={t('entry')}>
           {t('entryValue')}
-          <span className="block text-small font-normal text-muted-foreground">
-            {t('entryLimit', { limit: contest.entryLimitPerPhone })}
-          </span>
         </Fact>
       </dl>
     </section>
