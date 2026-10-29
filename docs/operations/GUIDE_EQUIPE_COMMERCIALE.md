@@ -70,7 +70,8 @@ Les textes se saisissent une langue à la fois : changez de langue avec **Param�
 
 - **Participations › Participations** : la liste, filtrable par concours, période, wilaya et canal. Cliquez sur la miniature du ticket pour voir la photo entière.
 - **Exporter (CSV)**, au-dessus de la liste : par concours et par dates. Le fichier s’ouvre dans Excel.
-- Une participation n’est jamais modifiée ni supprimée. Un ticket refusé se traite au moment du tirage (section 7).
+- Une participation n’est jamais modifiée. Une participation non conforme se **supprime** : cochez-la dans la liste (ou ouvrez-la), puis **Supprimer**. Elle part dans la **Corbeille** : elle disparaît de la liste, des chiffres, des exports et des tirages. En cas d’erreur, demandez à l’administrateur de la **restaurer** ; lui seul peut restaurer ou supprimer définitivement.
+- Une participation déjà tirée au sort ne peut pas être supprimée : un gagnant refusé se traite par un nouveau tirage (section 7).
 
 ## 7. Tirages et gagnants
 

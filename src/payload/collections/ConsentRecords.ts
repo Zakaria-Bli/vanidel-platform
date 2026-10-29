@@ -47,11 +47,12 @@ export const ConsentRecords: CollectionConfig = {
       required: true,
     },
     {
+      // Set by the participation service on every record. Empty once an admin deletes the
+      // participation for good: the consent decision itself stays on record for the contact.
       name: 'participation',
       label: label('Participation', 'Participation', 'المشاركة'),
       type: 'relationship',
       relationTo: 'participations',
-      required: true,
     },
     {
       name: 'type',

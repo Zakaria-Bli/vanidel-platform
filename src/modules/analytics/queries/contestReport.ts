@@ -53,7 +53,7 @@ export async function contestReport(
   const [totals, channels, wilayas, periods, draws, links, optIns] = await Promise.all([
     db.execute<{ participations: string; unique_phones: string }>(sql`
       SELECT count(*) AS participations, count(DISTINCT contact_id) AS unique_phones
-      FROM participations WHERE contest_id = ${contestId}
+      FROM participations WHERE contest_id = ${contestId} AND deleted_at IS NULL
     `),
     db.execute<{
       source: string | null
@@ -65,17 +65,17 @@ export async function contestReport(
       SELECT NULLIF(source, '') AS source, NULLIF(utm_medium, '') AS medium,
              NULLIF(utm_content, '') AS content,
              count(*) AS participations, count(DISTINCT contact_id) AS unique_phones
-      FROM participations WHERE contest_id = ${contestId}
+      FROM participations WHERE contest_id = ${contestId} AND deleted_at IS NULL
       GROUP BY 1, 2, 3
     `),
     db.execute<{ code: string | null; participations: string }>(sql`
       SELECT NULLIF(wilaya, '') AS code, count(*) AS participations
-      FROM participations WHERE contest_id = ${contestId}
+      FROM participations WHERE contest_id = ${contestId} AND deleted_at IS NULL
       GROUP BY 1 ORDER BY 2 DESC, 1
     `),
     db.execute<{ period_start: string | Date; participations: string }>(sql`
       SELECT period_start, count(*) AS participations
-      FROM participations WHERE contest_id = ${contestId}
+      FROM participations WHERE contest_id = ${contestId} AND deleted_at IS NULL
       GROUP BY 1 ORDER BY 1
     `),
     db.execute<Record<'draws' | 'redraws' | 'winners' | 'published' | 'voided', string>>(sql`
