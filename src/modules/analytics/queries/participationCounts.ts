@@ -53,7 +53,7 @@ export async function participationCounts(
            count(*) FILTER (WHERE submitted_at >= ${startOfToday.toISOString()}) AS today,
            count(DISTINCT contact_id) AS unique_phones
     FROM participations
-    WHERE contest_id IN (${sql.join(
+    WHERE deleted_at IS NULL AND contest_id IN (${sql.join(
       contestIds.map((id) => sql`${id}`),
       sql`, `,
     )})

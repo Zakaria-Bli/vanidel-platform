@@ -226,8 +226,11 @@ The commercial team can:
 - List and filter participations (contest, period, wilaya, source).
 - Open a participation and see its submitted details.
 - Inspect the ticket/proof, mainly to verify a drawn winner.
+- Remove an ineligible participation by moving it to the trash (soft delete).
 
-A problem found on a drawn winner is handled by a re-draw (section 10.3), not by editing or deleting the participation.
+A participation in the trash is left out of participation lists, counts, reports, exports, marketing contacts, the per-phone entry limit and draw pools. Only an admin can restore it or delete it for good. Its receipt stays stored, so the same receipt still cannot enter the contest again. A permanent delete keeps the participant's consent records (detached from the deleted participation) as evidence of their consent decisions.
+
+Participations are never edited. A participation already selected by a draw, voided or not, cannot be moved to the trash or deleted: a problem found on a drawn winner is handled by a re-draw (section 10.3).
 
 ## 10. Weekly draws
 
@@ -411,12 +414,13 @@ Initial roles may be kept intentionally simple.
 - User management.
 - Technical configuration.
 - All contest operations.
+- Restore participations from the trash, or delete them for good.
 
 ### `commercial`
 
 - Manage contests.
 - Manage campaign content.
-- Review participations and tickets.
+- Review participations and tickets, and move ineligible participations to the trash.
 - Run draws and re-draws.
 - Publish winners.
 - Export consented contacts.

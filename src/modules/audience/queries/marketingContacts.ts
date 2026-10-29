@@ -18,6 +18,7 @@ export interface MarketingContact {
  * `marketing` consent record is granted. A later refusal withdraws an earlier consent, and a later
  * consent restores it. Name, email and wilaya come from the contact's latest participation, not
  * from the first-seen values on the contact. Optionally limited to one contest's participants.
+ * Participations in the trash are left out.
  */
 export async function listMarketingContacts(
   payload: Payload,
@@ -27,7 +28,7 @@ export async function listMarketingContacts(
   const inContest =
     contestId === undefined
       ? sql``
-      : sql`AND c.id IN (SELECT contact_id FROM participations WHERE contest_id = ${contestId})`
+      : sql`AND c.id IN (SELECT contact_id FROM participations WHERE contest_id = ${contestId} AND deleted_at IS NULL)`
 
   const { rows } = await db.execute<Record<string, unknown>>(sql`
     WITH latest_consent AS (
@@ -39,6 +40,7 @@ export async function listMarketingContacts(
     latest_participation AS (
       SELECT DISTINCT ON (contact_id) contact_id, name, email, wilaya, submitted_at
       FROM participations
+      WHERE deleted_at IS NULL
       ORDER BY contact_id, submitted_at DESC, id DESC
     )
     SELECT c.id, c.phone_normalized, lp.name, lp.email, lp.wilaya, lp.submitted_at,

@@ -395,8 +395,10 @@ export interface Participation {
   utmMedium?: string | null;
   utmCampaign?: string | null;
   utmContent?: string | null;
+  deletedBy?: (number | null) | User;
   updatedAt: string;
   createdAt: string;
+  deletedAt?: string | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -429,7 +431,7 @@ export interface Contact {
 export interface ConsentRecord {
   id: number;
   contact: number | Contact;
-  participation: number | Participation;
+  participation?: (number | null) | Participation;
   type: 'regulation' | 'dataProcessing' | 'marketing';
   granted: boolean;
   textVersion: string;
@@ -741,8 +743,10 @@ export interface ParticipationsSelect<T extends boolean = true> {
   utmMedium?: T;
   utmCampaign?: T;
   utmContent?: T;
+  deletedBy?: T;
   updatedAt?: T;
   createdAt?: T;
+  deletedAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
