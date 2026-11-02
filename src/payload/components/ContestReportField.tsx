@@ -82,6 +82,7 @@ export function ContestReportField() {
           [
             [t.participations, report.totals.participations],
             [t.uniquePhones, report.totals.uniquePhones],
+            [t.deleted, report.totals.deleted],
             [t.marketingOptIns, report.totals.marketingOptIns],
             [t.winners, report.draws.winners],
           ] as const
@@ -112,6 +113,7 @@ export function ContestReportField() {
               <th style={style.cell}>{t.detail}</th>
               <th style={style.number}>{t.participations}</th>
               <th style={style.number}>{t.uniquePhones}</th>
+              <th style={style.number}>{t.deleted}</th>
               <th style={style.number}>%</th>
             </tr>
           </thead>
@@ -125,6 +127,7 @@ export function ContestReportField() {
                 </td>
                 <td style={style.number}>{row.participations}</td>
                 <td style={style.number}>{row.uniquePhones}</td>
+                <td style={style.number}>{row.deleted}</td>
                 <td style={style.number}>{share(row.participations)}</td>
               </tr>
             ))}
@@ -137,11 +140,20 @@ export function ContestReportField() {
         <section>
           <h3>{t.wilayas}</h3>
           <table style={style.table}>
+            <thead>
+              <tr>
+                <th style={style.cell}>{t.wilaya}</th>
+                <th style={style.number}>{t.participations}</th>
+                <th style={style.number}>{t.deleted}</th>
+                <th style={style.number}>%</th>
+              </tr>
+            </thead>
             <tbody>
               {report.wilayas.map((row) => (
                 <tr key={row.code ?? 'none'}>
                   <td style={style.cell}>{wilayaName(row.code)}</td>
                   <td style={style.number}>{row.participations}</td>
+                  <td style={style.number}>{row.deleted}</td>
                   <td style={style.number}>{share(row.participations)}</td>
                 </tr>
               ))}
@@ -154,6 +166,13 @@ export function ContestReportField() {
         <section>
           <h3>{t.periods}</h3>
           <table style={style.table}>
+            <thead>
+              <tr>
+                <th style={style.cell}>{t.periods}</th>
+                <th style={style.number}>{t.participations}</th>
+                <th style={style.number}>{t.deleted}</th>
+              </tr>
+            </thead>
             <tbody>
               {report.periods.map((row) => (
                 <tr key={row.periodStart}>
@@ -161,6 +180,7 @@ export function ContestReportField() {
                     {t.period} {day.format(new Date(row.periodStart))}
                   </td>
                   <td style={style.number}>{row.participations}</td>
+                  <td style={style.number}>{row.deleted}</td>
                 </tr>
               ))}
             </tbody>

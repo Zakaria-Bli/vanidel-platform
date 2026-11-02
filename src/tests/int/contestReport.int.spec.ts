@@ -85,7 +85,12 @@ describe('contestReport', () => {
     await enter(null, '09')
 
     const report = await contestReport(payload, contest.id)
-    expect(report?.totals).toEqual({ participations: 5, uniquePhones: 4, marketingOptIns: 0 })
+    expect(report?.totals).toEqual({
+      participations: 5,
+      uniquePhones: 4,
+      deleted: 0,
+      marketingOptIns: 0,
+    })
     expect(report?.channels).toEqual([
       {
         source: 'qr',
@@ -94,6 +99,7 @@ describe('contestReport', () => {
         links: ['Emballage 1 kg'],
         participations: 3,
         uniquePhones: 2,
+        deleted: 0,
       },
       {
         source: null,
@@ -102,6 +108,7 @@ describe('contestReport', () => {
         links: [],
         participations: 1,
         uniquePhones: 1,
+        deleted: 0,
       },
       {
         source: 'influencer',
@@ -110,6 +117,7 @@ describe('contestReport', () => {
         links: [sarah.name],
         participations: 1,
         uniquePhones: 1,
+        deleted: 0,
       },
       {
         source: 'tiktok',
@@ -118,14 +126,17 @@ describe('contestReport', () => {
         links: ['TikTok'],
         participations: 0,
         uniquePhones: 0,
+        deleted: 0,
       },
     ])
     expect(report?.wilayas).toEqual([
-      { code: '16', participations: 2 },
-      { code: '31', participations: 2 },
-      { code: '09', participations: 1 },
+      { code: '16', participations: 2, deleted: 0 },
+      { code: '31', participations: 2, deleted: 0 },
+      { code: '09', participations: 1, deleted: 0 },
     ])
-    expect(report?.periods).toEqual([{ periodStart: expect.any(String), participations: 5 }])
+    expect(report?.periods).toEqual([
+      { periodStart: expect.any(String), participations: 5, deleted: 0 },
+    ])
     expect(report?.draws).toEqual({ draws: 0, redraws: 0, winners: 0, published: 0, voided: 0 })
 
     const csv = reportCsv(report!)

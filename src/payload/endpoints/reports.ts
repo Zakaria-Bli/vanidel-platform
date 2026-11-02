@@ -13,8 +13,16 @@ const wilayaName = (code: string | null) => wilayas.find((wilaya) => wilaya.code
 /** The report as one spreadsheet: a section column, then what each row counts. */
 export function reportCsv(report: ContestReport): string {
   const rows: CsvValue[][] = [
-    ['total', 'participations', '', '', report.totals.participations, report.totals.uniquePhones],
-    ['total', 'marketing_opt_ins', '', '', report.totals.marketingOptIns, ''],
+    [
+      'total',
+      'participations',
+      '',
+      '',
+      report.totals.participations,
+      report.totals.uniquePhones,
+      report.totals.deleted,
+    ],
+    ['total', 'marketing_opt_ins', '', '', report.totals.marketingOptIns, '', ''],
     ...report.channels.map((row) => [
       'channel',
       row.source ?? 'direct',
@@ -22,6 +30,7 @@ export function reportCsv(report: ContestReport): string {
       [row.content, ...row.links].filter(Boolean).join(' · '),
       row.participations,
       row.uniquePhones,
+      row.deleted,
     ]),
     ...report.wilayas.map((row) => [
       'wilaya',
@@ -30,6 +39,7 @@ export function reportCsv(report: ContestReport): string {
       '',
       row.participations,
       '',
+      row.deleted,
     ]),
     ...report.periods.map((row) => [
       'period',
@@ -38,10 +48,14 @@ export function reportCsv(report: ContestReport): string {
       '',
       row.participations,
       '',
+      row.deleted,
     ]),
-    ...Object.entries(report.draws).map(([name, value]) => ['draws', name, '', '', value, '']),
+    ...Object.entries(report.draws).map(([name, value]) => ['draws', name, '', '', value, '', '']),
   ]
-  return toCsv(['section', 'key', 'detail', 'link', 'participations', 'unique_phones'], rows)
+  return toCsv(
+    ['section', 'key', 'detail', 'link', 'participations', 'unique_phones', 'deleted'],
+    rows,
+  )
 }
 
 /**
