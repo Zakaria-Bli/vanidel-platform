@@ -15,21 +15,28 @@ export interface ChannelRow {
   links: string[]
   participations: number
   uniquePhones: number
+  /** Of `participations`, those in the trash. */
+  deleted: number
 }
 
 export interface ContestReport {
   contest: { id: number; title: string; slug: string; startAt: string; endAt: string }
+  /**
+   * Every count includes the participations in the trash: removed as not eligible, they were still
+   * submitted. `deleted` says how many of them each count holds.
+   */
   totals: {
     participations: number
     uniquePhones: number
+    deleted: number
     /** Participants whose current marketing consent is granted. */
     marketingOptIns: number
   }
   /** Most entries first; links that brought none yet are listed too, with zero. */
   channels: ChannelRow[]
-  wilayas: { code: string | null; participations: number }[]
+  wilayas: { code: string | null; participations: number; deleted: number }[]
   /** Entries per draw period, by the period start recorded on submission. */
-  periods: { periodStart: string; participations: number }[]
+  periods: { periodStart: string; participations: number; deleted: number }[]
   draws: { draws: number; redraws: number; winners: number; published: number; voided: number }
 }
 
@@ -51,9 +58,10 @@ export async function contestReport(
   const db = (payload.db as unknown as PostgresAdapter).drizzle
 
   const [totals, channels, wilayas, periods, draws, links, optIns] = await Promise.all([
-    db.execute<{ participations: string; unique_phones: string }>(sql`
-      SELECT count(*) AS participations, count(DISTINCT contact_id) AS unique_phones
-      FROM participations WHERE contest_id = ${contestId} AND deleted_at IS NULL
+    db.execute<{ participations: string; unique_phones: string; deleted: string }>(sql`
+      SELECT count(*) AS participations, count(DISTINCT contact_id) AS unique_phones,
+             count(*) FILTER (WHERE deleted_at IS NOT NULL) AS deleted
+      FROM participations WHERE contest_id = ${contestId}
     `),
     db.execute<{
       source: string | null
@@ -61,21 +69,25 @@ export async function contestReport(
       content: string | null
       participations: string
       unique_phones: string
+      deleted: string
     }>(sql`
       SELECT NULLIF(source, '') AS source, NULLIF(utm_medium, '') AS medium,
              NULLIF(utm_content, '') AS content,
-             count(*) AS participations, count(DISTINCT contact_id) AS unique_phones
-      FROM participations WHERE contest_id = ${contestId} AND deleted_at IS NULL
+             count(*) AS participations, count(DISTINCT contact_id) AS unique_phones,
+             count(*) FILTER (WHERE deleted_at IS NOT NULL) AS deleted
+      FROM participations WHERE contest_id = ${contestId}
       GROUP BY 1, 2, 3
     `),
-    db.execute<{ code: string | null; participations: string }>(sql`
-      SELECT NULLIF(wilaya, '') AS code, count(*) AS participations
-      FROM participations WHERE contest_id = ${contestId} AND deleted_at IS NULL
+    db.execute<{ code: string | null; participations: string; deleted: string }>(sql`
+      SELECT NULLIF(wilaya, '') AS code, count(*) AS participations,
+             count(*) FILTER (WHERE deleted_at IS NOT NULL) AS deleted
+      FROM participations WHERE contest_id = ${contestId}
       GROUP BY 1 ORDER BY 2 DESC, 1
     `),
-    db.execute<{ period_start: string | Date; participations: string }>(sql`
-      SELECT period_start, count(*) AS participations
-      FROM participations WHERE contest_id = ${contestId} AND deleted_at IS NULL
+    db.execute<{ period_start: string | Date; participations: string; deleted: string }>(sql`
+      SELECT period_start, count(*) AS participations,
+             count(*) FILTER (WHERE deleted_at IS NOT NULL) AS deleted
+      FROM participations WHERE contest_id = ${contestId}
       GROUP BY 1 ORDER BY 1
     `),
     db.execute<Record<'draws' | 'redraws' | 'winners' | 'published' | 'voided', string>>(sql`
@@ -106,6 +118,7 @@ export async function contestReport(
       links: [],
       participations: Number(row.participations),
       uniquePhones: Number(row.unique_phones),
+      deleted: Number(row.deleted),
     })
   }
   for (const link of links.docs) {
@@ -121,6 +134,7 @@ export async function contestReport(
       links: [],
       participations: 0,
       uniquePhones: 0,
+      deleted: 0,
     }
     row.links.push(link.name)
     rows.set(rowKey, row)
@@ -140,6 +154,7 @@ export async function contestReport(
     totals: {
       participations: count(totals.rows[0]?.participations),
       uniquePhones: count(totals.rows[0]?.unique_phones),
+      deleted: count(totals.rows[0]?.deleted),
       marketingOptIns: optIns.length,
     },
     channels: [...rows.values()].sort(
@@ -151,10 +166,12 @@ export async function contestReport(
     wilayas: wilayas.rows.map((row) => ({
       code: row.code,
       participations: Number(row.participations),
+      deleted: Number(row.deleted),
     })),
     periods: periods.rows.map((row) => ({
       periodStart: new Date(row.period_start).toISOString(),
       participations: Number(row.participations),
+      deleted: Number(row.deleted),
     })),
     draws: {
       draws: count(drawRow?.draws),

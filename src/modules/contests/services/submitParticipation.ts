@@ -211,8 +211,11 @@ export async function submitParticipation(
     })
     if (drawn > 0) throw new ParticipationError('period-drawn')
 
+    // Entries in the trash still count: removing one as not eligible does not give the phone
+    // another try in the period.
     const { totalDocs: entries } = await payload.count({
       collection: 'participations',
+      trash: true,
       where: {
         contest: { equals: contest.id },
         phoneNormalized: { equals: fields.phoneNormalized },

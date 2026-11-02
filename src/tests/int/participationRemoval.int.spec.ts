@@ -6,6 +6,7 @@ import { drawPeriodsOf } from '@/modules/contests/domain/drawPeriod'
 import { executeDraw } from '@/modules/contests/services/draws'
 import { submitParticipation } from '@/modules/contests/services/submitParticipation'
 import { contestReport } from '@/modules/analytics/queries/contestReport'
+import { listMarketingContacts } from '@/modules/audience/queries/marketingContacts'
 import type { Contest, User } from '@/payload-types'
 
 import { createPublishedContest, consentVersionsOf } from './helpers/contests'
@@ -39,12 +40,12 @@ async function pastContest(): Promise<Contest> {
 }
 
 /** Submits one participation, with its consent records, in the contest's first period. */
-async function participate(contest: Contest): Promise<number> {
+async function participate(contest: Contest, phone = newPhone()): Promise<number> {
   const { participationId } = await submitParticipation(payload, {
     contestSlug: contest.slug,
     locale: 'fr',
     name: 'Amine Benali',
-    phone: newPhone(),
+    phone,
     wilaya: '16',
     consents: { regulation: true, dataProcessing: true, marketing: true },
     consentVersions: consentVersionsOf(contest),
@@ -153,7 +154,7 @@ describe('permanent delete', () => {
 })
 
 describe('trash', () => {
-  it('lets a commercial user move a participation to the trash, out of lists and reports', async () => {
+  it('lets a commercial user move a participation to the trash, out of the list', async () => {
     const contest = await pastContest()
     const kept = await participate(contest)
     const id = await participate(contest)
@@ -165,8 +166,30 @@ describe('trash', () => {
     expect(trashed.deletedBy).toBe(commercial.id)
     expect(await isListed(id)).toBe(false)
     expect(await isListed(kept)).toBe(true)
+  })
+
+  it('keeps trashed participations in the report, counted as deleted, and in marketing', async () => {
+    const contest = await pastContest()
+    await participate(contest)
+    await trash(await participate(contest), commercial)
+
     const report = await contestReport(payload, contest.id)
-    expect(report?.totals.participations).toBe(1)
+    expect(report?.totals).toMatchObject({ participations: 2, uniquePhones: 2, deleted: 1 })
+    expect(report?.periods).toEqual([
+      { periodStart: expect.any(String), participations: 2, deleted: 1 },
+    ])
+    expect(report?.wilayas).toEqual([{ code: '16', participations: 2, deleted: 1 }])
+    expect(report?.channels[0]).toMatchObject({ participations: 2, deleted: 1 })
+    expect(report?.totals.marketingOptIns).toBe(2)
+    expect(await listMarketingContacts(payload, { contestId: contest.id })).toHaveLength(2)
+  })
+
+  it('still counts a trashed participation toward the per-phone entry limit', async () => {
+    const contest = await pastContest()
+    const phone = newPhone()
+    await trash(await participate(contest, phone), commercial)
+
+    await expect(participate(contest, phone)).rejects.toMatchObject({ code: 'entry-limit' })
   })
 
   it('leaves trashed participations out of draws', async () => {
