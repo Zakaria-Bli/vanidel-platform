@@ -16,9 +16,11 @@ allowedDeprecatedVersions:
   '@esbuild-kit/esm-loader': 2.6.5
 
 auditConfig:
-  # Accepted braces exception; owner, exposure, and review date: docs/operations/DEPENDENCIES.md.
+  # Accepted exceptions; owner, exposure, and review date: docs/operations/DEPENDENCIES.md.
   ignoreGhsas:
     - GHSA-vfj7-8cjw-p6xm
+    # Accepted minimatch exception, same document.
+    - GHSA-g3hv-75wg-m249
 
 overrides:
   # Security floors for transitive dependencies; rationale and removal criteria in the same document.

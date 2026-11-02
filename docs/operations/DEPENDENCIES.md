@@ -2,7 +2,9 @@
 
 Owner: the repository's technical maintainer. Review these decisions in dependency-update pull requests and at the scheduled date below. Keep `pnpm-workspace.yaml`, the lockfile, and this document consistent.
 
-## Accepted audit exception
+## Accepted audit exceptions
+
+### braces
 
 - Advisory: [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm), stack-exhaustion denial of service in `braces`.
 - Installed version: `3.0.3`.
@@ -12,6 +14,16 @@ Owner: the repository's technical maintainer. Review these decisions in dependen
 - The current application does not pass public request input to brace/glob processing. The relevant consumers process configured filesystem patterns. Some consumers are production dependencies, so this is not classified as development-only exposure.
 - Decision: retain the narrowly scoped GHSA exception while no patch exists. An audit passing with this exception does not mean the tree has no vulnerabilities.
 - Remove the exception once a compatible fixed dependency chain is available. Reassess exposure if request-driven pattern matching is introduced. Verify with `pnpm why braces` and `pnpm audit:dependencies` after updates.
+
+### minimatch
+
+- Advisory: [GHSA-g3hv-75wg-m249](https://github.com/advisories/GHSA-g3hv-75wg-m249), denial of service via globparts amplification in `minimatch`.
+- Installed versions: `3.1.5` and `10.2.6`.
+- Last reviewed: 2 November 2026. Next review: 2 December 2026, or sooner when ESLint and its plugins accept a patched release.
+- The only patched line is `11.x` (from 11.0.1, published 27 October 2026). Version 11 drops the default export that ESLint's plugins call (`eslint-plugin-import` uses `minimatch.default(...)`), so an override would break linting.
+- Dependency paths: ESLint and its plugins (`eslint`, `@eslint/config-array`, `@eslint/eslintrc`, `eslint-plugin-import`, `eslint-plugin-jsx-a11y`, `eslint-plugin-react`, `@typescript-eslint/typescript-estree`) and the shadcn CLI (`shadcn → ts-morph → @ts-morph/common`). All of them match configured file patterns at build or development time. The application never passes request input to `minimatch`.
+- Decision: keep this narrowly scoped GHSA exception until the lint toolchain supports `minimatch` 11.
+- Remove the exception once every consumer resolves `>=11.0.1`. Verify with `pnpm why minimatch` and `pnpm audit:dependencies`.
 
 ## Transitive dependency overrides
 
